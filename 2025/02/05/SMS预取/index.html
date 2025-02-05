@@ -1,0 +1,449 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width">
+<meta name="theme-color" content="#222"><meta name="generator" content="Hexo 7.3.0">
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css" integrity="sha256-dABdfBfUoC8vJUBOwGVdm8L9qlMWaHTIfXt+7GnZCIo=" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/3.1.1/animate.min.css" integrity="sha256-PR7ttpcvz8qrF57fur/yAx1qXMFJeJFiA6pSzWi0OIE=" crossorigin="anonymous">
+
+<script class="next-config" data-name="main" type="application/json">{"hostname":"example.com","root":"/","images":"/images","scheme":"Gemini","darkmode":false,"version":"8.22.0","exturl":false,"sidebar":{"position":"left","width_expanded":320,"width_dual_column":240,"display":"post","padding":18,"offset":12},"hljswrap":true,"copycode":{"enable":true,"style":"flat"},"fold":{"enable":true,"height":500},"bookmark":{"enable":false,"color":"#222","save":"auto"},"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"stickytabs":false,"motion":{"enable":true,"async":false,"duration":200,"transition":{"menu_item":"fadeInDown","post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"i18n":{"placeholder":"搜索...","empty":"没有找到任何搜索结果：${query}","hits_time":"找到 ${hits} 个搜索结果（用时 ${time} 毫秒）","hits":"找到 ${hits} 个搜索结果"}}</script><script src="/js/config.js"></script>
+
+    <meta name="description" content="摘要识别编码相关的空间访问模式，然后将这些块预取到Cache 介绍摘要识别编码相关的空间访问模式，然后将这些块预取到Cache 介绍首先得出结论：增加并行性和隐藏访问延迟才是提高服务器性能的关键，商业程序使用重复布局和访问模式的数据结构，例如数据块缓存池页面，或者网络数据包头。当程序访问数据集，访问数据的偏移会出现重复模式，但这些访问通常不连续，并且stride不一，我们使用空间相关性而不思空间局">
+<meta property="og:type" content="article">
+<meta property="og:title" content="SMS预取">
+<meta property="og:url" content="http://example.com/2025/02/05/SMS%E9%A2%84%E5%8F%96/index.html">
+<meta property="og:site_name" content="GB&#39;s Blog">
+<meta property="og:description" content="摘要识别编码相关的空间访问模式，然后将这些块预取到Cache 介绍摘要识别编码相关的空间访问模式，然后将这些块预取到Cache 介绍首先得出结论：增加并行性和隐藏访问延迟才是提高服务器性能的关键，商业程序使用重复布局和访问模式的数据结构，例如数据块缓存池页面，或者网络数据包头。当程序访问数据集，访问数据的偏移会出现重复模式，但这些访问通常不连续，并且stride不一，我们使用空间相关性而不思空间局">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="http://example.com/2025/02/05/SMS%E9%A2%84%E5%8F%96/1729853439799.png">
+<meta property="og:image" content="http://example.com/2025/02/05/SMS%E9%A2%84%E5%8F%96/1729857733789.png">
+<meta property="og:image" content="http://example.com/2025/02/05/SMS%E9%A2%84%E5%8F%96/1729864558517.png">
+<meta property="og:image" content="http://example.com/2025/02/05/SMS%E9%A2%84%E5%8F%96/1729867839321.png">
+<meta property="og:image" content="http://example.com/2025/02/05/SMS%E9%A2%84%E5%8F%96/1729867930971.png">
+<meta property="og:image" content="http://example.com/2025/02/05/SMS%E9%A2%84%E5%8F%96/1729868738111.png">
+<meta property="og:image" content="http://example.com/2025/02/05/SMS%E9%A2%84%E5%8F%96/1729853439799.png">
+<meta property="og:image" content="http://example.com/2025/02/05/SMS%E9%A2%84%E5%8F%96/1729857733789.png">
+<meta property="og:image" content="http://example.com/2025/02/05/SMS%E9%A2%84%E5%8F%96/1729864558517.png">
+<meta property="og:image" content="http://example.com/2025/02/05/SMS%E9%A2%84%E5%8F%96/1729867839321.png">
+<meta property="og:image" content="http://example.com/2025/02/05/SMS%E9%A2%84%E5%8F%96/1729867930971.png">
+<meta property="og:image" content="http://example.com/2025/02/05/SMS%E9%A2%84%E5%8F%96/1729868738111.png">
+<meta property="article:published_time" content="2025-02-05T12:50:24.000Z">
+<meta property="article:modified_time" content="2025-02-05T14:26:02.766Z">
+<meta property="article:author" content="GB">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://example.com/2025/02/05/SMS%E9%A2%84%E5%8F%96/1729853439799.png">
+
+
+<link rel="canonical" href="http://example.com/2025/02/05/SMS%E9%A2%84%E5%8F%96/">
+
+
+<script class="next-config" data-name="page" type="application/json">{"sidebar":"","isHome":false,"isPost":true,"lang":"zh-CN","comments":true,"permalink":"http://example.com/2025/02/05/SMS%E9%A2%84%E5%8F%96/","path":"2025/02/05/SMS预取/","title":"SMS预取"}</script>
+
+<script class="next-config" data-name="calendar" type="application/json">""</script>
+<title>SMS预取 | GB's Blog</title>
+  
+
+
+
+
+
+
+
+
+  <noscript>
+    <link rel="stylesheet" href="/css/noscript.css">
+  </noscript>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" class="use-motion">
+  <div class="headband"></div>
+
+  <main class="main">
+    <div class="column">
+      <header class="header" itemscope itemtype="http://schema.org/WPHeader"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏" role="button">
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <i class="logo-line"></i>
+      <p class="site-title">GB's Blog</p>
+      <i class="logo-line"></i>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger" aria-label="搜索" role="button">
+    </div>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  <ul class="main-menu menu"><li class="menu-item menu-item-home"><a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a></li><li class="menu-item menu-item-archives"><a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a></li><li class="menu-item menu-item-categories"><a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类</a></li><li class="menu-item menu-item-tags"><a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签</a></li><li class="menu-item menu-item-about"><a href="/about/" rel="section"><i class="fa fa-user fa-fw"></i>关于</a></li>
+  </ul>
+</nav>
+
+
+
+
+</header>
+        
+  
+  <aside class="sidebar">
+
+    <div class="sidebar-inner sidebar-nav-active sidebar-toc-active">
+      <ul class="sidebar-nav">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <div class="sidebar-panel-container">
+        <!--noindex-->
+        <div class="post-toc-wrap sidebar-panel">
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#%E6%91%98%E8%A6%81"><span class="nav-number">1.</span> <span class="nav-text">摘要</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E4%BB%8B%E7%BB%8D"><span class="nav-number">2.</span> <span class="nav-text">介绍</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E6%91%98%E8%A6%81-1"><span class="nav-number">3.</span> <span class="nav-text">摘要</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E4%BB%8B%E7%BB%8D-1"><span class="nav-number">4.</span> <span class="nav-text">介绍</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#Spatial-Memory-Streaming"><span class="nav-number">5.</span> <span class="nav-text">Spatial Memory Streaming</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#Spatial-Patterns-and-Generations"><span class="nav-number">5.1.</span> <span class="nav-text">Spatial Patterns and Generations</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Identifying-Recurring-Spatial-Patterns"><span class="nav-number">5.2.</span> <span class="nav-text">Identifying Recurring Spatial Patterns</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E8%AE%BE%E8%AE%A1"><span class="nav-number">6.</span> <span class="nav-text">设计</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#Observing-Spatial-Patterns"><span class="nav-number">6.1.</span> <span class="nav-text">Observing Spatial Patterns</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Predicting-Spatial-Patterns"><span class="nav-number">6.2.</span> <span class="nav-text">Predicting Spatial Patterns</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E7%BB%93%E6%9E%9C"><span class="nav-number">7.</span> <span class="nav-text">结果</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E8%AE%BF%E9%97%AE%E5%AF%86%E5%BA%A6"><span class="nav-number">7.1.</span> <span class="nav-text">访问密度</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#indexing"><span class="nav-number">7.2.</span> <span class="nav-text">indexing</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#4-3-Decoupled-Training"><span class="nav-number">7.3.</span> <span class="nav-text">4.3. Decoupled Training</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#4-4-Spatial-Region-Size"><span class="nav-number">7.4.</span> <span class="nav-text">4.4. Spatial Region Size</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#4-5-Active-Generation-Table"><span class="nav-number">7.5.</span> <span class="nav-text">4.5. Active Generation Table</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#Spatial-Memory-Streaming-1"><span class="nav-number">8.</span> <span class="nav-text">Spatial Memory Streaming</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#Spatial-Patterns-and-Generations-1"><span class="nav-number">8.1.</span> <span class="nav-text">Spatial Patterns and Generations</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Identifying-Recurring-Spatial-Patterns-1"><span class="nav-number">8.2.</span> <span class="nav-text">Identifying Recurring Spatial Patterns</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E8%AE%BE%E8%AE%A1-1"><span class="nav-number">9.</span> <span class="nav-text">设计</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#Observing-Spatial-Patterns-1"><span class="nav-number">9.1.</span> <span class="nav-text">Observing Spatial Patterns</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Predicting-Spatial-Patterns-1"><span class="nav-number">9.2.</span> <span class="nav-text">Predicting Spatial Patterns</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E7%BB%93%E6%9E%9C-1"><span class="nav-number">10.</span> <span class="nav-text">结果</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E8%AE%BF%E9%97%AE%E5%AF%86%E5%BA%A6-1"><span class="nav-number">10.1.</span> <span class="nav-text">访问密度</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#indexing-1"><span class="nav-number">10.2.</span> <span class="nav-text">indexing</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#4-3-Decoupled-Training-1"><span class="nav-number">10.3.</span> <span class="nav-text">4.3. Decoupled Training</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#4-4-Spatial-Region-Size-1"><span class="nav-number">10.4.</span> <span class="nav-text">4.4. Spatial Region Size</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#4-5-Active-Generation-Table-1"><span class="nav-number">10.5.</span> <span class="nav-text">4.5. Active Generation Table</span></a></li></ol></li></ol></div>
+        </div>
+        <!--/noindex-->
+
+        <div class="site-overview-wrap sidebar-panel">
+          <div class="site-author animated" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="GB"
+      src="/images/my.jpg">
+  <p class="site-author-name" itemprop="name">GB</p>
+  <div class="site-description" itemprop="description"></div>
+</div>
+<div class="site-state-wrap animated">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+        <a href="/archives/">
+          <span class="site-state-item-count">11</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+          <a href="/categories/">
+        <span class="site-state-item-count">4</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+  </nav>
+</div>
+
+        </div>
+      </div>
+    </div>
+
+    
+  </aside>
+
+
+    </div>
+
+    <div class="main-inner post posts-expand">
+
+
+  
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://example.com/2025/02/05/SMS%E9%A2%84%E5%8F%96/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/my.jpg">
+      <meta itemprop="name" content="GB">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="GB's Blog">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
+      <meta itemprop="name" content="SMS预取 | GB's Blog">
+      <meta itemprop="description" content="">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          SMS预取
+        </h1>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">发表于</span>
+      
+
+      <time title="创建时间：2025-02-05 20:50:24 / 修改时间：22:26:02" itemprop="dateCreated datePublished" datetime="2025-02-05T20:50:24+08:00">2025-02-05</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">分类于</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/%E8%AE%BA%E6%96%87%E9%98%85%E8%AF%BB/" itemprop="url" rel="index"><span itemprop="name">论文阅读</span></a>
+        </span>
+    </span>
+
+  
+    <span class="post-meta-break"></span>
+    <span class="post-meta-item" title="本文字数">
+      <span class="post-meta-item-icon">
+        <i class="far fa-file-word"></i>
+      </span>
+      <span class="post-meta-item-text">本文字数：</span>
+      <span>5.7k</span>
+    </span>
+    <span class="post-meta-item" title="阅读时长">
+      <span class="post-meta-item-icon">
+        <i class="far fa-clock"></i>
+      </span>
+      <span class="post-meta-item-text">阅读时长 &asymp;</span>
+      <span>21 分钟</span>
+    </span>
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody"><h1 id="摘要"><a href="#摘要" class="headerlink" title="摘要"></a>摘要</h1><p>识别编码相关的空间访问模式，然后将这些块预取到Cache</p>
+<h1 id="介绍"><a href="#介绍" class="headerlink" title="介绍"></a>介绍</h1><h1 id="摘要-1"><a href="#摘要-1" class="headerlink" title="摘要"></a>摘要</h1><p>识别编码相关的空间访问模式，然后将这些块预取到Cache</p>
+<h1 id="介绍-1"><a href="#介绍-1" class="headerlink" title="介绍"></a>介绍</h1><p>首先得出结论：增加并行性和隐藏访问延迟才是提高服务器性能的关键，商业程序使用重复布局和访问模式的数据结构，例如数据块缓存池页面，或者网络数据包头。当程序访问数据集，访问数据的偏移会出现重复模式，但这些访问通常不连续，并且stride不一，我们使用空间相关性而不思空间局部性来描述访问之间的关系</p>
+<pre><code>SMS可以减少多处理器服务器的主缓存缺失和片外缺失，他利用重复访问模式来预测并预取
+</code></pre>
+<p>这份工作的特点：</p>
+<ol>
+<li>高效的空间相关性预测：预测商业负载访问流不需要基于地址的相关性。SMS利用代码和访问模式的相关性来预测模式，甚至是之前没访问的地址，SMS提供的预测覆盖率是其他基于地址的4倍</li>
+<li>精确跟踪空间相关性：以前的缓存耦合结构观察空间相关性是次优的，比如交错的访问模式，之前的检测会引起冲突，我们提出解耦结构，可以识别更少更密集的模式，将预测器存储需求减半</li>
+<li>增加性能：主要讲了SMS在商业负载的优秀</li>
+</ol>
+<p>之后第二节描述SMS，第三节给出硬件细节，第四节评估性能，第五节讨论相关工作</p>
+<h1 id="Spatial-Memory-Streaming"><a href="#Spatial-Memory-Streaming" class="headerlink" title="Spatial Memory Streaming"></a>Spatial Memory Streaming</h1><p>在选择Cache block，设计者在各种因素中取出最优解，通常最佳的缓存块大小牺牲了利用密集数据结构的空间局部性，以避稀疏结构带来的过多带宽开销，对于简单的数据结构，如数组，空间关系可以通过简单的预取实现，如stride prefetching</p>
+<p>商业负载访问模式较为复杂，不适合用 simple prefetching or streaming schemes，然而，这些应用程序中的数据结构经常显示缓存块之间的空间关系。例如，在数据库中，缓冲池中的页面共享公共结构元素，例如页头中的日志序列号和指示页脚中元组偏移量的槽索引，这些元素总是在扫描&#x2F;修改页面之前被访问。在web服务器中，包头和包尾具有任意复杂但固定的结构。图1（左）显示了更多的示例。尽管这些结构中的访问可能是不连续的，但它们在相对地址中仍然表现出重复的模式。我们称这些访问之间的关系为<strong>空间相关性</strong></p>
+<p><img src="/2025/02/05/SMS%E9%A2%84%E5%8F%96/1729853439799.png" alt="1729853439799"></p>
+<p>SMS在运行时提取空间相关访问模式，并使用这些模式预测，他在可用带宽和资源允许情况尽快将预测的缓存块放入Cache，从而增加内存并行性并隐藏低级缓存和片外访存延迟</p>
+<h2 id="Spatial-Patterns-and-Generations"><a href="#Spatial-Patterns-and-Generations" class="headerlink" title="Spatial Patterns and Generations"></a>Spatial Patterns and Generations</h2><p>我们形式化了空间相关性的概念，类似于先前的空间足迹研究[4,17]。我们将空间区域定义为系统地址空间中固定大小的部分，由多个连续的缓存块组成。A spatial region generation is the time interval over which SMS records accesses within a spatial region，我们把第一次访问这个空间区域称为触发访问，空间模式是表示在a spatial region generation期间访问区域的blocks集合的位向量？？？</p>
+<p>定义a spatial region generation精确间隔会显著影响空间格局的精度和覆盖范围，a spatial region generation必须定义以确保，当SMS流在未来触发访问时进入缓存，没有预测的块在使用前被驱除或无效，</p>
+<p>因此，我们选择从触发访问到在生成期间访问的任何块通过替换或失效从处理器的主缓存中删除的间隔。对该区域中任何块的后续访问都是对新一代的触发访问。</p>
+<p>此定义确保在生成过程中访问的块集同时存在于缓存中。</p>
+<h2 id="Identifying-Recurring-Spatial-Patterns"><a href="#Identifying-Recurring-Spatial-Patterns" class="headerlink" title="Identifying Recurring Spatial Patterns"></a>Identifying Recurring Spatial Patterns</h2><p>在触发访问时，SMS预测区域内相关性块子集，于是其关键问题就是找到一个与重复出现的空间模式强相关的预测指数</p>
+<p>空间相关性由于数据结构布局和访问模式重复和规律性产生，例如聚合的几个变量经常被一起访问，因此出现空间相关性，<strong>这种情况，空间模式与触发器访问地址相关</strong>，地址标识数据结构，还有一种就是数据结构遍历重复出现或者具有规则结构，在这种情况，空间模式将与执行遍历的代码（pc）相关联，文献中研究了多种预测指标，先前的研究发现当相关表存储无界？？，结合地址和PC构建索引可以提供最准确的预测，也就是PC+addr indexing，当多个代码序列对同一数据结构进行不同遍历，预测器会生成不同的模式，然而，该预测索引需要随数据集大小缩放预测期存储，而且预测覆盖率会随着存储限制而急剧下降</p>
+<p>对于SPEC CPU 2000程序，PC+addr可以通过pc+a spatial region offset实现，这个偏移是cache block中与空间区域起始位置的相对地址，也就是相当于这个区域的哪个block，这个偏移允许预测器区分由相同代码片段生成的重复模式，这些重复模式不同支出就是他们相对空间区域边界对其，大大减少预测表存储需求，applications have far fewer distinct miss PCs than miss addresses.</p>
+<p>我们观察到这种索引，除了节省内存，还可以消除cold misses，当代码序列在大型数据集重复相同的访问模式，访问序列刚开始时学习的PC相关空间模式为以前从未访问的数据提供准确预测。Database scan and join operations, which dominate the execution of decision support queries 包含着只访问数据以此的唱重复访问模式，这些应用适合这种index方式</p>
+<h1 id="设计"><a href="#设计" class="headerlink" title="设计"></a>设计</h1><p>(终于到自己的SMS设计了)</p>
+<p>我们的设计目标是多处理器环境下的高性能商业服务器应用程序，区别：之前的设计针对<strong>decoupled sectored</strong> [22] or <strong>sub-blocked caches.</strong></p>
+<p>预测和缓存集成简化硬件设计，因为空间区域访问的结构可以2和sub-blocks的tag集成，然而，不同空间区域交错访问导致标签冲突，桃枝空间区域碎片化1，降低准确性，所以SMS不使用子块</p>
+<p>他包括两个结构</p>
+<blockquote>
+<p>The pattern history table stores previously-observed spatial patterns, and is accessed at the start of each spatial region generation to predict the pattern of future accesses.</p>
+</blockquote>
+<h2 id="Observing-Spatial-Patterns"><a href="#Observing-Spatial-Patterns" class="headerlink" title="Observing Spatial Patterns"></a>Observing Spatial Patterns</h2><p>SMS通过记录在AGT空间区域生成过程中访问的块来学习空间模式，当空间区域生成开始时，SMS在AGT分配一个条目，当cache block被访问，更新AGT记录的模式，当eviction&#x2F;invalidation of any block accessed during the generation)，AGT将空间模式转移到PHT，然后释放条目</p>
+<p>实际AGT有两个内容表，积累表和过滤表，减少搜索难度和总体大小，AGT处理L1数据访问，所以两个表必须都能匹配数据访问带宽</p>
+<p>空间模式记录在累积表，累计表条目由空间区域标记来标记，即区域及地址高位，每个条目存储触发访问的PC和空间区域偏移量，以及指示在生成期间访问了哪些块的空间模式位向量</p>
+<p>新的空间区域最初在过滤表，过滤表记录tag，pc和offset，用于在当次只有一次访问的空间区域，有很少的区域永远不会访问第二个快，预测这些没有好处，因为唯一的访问是触发访问，将这些限制在过滤表，减少了累计表的空间占用</p>
+<p><img src="/2025/02/05/SMS%E9%A2%84%E5%8F%96/1729857733789.png" alt="1729857733789"></p>
+<p>上图描述了AGT详细操作，每个L1访问，首先搜索累计表，如果匹配，设置所访问块的空间模式位，否则，在筛选表找，如果没找到，这次访问就是触发访问，并在筛选表重新分配条目，如果在筛选表匹配，则比较偏移，如果不同，该快是区域访问的第二个快，将这个条目移到累计表，对该区域其他访问将在模式中设置相应位，这个位代表一个区域有几个block，当有的快被驱除或无效，则结束生成，这时在过滤表和累积表搜索标签，过滤表的条目将被抛弃，累积表的放入模式历史表，如果其中一个表满了，选择一个表项，终止生成，即，从过滤表中删除该表项或从累积表转移到模式历史表中</p>
+<h2 id="Predicting-Spatial-Patterns"><a href="#Predicting-Spatial-Patterns" class="headerlink" title="Predicting Spatial Patterns"></a>Predicting Spatial Patterns</h2><p>SMS使用模式历史表对空间模式进行存储，并预测在每个区域将访问块的模式，PHT实现和预测如下，其被组织为类似cache的组相连结构，其由预测索引访问，这个索引是PC和空间区域偏移组成，PHT每个条目存储AGT积累的访问模式</p>
+<p><img src="/2025/02/05/SMS%E9%A2%84%E5%8F%96/1729864558517.png" alt="1729864558517"></p>
+<p>在触发访问是,SMS查询PHT来预测访问哪些块，如果找到一个条目，空间区域的基地址和空间模式将被复制到几个预测寄存器的一个，当SMS将模式预测的每个块传输到主缓存，他会清除预测寄存器的位，当预测寄存器整个模式被清除，寄存器释放，如果多个预测寄存器活动，SMS轮训操作，这个流请求类似于缓存一致性协议的读请求</p>
+<h1 id="结果"><a href="#结果" class="headerlink" title="结果"></a>结果</h1><h2 id="访问密度"><a href="#访问密度" class="headerlink" title="访问密度"></a><strong>访问密度</strong></h2><p><img src="/2025/02/05/SMS%E9%A2%84%E5%8F%96/1729867839321.png" alt="1729867839321"></p>
+<h2 id="indexing"><a href="#indexing" class="headerlink" title="indexing"></a>indexing</h2><p><img src="/2025/02/05/SMS%E9%A2%84%E5%8F%96/1729867930971.png" alt="1729867930971"></p>
+<p>名词：<strong>覆盖率</strong>表示通过SMS消除的L1读错误的比例。</p>
+<p>过度预测表示在取出或无效前已获取但未使用的块，也就是一些无用的预取</p>
+<p>在OLTP和web应用，大多数空间相关访问都来自频繁访问的代码序列和数据结构，因此数据地址和PC都和空间模式相关，所以除了PC寻址，其他的覆盖率相似，PC不准确，他不能区分相同代码对不同数据结构的访问模式，PC+偏移索引可以根据空间区域偏移量来区分模式，足以捕捉到常见的情况</p>
+<p>而DSS基于程序上下文，PC和PC+off较好</p>
+<p>对于科学应用，pc+off接近pc+addr</p>
+<p>pc+off的第二个优点就是：他的存储需求与代码大小成正比而不是数据集大小，</p>
+<h2 id="4-3-Decoupled-Training"><a href="#4-3-Decoupled-Training" class="headerlink" title="4.3. Decoupled Training"></a>4.3. Decoupled Training</h2><p>训练十分重要，过早终止空间区域生成，可能导致PHT被污染</p>
+<p><img src="/2025/02/05/SMS%E9%A2%84%E5%8F%96/1729868738111.png" alt="1729868738111"></p>
+<p>可以看到AGT覆盖率最高</p>
+<h2 id="4-4-Spatial-Region-Size"><a href="#4-4-Spatial-Region-Size" class="headerlink" title="4.4. Spatial Region Size"></a>4.4. Spatial Region Size</h2><blockquote>
+<p>Choosing a spatial region size involves a tradeoff between coverage and storage requirements.</p>
+</blockquote>
+<h2 id="4-5-Active-Generation-Table"><a href="#4-5-Active-Generation-Table" class="headerlink" title="4.5. Active Generation Table"></a>4.5. Active Generation Table</h2><p>a 32-entry filter table and a 64-entry accumulation table are sufficient.</p>
+<p>首先得出结论：增加并行性和隐藏访问延迟才是提高服务器性能的关键，商业程序使用重复布局和访问模式的数据结构，例如数据块缓存池页面，或者网络数据包头。当程序访问数据集，访问数据的偏移会出现重复模式，但这些访问通常不连续，并且stride不一，我们使用空间相关性而不思空间局部性来描述访问之间的关系</p>
+<pre><code>SMS可以减少多处理器服务器的主缓存缺失和片外缺失，他利用重复访问模式来预测并预取
+</code></pre>
+<p>这份工作的特点：</p>
+<ol>
+<li>高效的空间相关性预测：预测商业负载访问流不需要基于地址的相关性。SMS利用代码和访问模式的相关性来预测模式，甚至是之前没访问的地址，SMS提供的预测覆盖率是其他基于地址的4倍</li>
+<li>精确跟踪空间相关性：以前的缓存耦合结构观察空间相关性是次优的，比如交错的访问模式，之前的检测会引起冲突，我们提出解耦结构，可以识别更少更密集的模式，将预测器存储需求减半</li>
+<li>增加性能：主要讲了SMS在商业负载的优秀</li>
+</ol>
+<p>之后第二节描述SMS，第三节给出硬件细节，第四节评估性能，第五节讨论相关工作</p>
+<h1 id="Spatial-Memory-Streaming-1"><a href="#Spatial-Memory-Streaming-1" class="headerlink" title="Spatial Memory Streaming"></a>Spatial Memory Streaming</h1><p>在选择Cache block，设计者在各种因素中取出最优解，通常最佳的缓存块大小牺牲了利用密集数据结构的空间局部性，以避稀疏结构带来的过多带宽开销，对于简单的数据结构，如数组，空间关系可以通过简单的预取实现，如stride prefetching</p>
+<p>商业负载访问模式较为复杂，不适合用 simple prefetching or streaming schemes，然而，这些应用程序中的数据结构经常显示缓存块之间的空间关系。例如，在数据库中，缓冲池中的页面共享公共结构元素，例如页头中的日志序列号和指示页脚中元组偏移量的槽索引，这些元素总是在扫描&#x2F;修改页面之前被访问。在web服务器中，包头和包尾具有任意复杂但固定的结构。图1（左）显示了更多的示例。尽管这些结构中的访问可能是不连续的，但它们在相对地址中仍然表现出重复的模式。我们称这些访问之间的关系为<strong>空间相关性</strong></p>
+<p><img src="/2025/02/05/SMS%E9%A2%84%E5%8F%96/1729853439799.png" alt="1729853439799"></p>
+<p>SMS在运行时提取空间相关访问模式，并使用这些模式预测，他在可用带宽和资源允许情况尽快将预测的缓存块放入Cache，从而增加内存并行性并隐藏低级缓存和片外访存延迟</p>
+<h2 id="Spatial-Patterns-and-Generations-1"><a href="#Spatial-Patterns-and-Generations-1" class="headerlink" title="Spatial Patterns and Generations"></a>Spatial Patterns and Generations</h2><p>我们形式化了空间相关性的概念，类似于先前的空间足迹研究[4,17]。我们将空间区域定义为系统地址空间中固定大小的部分，由多个连续的缓存块组成。A spatial region generation is the time interval over which SMS records accesses within a spatial region，我们把第一次访问这个空间区域称为触发访问，空间模式是表示在a spatial region generation期间访问区域的blocks集合的位向量？？？</p>
+<p>定义a spatial region generation精确间隔会显著影响空间格局的精度和覆盖范围，a spatial region generation必须定义以确保，当SMS流在未来触发访问时进入缓存，没有预测的块在使用前被驱除或无效，</p>
+<p>因此，我们选择从触发访问到在生成期间访问的任何块通过替换或失效从处理器的主缓存中删除的间隔。对该区域中任何块的后续访问都是对新一代的触发访问。</p>
+<p>此定义确保在生成过程中访问的块集同时存在于缓存中。</p>
+<h2 id="Identifying-Recurring-Spatial-Patterns-1"><a href="#Identifying-Recurring-Spatial-Patterns-1" class="headerlink" title="Identifying Recurring Spatial Patterns"></a>Identifying Recurring Spatial Patterns</h2><p>在触发访问时，SMS预测区域内相关性块子集，于是其关键问题就是找到一个与重复出现的空间模式强相关的预测指数</p>
+<p>空间相关性由于数据结构布局和访问模式重复和规律性产生，例如聚合的几个变量经常被一起访问，因此出现空间相关性，<strong>这种情况，空间模式与触发器访问地址相关</strong>，地址标识数据结构，还有一种就是数据结构遍历重复出现或者具有规则结构，在这种情况，空间模式将与执行遍历的代码（pc）相关联，文献中研究了多种预测指标，先前的研究发现当相关表存储无界？？，结合地址和PC构建索引可以提供最准确的预测，也就是PC+addr indexing，当多个代码序列对同一数据结构进行不同遍历，预测器会生成不同的模式，然而，该预测索引需要随数据集大小缩放预测期存储，而且预测覆盖率会随着存储限制而急剧下降</p>
+<p>对于SPEC CPU 2000程序，PC+addr可以通过pc+a spatial region offset实现，这个偏移是cache block中与空间区域起始位置的相对地址，也就是相当于这个区域的哪个block，这个偏移允许预测器区分由相同代码片段生成的重复模式，这些重复模式不同支出就是他们相对空间区域边界对其，大大减少预测表存储需求，applications have far fewer distinct miss PCs than miss addresses.</p>
+<p>我们观察到这种索引，除了节省内存，还可以消除cold misses，当代码序列在大型数据集重复相同的访问模式，访问序列刚开始时学习的PC相关空间模式为以前从未访问的数据提供准确预测。Database scan and join operations, which dominate the execution of decision support queries 包含着只访问数据以此的唱重复访问模式，这些应用适合这种index方式</p>
+<h1 id="设计-1"><a href="#设计-1" class="headerlink" title="设计"></a>设计</h1><p>(终于到自己的SMS设计了)</p>
+<p>我们的设计目标是多处理器环境下的高性能商业服务器应用程序，区别：之前的设计针对<strong>decoupled sectored</strong> [22] or <strong>sub-blocked caches.</strong></p>
+<p>预测和缓存集成简化硬件设计，因为空间区域访问的结构可以2和sub-blocks的tag集成，然而，不同空间区域交错访问导致标签冲突，桃枝空间区域碎片化1，降低准确性，所以SMS不使用子块</p>
+<p>他包括两个结构</p>
+<blockquote>
+<p>The pattern history table stores previously-observed spatial patterns, and is accessed at the start of each spatial region generation to predict the pattern of future accesses.</p>
+</blockquote>
+<h2 id="Observing-Spatial-Patterns-1"><a href="#Observing-Spatial-Patterns-1" class="headerlink" title="Observing Spatial Patterns"></a>Observing Spatial Patterns</h2><p>SMS通过记录在AGT空间区域生成过程中访问的块来学习空间模式，当空间区域生成开始时，SMS在AGT分配一个条目，当cache block被访问，更新AGT记录的模式，当eviction&#x2F;invalidation of any block accessed during the generation)，AGT将空间模式转移到PHT，然后释放条目</p>
+<p>实际AGT有两个内容表，积累表和过滤表，减少搜索难度和总体大小，AGT处理L1数据访问，所以两个表必须都能匹配数据访问带宽</p>
+<p>空间模式记录在累积表，累计表条目由空间区域标记来标记，即区域及地址高位，每个条目存储触发访问的PC和空间区域偏移量，以及指示在生成期间访问了哪些块的空间模式位向量</p>
+<p>新的空间区域最初在过滤表，过滤表记录tag，pc和offset，用于在当次只有一次访问的空间区域，有很少的区域永远不会访问第二个快，预测这些没有好处，因为唯一的访问是触发访问，将这些限制在过滤表，减少了累计表的空间占用</p>
+<p><img src="/2025/02/05/SMS%E9%A2%84%E5%8F%96/1729857733789.png" alt="1729857733789"></p>
+<p>上图描述了AGT详细操作，每个L1访问，首先搜索累计表，如果匹配，设置所访问块的空间模式位，否则，在筛选表找，如果没找到，这次访问就是触发访问，并在筛选表重新分配条目，如果在筛选表匹配，则比较偏移，如果不同，该快是区域访问的第二个快，将这个条目移到累计表，对该区域其他访问将在模式中设置相应位，这个位代表一个区域有几个block，当有的快被驱除或无效，则结束生成，这时在过滤表和累积表搜索标签，过滤表的条目将被抛弃，累积表的放入模式历史表，如果其中一个表满了，选择一个表项，终止生成，即，从过滤表中删除该表项或从累积表转移到模式历史表中</p>
+<h2 id="Predicting-Spatial-Patterns-1"><a href="#Predicting-Spatial-Patterns-1" class="headerlink" title="Predicting Spatial Patterns"></a>Predicting Spatial Patterns</h2><p>SMS使用模式历史表对空间模式进行存储，并预测在每个区域将访问块的模式，PHT实现和预测如下，其被组织为类似cache的组相连结构，其由预测索引访问，这个索引是PC和空间区域偏移组成，PHT每个条目存储AGT积累的访问模式</p>
+<p><img src="/2025/02/05/SMS%E9%A2%84%E5%8F%96/1729864558517.png" alt="1729864558517"></p>
+<p>在触发访问是,SMS查询PHT来预测访问哪些块，如果找到一个条目，空间区域的基地址和空间模式将被复制到几个预测寄存器的一个，当SMS将模式预测的每个块传输到主缓存，他会清除预测寄存器的位，当预测寄存器整个模式被清除，寄存器释放，如果多个预测寄存器活动，SMS轮训操作，这个流请求类似于缓存一致性协议的读请求</p>
+<h1 id="结果-1"><a href="#结果-1" class="headerlink" title="结果"></a>结果</h1><h2 id="访问密度-1"><a href="#访问密度-1" class="headerlink" title="访问密度"></a><strong>访问密度</strong></h2><p><img src="/2025/02/05/SMS%E9%A2%84%E5%8F%96/1729867839321.png" alt="1729867839321"></p>
+<h2 id="indexing-1"><a href="#indexing-1" class="headerlink" title="indexing"></a>indexing</h2><p><img src="/2025/02/05/SMS%E9%A2%84%E5%8F%96/1729867930971.png" alt="1729867930971"></p>
+<p>名词：<strong>覆盖率</strong>表示通过SMS消除的L1读错误的比例。</p>
+<p>过度预测表示在取出或无效前已获取但未使用的块，也就是一些无用的预取</p>
+<p>在OLTP和web应用，大多数空间相关访问都来自频繁访问的代码序列和数据结构，因此数据地址和PC都和空间模式相关，所以除了PC寻址，其他的覆盖率相似，PC不准确，他不能区分相同代码对不同数据结构的访问模式，PC+偏移索引可以根据空间区域偏移量来区分模式，足以捕捉到常见的情况</p>
+<p>而DSS基于程序上下文，PC和PC+off较好</p>
+<p>对于科学应用，pc+off接近pc+addr</p>
+<p>pc+off的第二个优点就是：他的存储需求与代码大小成正比而不是数据集大小，</p>
+<h2 id="4-3-Decoupled-Training-1"><a href="#4-3-Decoupled-Training-1" class="headerlink" title="4.3. Decoupled Training"></a>4.3. Decoupled Training</h2><p>训练十分重要，过早终止空间区域生成，可能导致PHT被污染</p>
+<p><img src="/2025/02/05/SMS%E9%A2%84%E5%8F%96/1729868738111.png" alt="1729868738111"></p>
+<p>可以看到AGT覆盖率最高</p>
+<h2 id="4-4-Spatial-Region-Size-1"><a href="#4-4-Spatial-Region-Size-1" class="headerlink" title="4.4. Spatial Region Size"></a>4.4. Spatial Region Size</h2><blockquote>
+<p>Choosing a spatial region size involves a tradeoff between coverage and storage requirements.</p>
+</blockquote>
+<h2 id="4-5-Active-Generation-Table-1"><a href="#4-5-Active-Generation-Table-1" class="headerlink" title="4.5. Active Generation Table"></a>4.5. Active Generation Table</h2><p>a 32-entry filter table and a 64-entry accumulation table are sufficient.</p>
+
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-item">
+                <a href="/2025/02/05/gem5/" rel="prev" title="gem5">
+                  <i class="fa fa-angle-left"></i> gem5
+                </a>
+            </div>
+            <div class="post-nav-item">
+                <a href="/2025/02/05/DNN-%E5%8A%A0%E9%80%9F%E5%99%A8/" rel="next" title="DNN 加速器">
+                  DNN 加速器 <i class="fa fa-angle-right"></i>
+                </a>
+            </div>
+          </div>
+    </footer>
+  </article>
+</div>
+
+
+
+
+
+
+</div>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+
+  <div class="copyright">
+    &copy; 2025-02 – 
+    <span itemprop="copyrightYear">2025</span>
+    <span class="with-love">
+      <i class="fa fa-heart"></i>
+    </span>
+    <span class="author" itemprop="copyrightHolder">GB</span>
+  </div>
+<div class="wordcount">
+  <span class="post-meta-item">
+    <span class="post-meta-item-icon">
+      <i class="fa fa-chart-line"></i>
+    </span>
+    <span title="站点总字数">97k</span>
+  </span>
+  <span class="post-meta-item">
+    <span class="post-meta-item-icon">
+      <i class="fa fa-coffee"></i>
+    </span>
+    <span title="站点阅读时长">5:52</span>
+  </span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io/" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.js.org/" rel="noopener" target="_blank">NexT.Gemini</a> 强力驱动
+  </div>
+
+    </div>
+  </footer>
+
+  
+  <div class="toggle sidebar-toggle" role="button">
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+  </div>
+  <div class="sidebar-dimmer"></div>
+  <div class="back-to-top" role="button" aria-label="返回顶部">
+    <i class="fa fa-arrow-up fa-lg"></i>
+    <span>0%</span>
+  </div>
+
+<noscript>
+  <div class="noscript-warning">Theme NexT works best with JavaScript enabled</div>
+</noscript>
+
+
+  
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js" integrity="sha256-XL2inqUJaslATFnHdJOi9GfQ60on8Wx1C2H8DYiN1xY=" crossorigin="anonymous"></script>
+<script src="/js/comments.js"></script><script src="/js/utils.js"></script><script src="/js/motion.js"></script><script src="/js/sidebar.js"></script><script src="/js/next-boot.js"></script>
+
+  
+
+
+
+
+
+
+  
+
+
+
+
+
+</body>
+</html>
