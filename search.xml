@@ -2772,4 +2772,65 @@
         <category>处理器设计</category>
       </categories>
   </entry>
+  <entry>
+    <title>gem5在fs模式运行spec2006</title>
+    <url>/2025/02/10/gem5%E5%9C%A8fs%E6%A8%A1%E5%BC%8F%E8%BF%90%E8%A1%8Cspec2006/</url>
+    <content><![CDATA[<p>假定已经安装了gem5,并且编译了RISCV的gem5.opt</p>
+<h1 id="环境准备"><a href="#环境准备" class="headerlink" title="环境准备"></a>环境准备</h1><p>编译m5term,这个是连接终端的</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">cd gem5/util/term</span><br><span class="line">make CFLAGS=-O3</span><br></pre></td></tr></table></figure>
+
+<p>编译m5</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">cd gem5/util/m5</span><br><span class="line">python3 `which scons` build/RISCV/out/m5</span><br></pre></td></tr></table></figure>
+
+<h1 id="获取linux内核"><a href="#获取linux内核" class="headerlink" title="获取linux内核"></a>获取linux内核</h1><p>获取riscv linux内核和img映像,获取方法</p>
+<ol>
+<li>官网<a href="https://resources.gem5.org/resources?q=gem5_versions:24.1+image&page=1&sort=relevance&limit=10">资源</a>,使用riscv-disk-img,内核使用bootloader开头的</li>
+<li>使用buildroot一键构建内核和img</li>
+<li>busybox构建img,然后自己编译linux内核</li>
+</ol>
+<h1 id="修改img文件"><a href="#修改img文件" class="headerlink" title="修改img文件"></a>修改img文件</h1><p>添加自己的文件</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">sudo mkdir -p /mnt/rootfs</span><br><span class="line">sudo mount -o loop riscv-disk.img /mnt/rootfs</span><br><span class="line">cp path/to/your_program /mnt/rootfs/root</span><br><span class="line">sudo umount /mnt/rootfs</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<p>然后我们还要去设置img的&#x2F;etc&#x2F;inittab,将 <code>::respawn:/sbin/getty ...</code>这一行修改为</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">::respawn:-/bin/sh /root/init.sh</span><br></pre></td></tr></table></figure>
+
+<p>也就是开机直接启动&#x2F;root&#x2F;init.sh</p>
+<p>之后创建&#x2F;root&#x2F;init.sh</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">/root/m5 checkpoint</span><br><span class="line">/root/m5 readfile |sh</span><br><span class="line">/root/m5 exit</span><br></pre></td></tr></table></figure>
+
+<p>这个意思就是创建checkpoint,然后运行从readfile读入的脚本,运行完成退出,其中readfile的文件来自–script参数</p>
+<h1 id="生成checkpoint"><a href="#生成checkpoint" class="headerlink" title="生成checkpoint"></a>生成checkpoint</h1><p>首次运行需要生成checkpoint</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">build/RISCV/gem5.opt configs/example/riscv/fs_linux.py \</span><br><span class="line">  --kernel=path/to/your_kernel \</span><br><span class="line">  --disk-image=path/to/your_img</span><br></pre></td></tr></table></figure>
+
+<p>生成了checkpoint后,我们会在gem5的m5out文件夹下发现cpt前缀,数字后缀的文件夹,该文件夹就是生成的checkpoint,之后我们均从该checkpoint运行benckmark</p>
+<h1 id="恢复checkpoint"><a href="#恢复checkpoint" class="headerlink" title="恢复checkpoint"></a>恢复checkpoint</h1><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">build/RISCV/gem5.opt \</span><br><span class="line">  configs/example/riscv/fs_linux.py \</span><br><span class="line">  --kernel=../bootloader-vmlinux-5.10 \</span><br><span class="line">  --disk-image=../riscv-disk.img \</span><br><span class="line">  --restore-with-cpu=O3CPU \</span><br><span class="line">  --bp-type=TAGE_SC_L_64KB \</span><br><span class="line">  --caches --l2cache \</span><br><span class="line">  --checkpoint-restore=1 \</span><br><span class="line">  --script=your.sh</span><br></pre></td></tr></table></figure>
+
+<p>但是在恢复运行时目前遇到这个问题(即使使用O3单独运行也会出现这个问题):</p>
+<p>src&#x2F;cpu&#x2F;o3&#x2F;fetch.cc:603: warn: Address 0xffffffe000004400 is outside of physical memory, stopping fetch</p>
+<p>在issue找到了,但并没得到有效信息</p>
+]]></content>
+  </entry>
+  <entry>
+    <title>论文移植</title>
+    <url>/2025/02/09/%E8%AE%BA%E6%96%87%E7%A7%BB%E6%A4%8D/</url>
+    <content><![CDATA[<h1 id="代码移植问题"><a href="#代码移植问题" class="headerlink" title="代码移植问题"></a>代码移植问题</h1><ol>
+<li>将1.9.1的chipyard版本移植到1.17.1的firesim</li>
+<li>直接使用1.17.1版本的chipyard</li>
+<li>是否可以得到老师代码修改记录，这样可以最小限度移植</li>
+<li>是将MEEK代码直接复制到chipyard，还是只将修改部分的代码复制到chipyard</li>
+</ol>
+<h1 id="修改1"><a href="#修改1" class="headerlink" title="修改1"></a>修改1</h1><p>修改rocket chip 的main&#x2F;scala的packge.scala</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">package freechips</span><br><span class="line"></span><br><span class="line">package object rocketchip &#123;</span><br><span class="line">  val config = org.chipsalliance.cde.config</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h1 id="修改2"><a href="#修改2" class="headerlink" title="修改2"></a>修改2</h1><p>value io is not a member of freechips.rocketchip.diplomacy.LazyModuleImp</p>
+<p>将</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">lazy val module = new LazyModuleImp(this) &#123;</span><br><span class="line">  val io = IO(new Bundle &#123;</span><br><span class="line">    val finished = Bool(OUTPUT)</span><br><span class="line">  &#125;)</span><br></pre></td></tr></table></figure>
+
+<p>改为</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">lazy val module = new Impl</span><br><span class="line">class Impl extends LazyModuleImp(this) &#123;</span><br><span class="line">  val io = IO(new Bundle &#123;</span><br><span class="line">    val finished = Bool(OUTPUT)</span><br><span class="line">  &#125;)</span><br></pre></td></tr></table></figure>
+
+<h1 id="gem5部分"><a href="#gem5部分" class="headerlink" title="gem5部分"></a>gem5部分</h1><p>编写了se跑spec2006的脚本，目前需要给输入参数加入绝对路径</p>
+<p>明天会编写fs跑spec2006的脚本，主要实现思路就是设置一个checkpoint，然后将所有benchmark打包进去，每次运行完一个benchmark就会poweoff，然后运行下一个（不知道是否可以并行）</p>
+]]></content>
+  </entry>
 </search>
