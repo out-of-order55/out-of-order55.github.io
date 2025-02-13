@@ -1,0 +1,365 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width">
+<meta name="theme-color" content="#222"><meta name="generator" content="Hexo 7.3.0">
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css" integrity="sha256-dABdfBfUoC8vJUBOwGVdm8L9qlMWaHTIfXt+7GnZCIo=" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/3.1.1/animate.min.css" integrity="sha256-PR7ttpcvz8qrF57fur/yAx1qXMFJeJFiA6pSzWi0OIE=" crossorigin="anonymous">
+
+<script class="next-config" data-name="main" type="application/json">{"hostname":"example.com","root":"/","images":"/images","scheme":"Gemini","darkmode":false,"version":"8.22.0","exturl":false,"sidebar":{"position":"left","width_expanded":320,"width_dual_column":240,"display":"post","padding":18,"offset":12},"hljswrap":true,"copycode":{"enable":true,"style":"flat"},"fold":{"enable":true,"height":500},"bookmark":{"enable":false,"color":"#222","save":"auto"},"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"stickytabs":false,"motion":{"enable":true,"async":false,"duration":200,"transition":{"menu_item":"fadeInDown","post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"i18n":{"placeholder":"搜索...","empty":"没有找到任何搜索结果：${query}","hits_time":"找到 ${hits} 个搜索结果（用时 ${time} 毫秒）","hits":"找到 ${hits} 个搜索结果"}}</script><script src="/js/config.js"></script>
+
+    <meta name="description" content="摘要异构并行错误检测是一种实现容错处理器的方法，利用多个能效较高的核心来重新执行原本在高性能核心上运行的软件。然而，其复杂的组件，需要从芯片的各个部分收集数据，引发了如何在不进行大量设计入侵和广泛重新工程的情况下将其构建到商用核心中的问题。我们构建了首个全RTL设计的MEEK，并将其集成到一个开源SoC中，从微架构和指令集架构（ISA）到操作系统和编程模型。我们识别并解决了之前工作中被忽视的瓶颈和">
+<meta property="og:type" content="article">
+<meta property="og:title" content="MEEK:Re-thinking Heterogeneous Parallel Error Detection Architecture for Real-World OoO Superscalar Processors">
+<meta property="og:url" content="http://example.com/2025/02/13/MEEK-%E8%AE%BA%E6%96%87%E9%98%85%E8%AF%BB/index.html">
+<meta property="og:site_name" content="GB&#39;s Blog">
+<meta property="og:description" content="摘要异构并行错误检测是一种实现容错处理器的方法，利用多个能效较高的核心来重新执行原本在高性能核心上运行的软件。然而，其复杂的组件，需要从芯片的各个部分收集数据，引发了如何在不进行大量设计入侵和广泛重新工程的情况下将其构建到商用核心中的问题。我们构建了首个全RTL设计的MEEK，并将其集成到一个开源SoC中，从微架构和指令集架构（ISA）到操作系统和编程模型。我们识别并解决了之前工作中被忽视的瓶颈和">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="http://example.com/2025/02/13/MEEK-%E8%AE%BA%E6%96%87%E9%98%85%E8%AF%BB/1739418044205.png">
+<meta property="og:image" content="http://example.com/2025/02/13/MEEK-%E8%AE%BA%E6%96%87%E9%98%85%E8%AF%BB/1739418630897.png">
+<meta property="og:image" content="http://example.com/2025/02/13/MEEK-%E8%AE%BA%E6%96%87%E9%98%85%E8%AF%BB/1739419219032.png">
+<meta property="og:image" content="http://example.com/2025/02/13/MEEK-%E8%AE%BA%E6%96%87%E9%98%85%E8%AF%BB/1739420233845.png">
+<meta property="og:image" content="http://example.com/2025/02/13/MEEK-%E8%AE%BA%E6%96%87%E9%98%85%E8%AF%BB/1739428633135.png">
+<meta property="og:image" content="http://example.com/2025/02/13/MEEK-%E8%AE%BA%E6%96%87%E9%98%85%E8%AF%BB/1739429031611.png">
+<meta property="og:image" content="http://example.com/2025/02/13/MEEK-%E8%AE%BA%E6%96%87%E9%98%85%E8%AF%BB/1739429918710.png">
+<meta property="og:image" content="http://example.com/2025/02/13/MEEK-%E8%AE%BA%E6%96%87%E9%98%85%E8%AF%BB/1739433129563.png">
+<meta property="article:published_time" content="2025-02-13T03:12:49.000Z">
+<meta property="article:modified_time" content="2025-02-13T08:05:35.294Z">
+<meta property="article:author" content="GB">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://example.com/2025/02/13/MEEK-%E8%AE%BA%E6%96%87%E9%98%85%E8%AF%BB/1739418044205.png">
+
+
+<link rel="canonical" href="http://example.com/2025/02/13/MEEK-%E8%AE%BA%E6%96%87%E9%98%85%E8%AF%BB/">
+
+
+<script class="next-config" data-name="page" type="application/json">{"sidebar":"","isHome":false,"isPost":true,"lang":"zh-CN","comments":true,"permalink":"http://example.com/2025/02/13/MEEK-%E8%AE%BA%E6%96%87%E9%98%85%E8%AF%BB/","path":"2025/02/13/MEEK-论文阅读/","title":"MEEK:Re-thinking Heterogeneous Parallel Error Detection Architecture for Real-World OoO Superscalar Processors"}</script>
+
+<script class="next-config" data-name="calendar" type="application/json">""</script>
+<title>MEEK:Re-thinking Heterogeneous Parallel Error Detection Architecture for Real-World OoO Superscalar Processors | GB's Blog</title>
+  
+
+
+
+
+
+
+
+
+  <noscript>
+    <link rel="stylesheet" href="/css/noscript.css">
+  </noscript>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" class="use-motion">
+  <div class="headband"></div>
+
+  <main class="main">
+    <div class="column">
+      <header class="header" itemscope itemtype="http://schema.org/WPHeader"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏" role="button">
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <i class="logo-line"></i>
+      <p class="site-title">GB's Blog</p>
+      <i class="logo-line"></i>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger" aria-label="搜索" role="button">
+    </div>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  <ul class="main-menu menu"><li class="menu-item menu-item-home"><a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a></li><li class="menu-item menu-item-archives"><a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a></li><li class="menu-item menu-item-categories"><a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类</a></li><li class="menu-item menu-item-tags"><a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签</a></li><li class="menu-item menu-item-about"><a href="/about/" rel="section"><i class="fa fa-user fa-fw"></i>关于</a></li>
+  </ul>
+</nav>
+
+
+
+
+</header>
+        
+  
+  <aside class="sidebar">
+
+    <div class="sidebar-inner sidebar-nav-active sidebar-toc-active">
+      <ul class="sidebar-nav">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <div class="sidebar-panel-container">
+        <!--noindex-->
+        <div class="post-toc-wrap sidebar-panel">
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#%E6%91%98%E8%A6%81"><span class="nav-number">1.</span> <span class="nav-text">摘要</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E4%BB%8B%E7%BB%8D"><span class="nav-number">2.</span> <span class="nav-text">介绍</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#II-MEEK%EF%BC%9A%E4%B8%80%E7%A7%8DCPU-OS%E5%8D%8F%E5%90%8C%E8%AE%BE%E8%AE%A1%E6%96%B9%E6%B3%95"><span class="nav-number">3.</span> <span class="nav-text">II. MEEK：一种CPU&#x2F;OS协同设计方法</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#III-%E5%BE%AE%E6%9E%B6%E6%9E%84"><span class="nav-number">4.</span> <span class="nav-text">III. 微架构</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#A-%E4%B9%B1%E5%BA%8F%E8%B6%85%E6%A0%87%E9%87%8F%E6%A0%B8%E5%BF%83%EF%BC%88%E5%A4%A7%E6%A0%B8%E5%BF%83%EF%BC%89"><span class="nav-number">4.1.</span> <span class="nav-text">A. 乱序超标量核心（大核心）</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#B-%E8%BD%AC%E5%8F%91%E7%BB%93%E6%9E%84%EF%BC%88F2%EF%BC%89"><span class="nav-number">4.2.</span> <span class="nav-text">B. 转发结构（F2）</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#C-%E9%A1%BA%E5%BA%8F%E6%A0%87%E9%87%8F%E6%A0%B8%E5%BF%83%EF%BC%88%E5%B0%8F%E6%A0%B8%E5%BF%83%EF%BC%89"><span class="nav-number">4.3.</span> <span class="nav-text">C. 顺序标量核心（小核心）</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#IV-%E6%8C%87%E4%BB%A4%E9%9B%86%E6%9E%B6%E6%9E%84%E3%80%81%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F%E5%92%8C%E7%BC%96%E7%A8%8B%E6%A8%A1%E5%9E%8B"><span class="nav-number">5.</span> <span class="nav-text">IV. 指令集架构、操作系统和编程模型</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#A-ISA%E6%94%AF%E6%8C%81"><span class="nav-number">5.1.</span> <span class="nav-text">A. ISA支持</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#B-%E6%A3%80%E6%9F%A5%E7%BA%BF%E7%A8%8B%E5%8F%8A%E5%85%B6%E7%BC%96%E7%A8%8B%E6%A8%A1%E5%9E%8B"><span class="nav-number">5.2.</span> <span class="nav-text">B. 检查线程及其编程模型</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#C-%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F%E5%86%85%E6%A0%B8%E5%8F%8A%E5%85%B6%E9%AA%8C%E8%AF%81"><span class="nav-number">5.3.</span> <span class="nav-text">C. 操作系统内核及其验证</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#V-%E8%AF%84%E4%BC%B0"><span class="nav-number">6.</span> <span class="nav-text">V. 评估</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#A-%E6%80%A7%E8%83%BD%E5%BC%80%E9%94%80"><span class="nav-number">6.1.</span> <span class="nav-text">A. 性能开销</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#B-%E6%A3%80%E6%B5%8B%E5%BB%B6%E8%BF%9F"><span class="nav-number">6.2.</span> <span class="nav-text">B. 检测延迟</span></a></li></ol></li></ol></div>
+        </div>
+        <!--/noindex-->
+
+        <div class="site-overview-wrap sidebar-panel">
+          <div class="site-author animated" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="GB"
+      src="/images/my.jpg">
+  <p class="site-author-name" itemprop="name">GB</p>
+  <div class="site-description" itemprop="description"></div>
+</div>
+<div class="site-state-wrap animated">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+        <a href="/archives/">
+          <span class="site-state-item-count">14</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+          <a href="/categories/">
+        <span class="site-state-item-count">4</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+  </nav>
+</div>
+
+        </div>
+      </div>
+    </div>
+
+    
+  </aside>
+
+
+    </div>
+
+    <div class="main-inner post posts-expand">
+
+
+  
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://example.com/2025/02/13/MEEK-%E8%AE%BA%E6%96%87%E9%98%85%E8%AF%BB/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/my.jpg">
+      <meta itemprop="name" content="GB">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="GB's Blog">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
+      <meta itemprop="name" content="MEEK:Re-thinking Heterogeneous Parallel Error Detection Architecture for Real-World OoO Superscalar Processors | GB's Blog">
+      <meta itemprop="description" content="">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          MEEK:Re-thinking Heterogeneous Parallel Error Detection Architecture for Real-World OoO Superscalar Processors
+        </h1>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">发表于</span>
+      
+
+      <time title="创建时间：2025-02-13 11:12:49 / 修改时间：16:05:35" itemprop="dateCreated datePublished" datetime="2025-02-13T11:12:49+08:00">2025-02-13</time>
+    </span>
+
+  
+    <span class="post-meta-break"></span>
+    <span class="post-meta-item" title="本文字数">
+      <span class="post-meta-item-icon">
+        <i class="far fa-file-word"></i>
+      </span>
+      <span class="post-meta-item-text">本文字数：</span>
+      <span>5.8k</span>
+    </span>
+    <span class="post-meta-item" title="阅读时长">
+      <span class="post-meta-item-icon">
+        <i class="far fa-clock"></i>
+      </span>
+      <span class="post-meta-item-text">阅读时长 &asymp;</span>
+      <span>21 分钟</span>
+    </span>
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody"><h1 id="摘要"><a href="#摘要" class="headerlink" title="摘要"></a>摘要</h1><p>异构并行错误检测是一种实现容错处理器的方法，利用多个能效较高的核心来重新执行原本在高性能核心上运行的软件。然而，其复杂的组件，需要从芯片的各个部分收集数据，引发了如何在不进行大量设计入侵和广泛重新工程的情况下将其构建到商用核心中的问题。我们构建了首个全RTL设计的MEEK，并将其集成到一个开源SoC中，从微架构和指令集架构（ISA）到操作系统和编程模型。我们识别并解决了之前工作中被忽视的瓶颈和错误，并证明MEEK能够在可承受的开销下实现微秒级的检测能力。通过在协同设计的硬件-软件层之间权衡架构功能，MEEK仅对成熟的乱序超标量核心进行了轻微的改动，简化了协调软件层，并且只需要几行操作系统代码</p>
+<h1 id="介绍"><a href="#介绍" class="headerlink" title="介绍"></a>介绍</h1><p><strong>硬件故障，无论是永久性的还是瞬态的，都会导致系统异常和执行错误，随着现代处理器中晶体管数量的增加和工作电压的降低，这种情况变得更加普遍[1]、[2]、[3]、[4]、[5]。为了减轻硬件故障引起的错误，存在从错误代码到容错架构的保护机制。检测始终是关键：一旦检测到错误，系统可以转换到安全状态，从而采取纠正措施（例如系统恢复或故障隔离）。</strong></p>
+<p><strong>根据行业的全球安全标准，例如汽车的ISO26262[6]和航空电子的DO-178C[7]，硬件故障必须在升级为危险之前得到解决，即在容错时间间隔（FTTI）内，通常以毫秒为单位[8]</strong></p>
+<p>软件机制（例如多线程 [4] [9] 和软件扫描器 [10] [11]）通常会导致显著的性能下降或提供有限的故障覆盖范围 [12]，这使得它们不足以满足需要严格可靠性标准的处理器（例如ISO26262中的ASIL-D [6]）。硬件机制通常采用一个专用核心来执行程序副本（lock-step），从而在每个时钟周期比较核心的引脚（例如锁步 [13] [14] [15]）。通过在单独的同步核心上重放所有内容，并在信号级别进行运行时验证，实现了全覆盖和实时保证。尽管双核心和三核心锁步已经在许多生命关键应用场景中的微控制器级处理器核心中得到成功应用 [16] [17]，但由于能量、面积和功耗成本过高 [18] [19] [20]，它们已被证明对于乱序超标量核心不切实际。</p>
+<p><strong>异构并行错误检测</strong> 作为一种有前途的替代方案，异构并行错误检测 [21] [22] [2] 利用强归纳法，将运行在乱序超标量高性能核心（大核心）上的软件程序划分为多个离散段，使用寄存器检查点（RCPs），并在一组较小的能效核心（小核心）上重新执行这些段以进行验证。为了重放内存和其他不可重复的操作，从程序流中提取相关指令（例如加载和存储）的地址和数据，在大核心的提交阶段生成加载和存储操作的分区分布式日志。当段的日志填满，或指令超时，或陷入内核模式时，会触发一个新的RCP，相应的小核心开始验证从开始RCP（SRCP）到结束RCP（ERCP）之间的段。通过重叠验证任务，小核心集体提供了足够的计算能力来跟上大核心的步伐，确保全覆盖且开销低 [21]。（很像difftest）</p>
+<p>我们通过硬件&#x2F;软件协同设计重新构建了这一概念，权衡了系统层之间的功能，证明了可以在对成熟核心进行最小改动的情况下将异构错误检测构建到真实核心中（图1）。这使得大核心上的应用程序线程可以使用RCPs进行分段，并在任何小核心上使用任何数量的检查线程进行重放和验证，同时仍然允许其他线程在它们上面执行（图1）。我们构建了一个全栈框架，名为“让每个错误计数”（MEEK），基于一个开源SoC [24]，从微架构和指令集架构（ISA）到操作系统和编程模型，证明了可以在成熟核心内以最小的设计入侵和几行完整的Linux代码实现该架构。</p>
+<p><img src="/2025/02/13/MEEK-%E8%AE%BA%E6%96%87%E9%98%85%E8%AF%BB/1739418044205.png" alt="1739418044205"></p>
+<h1 id="II-MEEK：一种CPU-OS协同设计方法"><a href="#II-MEEK：一种CPU-OS协同设计方法" class="headerlink" title="II. MEEK：一种CPU&#x2F;OS协同设计方法"></a><strong>II. MEEK：一种CPU&#x2F;OS协同设计方法</strong></h1><p>为了在保持高性能的同时以最小的复杂度实现MEEK，我们必须在硬件和软件之间进行仔细的设计选择分区（图2）。一方面，我们别无选择，只能在硬件中实现加载和存储日志记录，用于在小核心上重放执行</p>
+<blockquote>
+<p>如果需要重放大核上的程序，必须得记录load和store，因为load和store在重放时可能被大核改变，从而导致错误</p>
+</blockquote>
+<p>另一方面，由于小核心与大核心异步执行PTW，操作系统必须在某种程度上了解它们，因此我们让操作系统完全控制它们的调度，避免在硬件中实现不在性能关键路径上的复杂决策，并允许小核心执行标准进程。</p>
+<p>与其采用完全透明的接口并避免在硬件中实现昂贵的错误纠正 [22]，程序通过在main之前插入的协调函数与MEEK-ISA交互，这些函数请求操作系统提供检查资源，验证检查输出，并在需要时调用故障处理代码。为此，我们对大核心的微架构进行了轻微的修改，在提交阶段插入了一个只读观察通道（图2 a），收集大核心的状态数据（即架构、控制和状态寄存器文件）以及RCP之间的运行时数据（内存和其他不可重复操作的地址和数据）。</p>
+<p>我们构建了一个专用的数据结构（图2 b），选择性地广播&#x2F;路由提取的数据到小核心，最小化数据通信的反压。在小核心中，接收到的数据被缓冲在加载存储日志（LSL）中，替换程序重放期间的L1缓存，允许小核心重置其架构状态到给定的SRCP，重放SRCP和ERCP之间的精确指令，并在ERCP处使用不同类型的数据验证执行的正确性（图2 c）。</p>
+<p>我们的ISA接口（图2 d和表I）（重新）配置小核心的检查特性，即操作模式（应用程序或检查模式）以及它们与大核心的关联：小核心最初以应用程序模式运行，作为标准核心执行程序。当与大核心关联时，可以部署并运行检查线程在检查模式下。应用程序和检查线程仍然在小核心上共存，操作模式仅在上下文切换时切换。</p>
+<p>检测方法。错误检查通过检查线程并行化（图2 b）：应用程序线程使用RCPs进行分段，当目标LSL已满、指令超时或陷入内核模式时，这些段由检查线程重新执行，假设所有先前的段都是正确的。重新执行后，检查线程将其架构寄存器与应用程序线程在相同RCP处提供的寄存器进行比较。如果寄存器匹配，则认为该段是正确的。如果所有段都通过检查，则认为整个执行是正确的。然而，在ERCP处无法验证内存操作。在重新执行期间，直接在LSL中比较内存操作的地址和数据。类似的设计方法用于控制和状态寄存器（CSRs）以验证不可重复的指令。</p>
+<blockquote>
+<p>这里讲述了检查线程的触发条件：LSL满，指令超时，陷入内核模式</p>
+</blockquote>
+<p><img src="/2025/02/13/MEEK-%E8%AE%BA%E6%96%87%E9%98%85%E8%AF%BB/1739418630897.png" alt="1739418630897"></p>
+<h1 id="III-微架构"><a href="#III-微架构" class="headerlink" title="III. 微架构"></a><strong>III. 微架构</strong></h1><p>特别是在数据传输方面。我们识别并缓解了之前工作 [21] [22] [26] 中缺失的关键瓶颈，由于缺乏RTL实现，这些工作仅通过抽象模拟进行。我们还识别了冗余数据存储方面的低效，其中大部分转发路径所需的信息已经在提交时间之前缓冲在核心内部，这意味着不需要专用结构；相反，我们可以从现有结构转发数据。尽管存在瓶颈，我们证明可以从一个成熟的异构SoC构建MEEK的微架构，只需进行少量改动，避免大量的工程工作。我们将MEEK构建到一个开源异构SoC（Rocket Chip [24]）中，该SoC既包含高性能核心（BOOM）也包含能效核心（Rocket）。我们利用Rocket Chip来证明我们的方法适用于其他异构SoCs，例如ARM的big.LITTLE [27] 和Intel的P-和E类核心 [28]。</p>
+<h2 id="A-乱序超标量核心（大核心）"><a href="#A-乱序超标量核心（大核心）" class="headerlink" title="A. 乱序超标量核心（大核心）"></a><strong>A. 乱序超标量核心（大核心）</strong></h2><p><img src="/2025/02/13/MEEK-%E8%AE%BA%E6%96%87%E9%98%85%E8%AF%BB/1739419219032.png" alt="1739419219032"></p>
+<p>程序重放需要从大核心收集状态数据和运行时数据。这些数据在程序执行期间暂时存储在核心内，但分布在各个位置。状态数据缓冲在物理寄存器文件（PRFs）和控制和状态寄存器（CSRs）中，而运行时数据存储在加载存储队列（LSQ） [1] 和CSRs中。所有这些数据都可以直接提取，但必须在提交时间而不是执行时间的狭窄窗口内发生，并在被下一条指令覆盖之前。鉴于此，我们开发了一个非侵入式数据提取单元（DEU）（图3），包含提交检测器（CD）、控制电路和旁路电路，注入到PRFs、CSRs和LDQ。CD监控来自ROB的指令提交，并选择旁路电路以在RCPs或RCP之间的运行时数据处提取数据。这使得可以在不增加额外缓冲区或更改现有寄存器路径的情况下及时提取数据。</p>
+<p>PRF示例。图3展示了使用PRFs（用于收集RCPs）的微架构示例，其中DEU与ROB、PRFs和F2进行交互。在每条指令提交时，操作码和功能码从ROB（图3 a）路由到CD，允许CD确定是否提取数据（图3 b）。如果到达RCP，则控制电路生成一个信号，抢占PRF控制器以读取寄存器文件并将其转发到F2（图3 c）。PRF控制器在ROB和DEU之间多路复用，DEU在需要时具有优先访问权，从而实现数据的立即读取并防止数据被覆盖。CSRs和LSQ。为CSRs实现了类似的微架构，允许从任意CSR地址提取数据。相比之下，由于LSQ的顶部始终持有最近提交指令的数据，当CD决定转发运行时数据时，旁路电路直接从队列顶部传输，最小化了设计复杂性并减少了数据争用。</p>
+<blockquote>
+<p>大核主要工作就是提取出有效的状态</p>
+</blockquote>
+<h2 id="B-转发结构（F2）"><a href="#B-转发结构（F2）" class="headerlink" title="B. 转发结构（F2）"></a>B. 转发结构（F2）</h2><p>之前的模拟采用了数据转发的简单模型，忽略了争用和关键路径 [21] [22] [30] [31]。我们尝试实现这种机制时发现了一个阻碍系统性能的障碍，即使部署了全功能的AXI互连 [32] [33]（第V-D节）。这是由于大核心的并行提交产生的大量运行时数据，与RCPs的频繁到达（通常以突发形式出现）发生拥塞，特别是在核心在RCP边界处提交多个加载或存储指令时，需要在一个周期内进行多次数据传输并需要高吞吐量。我们设计了F2，带有双通道缓冲区（DC-Buffers）和半双工多播片上网络（HM-NoC），用于存储和路由提取的数据（图2 b）。每个提交路径连接一个DC-Buffer，为状态和运行时数据添加独立的FIFO。这确保了所有运行时数据可以在提交的同一周期内存储，即使同时生成状态数据，避免了数据需要在原始核心设计中更长时间地存储在核心内部结构中。HM-NoC使用半双工（1到N）曼哈顿网格。为了实现足够高的吞吐量，这个NoC允许每周期传输两个数据包，同时保持顺序。转发策略。与之前的工作不同，之前所有段的数据在RCP处缓冲并集体转发，F2允许在收集时立即传输和使用数据，使小核心能够更早地重新执行。此外，由于相同的状态数据可能被两个小核心需要（分别用作SRCP和ERCP），当小核心能够接收数据时，数据会被选择性地广播到小核心，消除了冗余事务。</p>
+<h2 id="C-顺序标量核心（小核心）"><a href="#C-顺序标量核心（小核心）" class="headerlink" title="C. 顺序标量核心（小核心）"></a><strong>C. 顺序标量核心（小核心）</strong></h2><p><img src="/2025/02/13/MEEK-%E8%AE%BA%E6%96%87%E9%98%85%E8%AF%BB/1739420233845.png" alt="1739420233845"><br>为了实现线程级错误检测并允许检查线程和应用程序线程共存，小核心的微架构必须支持不同的操作模式并抽象出一个软件控制接口。因此，我们升级了小核心的微架构（图4），增加了模式切换单元（MSU，图4 a）和加载存储日志（LSL，图4 b）。MSU作为控制引擎，LSL缓冲接收到的数据包。在复制大核心的状态时，MSU记录小核心的架构寄存器文件并用LSL中的状态数据替换它们。MSU还通过检查运行线程的线程ID（TID）与检查线程的TID来管理小核心的操作模式。当调度检查线程时，MSU切换操作模式，此时加载和不可重复指令的结果从LSL中获取。鉴于小核心以顺序方式访问LSL，我们使用双路FIFO实现了LSL存储库，比传统的组相联架构更简单。流水线集成。图4展示了LSL和MSU如何集成到一个5级流水线的小核心中。LSL被添加到内存访问（MA）阶段（图4 b），通过部署一个复用器并将其连接到加载存储单元（LSU）的地址端口。复用器根据操作模式（由MSU返回）选择性地将内存访问路由到LSL，并将虚拟索引和物理标签（由TLB返回）组合到LSL的地址端口。此外，在MA阶段集成一个解复用器，将读取的数据定向到后续阶段。在指令解码（ID）阶段部署了一对复用器和解复用器，以允许记录和更新架构寄存器。最后，我们在MA阶段部署了一个迷你解码器（Mini-D，图4 c），以区分传统的RISC-V和MEEK-ISA。</p>
+<h1 id="IV-指令集架构、操作系统和编程模型"><a href="#IV-指令集架构、操作系统和编程模型" class="headerlink" title="IV. 指令集架构、操作系统和编程模型"></a><strong>IV. 指令集架构、操作系统和编程模型</strong></h1><p>为了减轻微架构的复杂性，我们在软件支持方面进行了有限的改进，这些改进更简单、更容易验证或对正确功能是必要的。我们详细说明了ISA支持，以添加软件控制块来增强具有容错支持的程序。通过在内核中进行几行代码的更改，它可以调度和保留检查线程的资源，同时允许其他线程的标准调度和上下文切换。</p>
+<h2 id="A-ISA支持"><a href="#A-ISA支持" class="headerlink" title="A. ISA支持"></a><strong>A. ISA支持</strong></h2><p><img src="/2025/02/13/MEEK-%E8%AE%BA%E6%96%87%E9%98%85%E8%AF%BB/1739428633135.png" alt="1739428633135"></p>
+<p>新的ISA分为两类（表I），用于大核心（b.x()）和小核心（l.x()）。我们使用b.hook()设置大核心和小核心之间的关联，然后使用b.check()通过打开&#x2F;关闭DEU来启用&#x2F;禁用检查功能。对于小核心，l.mode()设置其操作模式，一对l.record()和l.apply()从给定来源记录和应用架构寄存器。为了将PC重定向到应用程序线程，我们开发了一个l.jal()，从原始跳转指令修改而来，目标地址有所更改。通过将检查点结束视为类似分支的操作，流水线处理了PC更改的控制危害，无需进一步更改。最后，l.rslt()指示是否检测到RCP不匹配。由于b.hook()和b.check()可能导致小核心的使用争用，l.mode()可能导致意外的内存访问错误，因此它们是特权指令，通过OS syscall执行。</p>
+<h2 id="B-检查线程及其编程模型"><a href="#B-检查线程及其编程模型" class="headerlink" title="B. 检查线程及其编程模型"></a><strong>B. 检查线程及其编程模型</strong></h2><p><img src="/2025/02/13/MEEK-%E8%AE%BA%E6%96%87%E9%98%85%E8%AF%BB/1739429031611.png" alt="1739429031611"></p>
+<p>检查线程在初始化应用程序线程时，通过使用构造函数和析构函数 [35] 增强应用程序线程的main函数（算法1：第14行）。由于检查线程依赖于LSL中的数据来重放内存操作，而LSL使用FIFO设计，因此上下文切换的日志是不可取的。因此，在调度时间，LSL被保留用于单个检查线程（算法1：第12行），即使多个线程可以调度到核心上。一旦LSL被保留，只有与关联的检查线程相关的数据才会被转发，直到重执行完成。同样，固定到特定应用程序线程的检查线程在重执行完成之前不能迁移。由于每个检查点的大小是有限的（最多5000条指令），并且所有权在每个检查点结束时返回给OS以供重新分配，因此这不会导致资源饥饿。编程模型。我们基于新的ISA开发了检查线程，确保最小的编码工作量：最初，使用l.record()记录当前的架构寄存器状态（算法2：第15行），允许核心在验证后返回。然后，创建一个忙等待循环，等待LSL中的状态数据到达（算法2：第19行）。接收到后，调用l.apply()以根据应用程序段修改核心的架构状态（算法2：第20行），并调用l.jalr()将PC重定向到复制的目标（算法2：第21行）。最后，使用l.rslt()返回验证状态。如果检测到错误，则触发中断以通知OS采取纠正措施（算法2：第16-18行）。</p>
+<h2 id="C-操作系统内核及其验证"><a href="#C-操作系统内核及其验证" class="headerlink" title="C. 操作系统内核及其验证"></a><strong>C. 操作系统内核及其验证</strong></h2><p>有了新的ISA，内核修改可以限制在调度程序中的上下文切换函数内，允许配置检查功能并管理检查线程 [36] [37]。根据大核心和小核心的不同角色，应用程序线程和检查线程的上下文切换被不同地修改。在从应用程序线程进入上下文切换时，调用b.check(DISABLE)禁用检查功能（算法1：第3行），在离开上下文切换时，调用b.check(ENABLE)重新启用它（算法1：第20行）。此外，如果调度了一个新发布的线程执行，则使用b.hook(core_index, next→checker_index[x])将其与小核心关联（算法1：第10-13行）。对于应用程序线程的上下文切换，唯一需要的修改是使用l.mode()切换小核心的操作模式（算法1：第3和7行），其余部分保持不变。内核验证和死锁解决。由于MEEK在线程级别启用错误检查，OS内核可以被视为一个专用的应用程序线程，并像其他应用程序线程一样进行验证。然而，在开发过程中，我们观察到一个之前文献 [21] [22] [26] 中遗漏的死锁，这是由于缺乏对OS的评估。因为检查线程可能会阻塞主线程，直到小核心完成，由于SRAM日志是有限的，这种行为表现为小核心持有的锁，而大核心需要。如果出现相反的情况（大核心持有锁，例如软件互斥锁，小核心需要），则会导致死锁（图5 a）。</p>
+<p>这个死锁可以通过使检查线程永远不需要获取锁来解决。确保检查线程至少比主线程落后一条指令，这意味着后者会首先到达故障。通过在I&#x2F;O上进行同步，可以防止写入可能被未完成的检查线程使用的页面（图5 b）。</p>
+<p><img src="/2025/02/13/MEEK-%E8%AE%BA%E6%96%87%E9%98%85%E8%AF%BB/1739429918710.png" alt="1739429918710"></p>
+<h1 id="V-评估"><a href="#V-评估" class="headerlink" title="V. 评估"></a><strong>V. 评估</strong></h1><h2 id="A-性能开销"><a href="#A-性能开销" class="headerlink" title="A. 性能开销"></a><strong>A. 性能开销</strong></h2><p><img src="/2025/02/13/MEEK-%E8%AE%BA%E6%96%87%E9%98%85%E8%AF%BB/1739433129563.png" alt="1739433129563"></p>
+<p>图6显示了在MEEK中运行SPECint和Parsec时大核心的减速情况，与在LLVM中实现的软件基对应物（Nzdc [39]）和等效面积锁步（EA-LockStep）进行比较。选择Nzdc进行比较是因为它是唯一可用的开源软件机制，而锁步是最广泛使用的硬件机制。然而，简单地在锁步中复制核心会消耗大核心面积的两倍，同时实现与普通核心相同的性能，导致无趣的比较。因此，我们通过线性插值每个可配置的BOOM组件，创建了一个比较器，使两个核心的组合面积与MEEK的面积开销相匹配。在所有情况下，MEEK配置为使用四个小核心。使用四个小核心足以执行SPEC，开销为1.4%，Parsec为4.4%（几何平均值）。对于所有工作负载，除了swaptions，观察到的减速低于5%。然而，swaptions的减速最高，为22%，这是由于频繁的除法，Rocket核心的除法器性能显著低于BOOM核心。对于比较器，Nzdc在Parsec上引入了几何平均值60.2%的开销，在SPEC上引入了94.2%的开销，反映了其软件实现的局限性。硬件对应物EA-LockStep在Parsec上引入了几何平均值31.2%的开销，在SPEC上引入了48.7%的开销，大约是MEEK的6.1倍和33.7倍，证明了MEEK的性能-面积优势。</p>
+<h2 id="B-检测延迟"><a href="#B-检测延迟" class="headerlink" title="B. 检测延迟"></a><strong>B. 检测延迟</strong></h2><p>为了检查检测延迟，我们在连接到大核心的F2中注入了转发数据的错误，例如内存操作的数据和地址以及架构寄存器数据，模拟硬件故障，同时不干扰大核心的正常执行。对于每个工作负载，随机生成了5000到10000个故障，并且检测延迟的密度如图7所示。每个分布都有一个长而非常薄的尾部延伸到右侧：平均检测延迟低于1微秒，而最坏情况下的延迟是平均值的5到10倍，最高可达2.7微秒（在ferret中）。尽管故障注入是随机的，但大量的样本点（总计超过100,000个）表明，3微秒足以覆盖超过99.9%的硬件故障，这比ASIL-D合规所需的毫秒级FTTI要求低几个数量级。</p>
+
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-item">
+                <a href="/2025/02/10/gem5%E5%9C%A8fs%E6%A8%A1%E5%BC%8F%E8%BF%90%E8%A1%8Cspec2006/" rel="prev" title="gem5在fs模式运行spec2006">
+                  <i class="fa fa-angle-left"></i> gem5在fs模式运行spec2006
+                </a>
+            </div>
+            <div class="post-nav-item">
+            </div>
+          </div>
+    </footer>
+  </article>
+</div>
+
+
+
+
+
+
+</div>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+
+  <div class="copyright">
+    &copy; 2025-02 – 
+    <span itemprop="copyrightYear">2025</span>
+    <span class="with-love">
+      <i class="fa fa-heart"></i>
+    </span>
+    <span class="author" itemprop="copyrightHolder">GB</span>
+  </div>
+<div class="wordcount">
+  <span class="post-meta-item">
+    <span class="post-meta-item-icon">
+      <i class="fa fa-chart-line"></i>
+    </span>
+    <span title="站点总字数">103k</span>
+  </span>
+  <span class="post-meta-item">
+    <span class="post-meta-item-icon">
+      <i class="fa fa-coffee"></i>
+    </span>
+    <span title="站点阅读时长">6:15</span>
+  </span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io/" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.js.org/" rel="noopener" target="_blank">NexT.Gemini</a> 强力驱动
+  </div>
+
+    </div>
+  </footer>
+
+  
+  <div class="toggle sidebar-toggle" role="button">
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+  </div>
+  <div class="sidebar-dimmer"></div>
+  <div class="back-to-top" role="button" aria-label="返回顶部">
+    <i class="fa fa-arrow-up fa-lg"></i>
+    <span>0%</span>
+  </div>
+
+<noscript>
+  <div class="noscript-warning">Theme NexT works best with JavaScript enabled</div>
+</noscript>
+
+
+  
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js" integrity="sha256-XL2inqUJaslATFnHdJOi9GfQ60on8Wx1C2H8DYiN1xY=" crossorigin="anonymous"></script>
+<script src="/js/comments.js"></script><script src="/js/utils.js"></script><script src="/js/motion.js"></script><script src="/js/sidebar.js"></script><script src="/js/next-boot.js"></script>
+
+  
+
+
+
+
+
+
+  
+
+
+
+
+
+</body>
+</html>
