@@ -636,15 +636,6 @@
       </categories>
   </entry>
   <entry>
-    <title>DNN 加速器</title>
-    <url>/2025/02/05/DNN-%E5%8A%A0%E9%80%9F%E5%99%A8/</url>
-    <content><![CDATA[<h1 id="DNN加速器综述"><a href="#DNN加速器综述" class="headerlink" title="DNN加速器综述"></a>DNN加速器综述</h1><h2 id="硬件方案"><a href="#硬件方案" class="headerlink" title="硬件方案"></a>硬件方案</h2><p>两种架构:temporal and spatial architectures<br><img src="/2025/02/05/DNN-%E5%8A%A0%E9%80%9F%E5%99%A8/image00.png" alt="alt text"><br>其中asic和fpga主要为spatial结构,而CPU和GPU主要为temporal结构<br><strong>本次主要介绍空间架构</strong><br>这种结构有相当一部分能耗在存储上,故数据重用是研究重点<br><img src="/2025/02/05/DNN-%E5%8A%A0%E9%80%9F%E5%99%A8/image-1.png" alt="基本结构"><br>一些重用名词<br>input reuse:FC层<br>weight reuse:CONV层<br>conv reuse:卷积层的滑窗每次都有重复的<br><strong>Weight Stationary</strong><br>所有使用相同weight的mac必须映射到同一PE上进行串行处理。这最大限度地提高了RF中权重的卷积和滤波器重用，从而最大限度地减少了访问权重的能量消耗<br><img src="/2025/02/05/DNN-%E5%8A%A0%E9%80%9F%E5%99%A8/image-2.png" alt="alt text"><br>这是一个3x3的矩阵2x2的卷积核,最后生成2x2的输出<br><img src="/2025/02/05/DNN-%E5%8A%A0%E9%80%9F%E5%99%A8/image-3.png" alt="alt text"><br>先说上面那一种<br>仅介绍一个输出元素如何产生的,<br>T1:I0XW0<br>T2:I0XW0+I1XW1<br>T3:将结果移入PE2<br>T4:I0XW0+I1XW1+I2XW2<br>T5:I0XW0+I1XW1+I2XW2+I3XW3,完成一次卷积操作<br>下面哪一种和上面类似,不过是再次分块了<br><strong>Output Stationary</strong><br>映射规则是对相同的输出像素的所有mac必须依次映射到同一PE上。<br><img src="/2025/02/05/DNN-%E5%8A%A0%E9%80%9F%E5%99%A8/image-4.png" alt="alt text"><br><strong>Row Stationary</strong><br><img src="/2025/02/05/DNN-%E5%8A%A0%E9%80%9F%E5%99%A8/image-5.png" alt="alt text"><br><strong>No Local Reuse</strong><br><img src="/2025/02/05/DNN-%E5%8A%A0%E9%80%9F%E5%99%A8/image-6.png" alt="alt text"></p>
-]]></content>
-      <categories>
-        <category>论文阅读</category>
-      </categories>
-  </entry>
-  <entry>
     <title>BOP预取器</title>
     <url>/2025/02/05/BOP%E9%A2%84%E5%8F%96%E5%99%A8/</url>
     <content><![CDATA[<h1 id="BOP介绍"><a href="#BOP介绍" class="headerlink" title="BOP介绍"></a>BOP介绍</h1><p>主要相对于SandBox有更好的timeliness，</p>
@@ -707,6 +698,15 @@
       </categories>
   </entry>
   <entry>
+    <title>DNN 加速器</title>
+    <url>/2025/02/05/DNN-%E5%8A%A0%E9%80%9F%E5%99%A8/</url>
+    <content><![CDATA[<h1 id="DNN加速器综述"><a href="#DNN加速器综述" class="headerlink" title="DNN加速器综述"></a>DNN加速器综述</h1><h2 id="硬件方案"><a href="#硬件方案" class="headerlink" title="硬件方案"></a>硬件方案</h2><p>两种架构:temporal and spatial architectures<br><img src="/2025/02/05/DNN-%E5%8A%A0%E9%80%9F%E5%99%A8/image00.png" alt="alt text"><br>其中asic和fpga主要为spatial结构,而CPU和GPU主要为temporal结构<br><strong>本次主要介绍空间架构</strong><br>这种结构有相当一部分能耗在存储上,故数据重用是研究重点<br><img src="/2025/02/05/DNN-%E5%8A%A0%E9%80%9F%E5%99%A8/image-1.png" alt="基本结构"><br>一些重用名词<br>input reuse:FC层<br>weight reuse:CONV层<br>conv reuse:卷积层的滑窗每次都有重复的<br><strong>Weight Stationary</strong><br>所有使用相同weight的mac必须映射到同一PE上进行串行处理。这最大限度地提高了RF中权重的卷积和滤波器重用，从而最大限度地减少了访问权重的能量消耗<br><img src="/2025/02/05/DNN-%E5%8A%A0%E9%80%9F%E5%99%A8/image-2.png" alt="alt text"><br>这是一个3x3的矩阵2x2的卷积核,最后生成2x2的输出<br><img src="/2025/02/05/DNN-%E5%8A%A0%E9%80%9F%E5%99%A8/image-3.png" alt="alt text"><br>先说上面那一种<br>仅介绍一个输出元素如何产生的,<br>T1:I0XW0<br>T2:I0XW0+I1XW1<br>T3:将结果移入PE2<br>T4:I0XW0+I1XW1+I2XW2<br>T5:I0XW0+I1XW1+I2XW2+I3XW3,完成一次卷积操作<br>下面哪一种和上面类似,不过是再次分块了<br><strong>Output Stationary</strong><br>映射规则是对相同的输出像素的所有mac必须依次映射到同一PE上。<br><img src="/2025/02/05/DNN-%E5%8A%A0%E9%80%9F%E5%99%A8/image-4.png" alt="alt text"><br><strong>Row Stationary</strong><br><img src="/2025/02/05/DNN-%E5%8A%A0%E9%80%9F%E5%99%A8/image-5.png" alt="alt text"><br><strong>No Local Reuse</strong><br><img src="/2025/02/05/DNN-%E5%8A%A0%E9%80%9F%E5%99%A8/image-6.png" alt="alt text"></p>
+]]></content>
+      <categories>
+        <category>论文阅读</category>
+      </categories>
+  </entry>
+  <entry>
     <title>MEEK</title>
     <url>/2025/02/13/MEEK/</url>
     <content><![CDATA[<h1 id="MEEK-Re-thinking-Heterogeneous-Parallel-Error-Detection-Architecture-for-Real-World-OoO-Superscalar-Processors"><a href="#MEEK-Re-thinking-Heterogeneous-Parallel-Error-Detection-Architecture-for-Real-World-OoO-Superscalar-Processors" class="headerlink" title="MEEK:Re-thinking Heterogeneous Parallel Error Detection Architecture for Real-World OoO Superscalar Processors"></a>MEEK:Re-thinking Heterogeneous Parallel Error Detection Architecture for Real-World OoO Superscalar Processors</h1><h2 id="摘要"><a href="#摘要" class="headerlink" title="摘要"></a>摘要</h2><p>异构并行错误检测是一种实现容错处理器的方法，利用多个能效较高的核心来重新执行原本在高性能核心上运行的软件。然而，其复杂的组件，需要从芯片的各个部分收集数据，引发了如何在不进行大量设计入侵和广泛重新工程的情况下将其构建到商用核心中的问题。我们构建了首个全RTL设计的MEEK，并将其集成到一个开源SoC中，从微架构和指令集架构（ISA）到操作系统和编程模型。我们识别并解决了之前工作中被忽视的瓶颈和错误，并证明MEEK能够在可承受的开销下实现微秒级的检测能力。通过在协同设计的硬件-软件层之间权衡架构功能，MEEK仅对成熟的乱序超标量核心进行了轻微的改动，简化了协调软件层，并且只需要几行操作系统代码</p>
@@ -749,6 +749,18 @@
 <h2 id="V-评估"><a href="#V-评估" class="headerlink" title="V. 评估"></a><strong>V. 评估</strong></h2><h3 id="A-性能开销"><a href="#A-性能开销" class="headerlink" title="A. 性能开销"></a><strong>A. 性能开销</strong></h3><p><img src="/2025/02/13/MEEK/1739433129563.png" alt="1739433129563"></p>
 <p>图6显示了在MEEK中运行SPECint和Parsec时大核心的减速情况，与在LLVM中实现的软件基对应物（Nzdc [39]）和等效面积锁步（EA-LockStep）进行比较。选择Nzdc进行比较是因为它是唯一可用的开源软件机制，而锁步是最广泛使用的硬件机制。然而，简单地在锁步中复制核心会消耗大核心面积的两倍，同时实现与普通核心相同的性能，导致无趣的比较。因此，我们通过线性插值每个可配置的BOOM组件，创建了一个比较器，使两个核心的组合面积与MEEK的面积开销相匹配。在所有情况下，MEEK配置为使用四个小核心。使用四个小核心足以执行SPEC，开销为1.4%，Parsec为4.4%（几何平均值）。对于所有工作负载，除了swaptions，观察到的减速低于5%。然而，swaptions的减速最高，为22%，这是由于频繁的除法，Rocket核心的除法器性能显著低于BOOM核心。对于比较器，Nzdc在Parsec上引入了几何平均值60.2%的开销，在SPEC上引入了94.2%的开销，反映了其软件实现的局限性。硬件对应物EA-LockStep在Parsec上引入了几何平均值31.2%的开销，在SPEC上引入了48.7%的开销，大约是MEEK的6.1倍和33.7倍，证明了MEEK的性能-面积优势。</p>
 <h3 id="B-检测延迟"><a href="#B-检测延迟" class="headerlink" title="B. 检测延迟"></a><strong>B. 检测延迟</strong></h3><p>为了检查检测延迟，我们在连接到大核心的F2中注入了转发数据的错误，例如内存操作的数据和地址以及架构寄存器数据，模拟硬件故障，同时不干扰大核心的正常执行。对于每个工作负载，随机生成了5000到10000个故障，并且检测延迟的密度如图7所示。每个分布都有一个长而非常薄的尾部延伸到右侧：平均检测延迟低于1微秒，而最坏情况下的延迟是平均值的5到10倍，最高可达2.7微秒（在ferret中）。尽管故障注入是随机的，但大量的样本点（总计超过100,000个）表明，3微秒足以覆盖超过99.9%的硬件故障，这比ASIL-D合规所需的毫秒级FTTI要求低几个数量级。</p>
+]]></content>
+  </entry>
+  <entry>
+    <title>MLOP</title>
+    <url>/2025/02/13/MLOP/</url>
+    <content><![CDATA[<h1 id="Multi-Lookahead-Offset-Prefetching"><a href="#Multi-Lookahead-Offset-Prefetching" class="headerlink" title="Multi-Lookahead Offset Prefetching"></a>Multi-Lookahead Offset Prefetching</h1><h2 id="摘要"><a href="#摘要" class="headerlink" title="摘要"></a>摘要</h2><p>讲的就是MLOP集timelineness和coverage于一体，并且可以弥补BOP只能预测一个offset，MLOP使用一个轻量级的硬件结构，由一个小存储器和一个简单的逻辑组成，用于识别在不同预测前瞻下可以覆盖特定缓存未命中的预取偏移量。基于此，MLOP为预取偏移量分配分数，并为每个前瞻选择分数最高的偏移量来发出预取请求。我们评估并比较了MLOP与各种最近的先进数据预取器，并表明我们的提议比没有数据预取器的系统提高了30%的系统性能，比之前性能最好的数据预取器提高了4%。</p>
+<h2 id="提议"><a href="#提议" class="headerlink" title="提议"></a><strong>提议</strong></h2><p><img src="/2025/02/13/MLOP/1739438759612.png" alt="1739438759612"></p>
+<p>偏移量在前瞻级别X的分数表示预取器能够预取访问的次数，至少在发生前X次访问，例如，偏移量在前瞻级别1的分数表示预取器能够预取任何未来访问的次数</p>
+<p>AMT中存放的是一个一个region的memory访问情况 每个region对应一个entry, entry中存储一个bit vector, 表示每一个位置是否被访问过了。 此外，每个region还会有一个history queue。以queue的形式存最近k个访问的offset，然后每个位向量都有level个级别的历史访问顺序。</p>
+<p>因为MLOP有多个lookahead level, 每个level有自己的最佳offset。因此，MLOP开了level个score table, 记录当前level每个offset的得分</p>
+<p>为了在前瞻级别1更新偏移量分数，每当发生访问时，我们找到其对应的位向量（使用其高位来搜索AMT），然后根据位向量信息，识别可以预取该访问的偏移量，并相应地增加这些偏移量在第一前瞻级别的分数。最后，我们在AMT中设置当前访问块对应的位。更新高位的分数需要先屏蔽低位的访问</p>
+<p>说实话他这个论文比较空，建议读ppt</p>
 ]]></content>
   </entry>
   <entry>
@@ -2130,6 +2142,56 @@
 </ol>
 <h2 id="Exiting-runahead-mode"><a href="#Exiting-runahead-mode" class="headerlink" title="Exiting runahead mode"></a>Exiting runahead mode</h2><p>退出也是可以随时退出,本文使用和分支预测失误后恢复的方法相似<br>本文使用的是当blocking的数据返回后退出runahead,</p>
 <h2 id="一些名词"><a href="#一些名词" class="headerlink" title="一些名词"></a>一些名词</h2><p>BHT,FIFO,ROB,RAT,store buffer</p>
+]]></content>
+  </entry>
+  <entry>
+    <title>spp</title>
+    <url>/2025/02/13/spp/</url>
+    <content><![CDATA[<h1 id="Path-Confidence-based-Lookahead-Prefetching"><a href="#Path-Confidence-based-Lookahead-Prefetching" class="headerlink" title="Path Confidence based Lookahead Prefetching"></a>Path Confidence based Lookahead Prefetching</h1><p>首先，SPP 使用基于压缩历史的方案，可以准确预测复杂的地址模式。 其次，与其他基于历史的算法不同，当地址模式在物理页面之间转换时，这些算法会错过许多预取机会，而 SPP 会跨物理页面边界跟踪复杂模式，并在它们移动到新页面时立即继续预取。最后，SPP 利用其对预测的信心，根据每个预取流自适应地限制自身。SPP 以最小的开销实现这一点，严格在物理地址空间内操作，并且不需要任何额外的处理器核心状态，例如 PC。</p>
+<h2 id="SPP贡献"><a href="#SPP贡献" class="headerlink" title="SPP贡献"></a>SPP贡献</h2><ul>
+<li>我们引入了一种签名机制，以压缩形式存储内存访问模式并启动前瞻预取过程。此 12 位签名最多可压缩四个小增量，且不会产生混叠。通过将签名与未来可能的增量模式相关联，SPP 可以快速准确地学习简单和复杂的内存访问模式。签名还可用于检测两个物理页面之间的局部性，并从一个物理页面的末尾继续执行相同的预取模式，直到下一个物理页面。</li>
+<li>我们开发了一种基于路径置信度的预取节流机制。随着lookahead预取的深入，一系列签名构建了一条签名路径。每条签名路径都有不同的置信度值，这取决于其之前的增量历史、预取准确性和预取深度。路径置信度值用于动态限制预取深度，以平衡预取覆盖率和准确性</li>
+<li>与之前基于前瞻的预取器 [12]、[13] 不同，SPP 不需要深入到核心微架构中，而是纯粹基于物理内存访问流</li>
+</ul>
+<h2 id="MOTIVATION-AND-PRIOR-WORK"><a href="#MOTIVATION-AND-PRIOR-WORK" class="headerlink" title="MOTIVATION AND PRIOR WORK"></a>MOTIVATION AND PRIOR WORK</h2><p>对于之前的工作：</p>
+<ul>
+<li>需要去处理复杂的访存模式</li>
+<li>需要去自适应预取深度（lookahead深度）</li>
+<li>需要考虑跨页预取</li>
+</ul>
+<h2 id="DESIGN"><a href="#DESIGN" class="headerlink" title="DESIGN"></a>DESIGN</h2><p>随着lookahead深度增加，预取置信度在下降，公式如下</p>
+<p><img src="/2025/02/13/spp/1739453981726.png" alt="1739453981726"></p>
+<p>然后将Pd与置信度阈值对比，以确定何时<strong>停止预取</strong>，置信度Pd还可以选择插入哪个缓存，置信度高的插入高级别的</p>
+<p>SPP在物理空间运行，不用访问tlb，spp使用一个页面的学习结果来预测其他页，通过两种模式：</p>
+<p>首先，虽然增量历史签名是在每个物理页面的基础上维护的，如第 III-B 节所述，但这些签名索引到用于预测增量的全局表中，该表由所有页面共享。其次，如第 III-D 节所述，当第一次按需访问新的物理页面时，可以继承来自其增量预测跨越页面边界的先前物理页面的增量签名模式，并将其用于引导此新页面中的预测。这使 SPP 具有不需要长时间的每页预热期来开始预取复杂模式的优势，从而导致更高的预取覆盖率。</p>
+<h3 id="大致设计"><a href="#大致设计" class="headerlink" title="大致设计"></a>大致设计</h3><p><img src="/2025/02/13/spp/1739454665297.png" alt="1739454665297"></p>
+<p>主要有三个结构：Signature Table, Pattern Table, and Prefetch Filter以及一个小的GHR（用于跨页预取）</p>
+<p>SPP是用访问L2Cache的流来训练，可以将结果填充至L2或LLC，ST跟踪最近256个页面，每个页面的delta访问压缩为12bits的签名，然后这个可以去访问模式表（PT），存储预测的模式，PT还会去估计给定增量的置信度如果置信度高，就会作为预取候选传送给PF，PF检查是否存在冗余的预取，如果预测的增量跨4k边界，SPP不会发出预取，而是送入GHR学习</p>
+<h3 id="Learning-Memory-Access-Patterns"><a href="#Learning-Memory-Access-Patterns" class="headerlink" title="Learning Memory Access Patterns"></a>Learning Memory Access Patterns</h3><p><img src="/2025/02/13/spp/1739455356234.png" alt="1739455356234"></p>
+<p>ST是在4K页面内捕获访问模式，并将先前的offset记录在表中，如上图A，物理页面3，offset为3的请求访问ST，ST会根据下面公式更新签名</p>
+<p><img src="/2025/02/13/spp/1739455842729.png" alt="1739455842729"></p>
+<p>我们此时可以认为，给定的一组访问，比如0x1，他还会去访问增量为2的地址，如果PT不包含匹配的增量，他会在这个签名所属的一个地方去找一个Cdelta最低的值填入</p>
+<p>我们会在PT中更新这种访问模式，更新策略就是，找到delta为2的，将置信度+1，为了去估计每个delta的预取准确率，还维护了sig计数器，他跟踪签名出现的次数，如果两个技术器其中一个饱和了，与该签名的所有计数器将会右移1，这样做不会去丢失之前的历史记录</p>
+<p>PT的条目是全局共享的，也就是页面A,B共享相同的访问模式，他们会生成同样的签名，并且签名会索引到PT中相同的条目，更新PT访存模式</p>
+<p>PT每个条目可容纳最多四个delta，如果其置信度Cd&gt;&#x3D;Cdelta&#x2F;Csig,则这个条目就成为预取候选者</p>
+<p>delta最大为7bit，假设 4KB 页面具有 64B 缓存行，所有可能的增量都在 (-63) 到 (+63) 的范围内。我们对正增量和负增量都使用 7 位符号+幅度表示。因此，负增量和正增量会产生不同的签名，指向模式表中的不同条目，并最终指向不同的预取目标。但注意大于7的delta会发生混叠</p>
+<h3 id="Path-Confidence-based-Prefetching"><a href="#Path-Confidence-based-Prefetching" class="headerlink" title="Path Confidence-based Prefetching"></a>Path Confidence-based Prefetching</h3><p><img src="/2025/02/13/spp/1739457587856.png" alt="1739457587856"></p>
+<p>路径置信度是根据0XA的签名相关的增量计算的，初次访问置信度为Cdelta&#x2F;Csig，所以+2的增量会被送入预取</p>
+<p>此外PT还会构建新的签名以供下次预取使用，虽然可能会有多个候选，但只选择置信度最高的生成签名，新的lookahead签名用于再次访问PT，直至Pd小于Tp，更大的置信度Tf决定了给定的预取应该送入哪个缓存</p>
+<p>SPP可以引入a来降低lookahead的概率</p>
+<p>请注意，为简单起见，在上面的讨论中，我们在浮点数的背景下描述了路径置信度计算。然而，在实际实现中（以及在我们的模拟器中），我们使用 7 位定点数来表示 0∼100 之间的路径置信度值，并对这些定点数执行乘法和除法。此外，由于 Cdelta 和 Csig 是 4 位饱和计数器，我们可以使用一个简单的 16x16&#x3D;256 条目查找表来存储所有可能的除法结果，这使我们能够完全删除昂贵的除法器模块。此外，额外的计算延迟可以被隐藏，因为 SPP 可以在 L2 缓存等待 DRAM 服务需求未命中时在后台计算路径置信度</p>
+<p><img src="/2025/02/13/spp/1739458234710.png" alt="1739458234710"></p>
+<p>如果预取器观察到以下条件之一，SPP 会停止预取：1) 路径置信度 Pd 较低。 2) L2 读取队列资源太少。</p>
+<h3 id="Page-Boundary-Learning"><a href="#Page-Boundary-Learning" class="headerlink" title="Page Boundary Learning"></a>Page Boundary Learning</h3><p><img src="/2025/02/13/spp/1739458632499.png" alt="1739458632499"></p>
+<p>边界预测被存放到一个8entry的条目中，这个GHR存储当前的签名，路径置信度，以及偏移和delta，页面A发生跨页预取，那么会在新页面B访问GHR，匹配offset相等的，</p>
+<p>也即是发生跨页时：</p>
+<ol>
+<li>写入跨页请求，然后这个请求其实是B的offset为1的访问，此时访问GHR，发现匹配值，然后生成页面B的签名</li>
+</ol>
+<h3 id="Prefetch-Filter"><a href="#Prefetch-Filter" class="headerlink" title="Prefetch Filter"></a>Prefetch Filter</h3><p><img src="/2025/02/13/spp/1739459523960.png" alt="1739459523960"></p>
+<p>SPP总是先检查PF，然后再发出预取，如果PF已经包含一个缓存行，说明这个缓存行已经被预取，预取请求会被丢弃，当缓存行被替换，会重置有效位来清除条目</p>
+<p>通过在每个过滤器条目中添加一个有用位，PF 还可以近似预取精度。SPP 有两个全局计数器，一个用于跟踪预取请求的总数 (Ctotal)，另一个用于跟踪有用预取的数量 (Cuseful)。每当 SPP 发出未被过滤器丢弃的预取时，Ctotal 计数器就会增加。有用的预取由 PF 中命中的实际 L2 缓存需求请求检测到，这会增加 Cuseful 计数器。为了避免每个有用的预取行增加 Cuseful 超过一次，我们在 PF 条目中设置了一个已用位，以防止重复计算。此过滤器跟踪的全局预取精度用于公式 3 中的 α，以限制路径置信度值。</p>
+<p><img src="/2025/02/13/spp/1739460638587.png" alt="1739460638587"></p>
 ]]></content>
   </entry>
   <entry>

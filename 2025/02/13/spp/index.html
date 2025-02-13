@@ -1,0 +1,371 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width">
+<meta name="theme-color" content="#222"><meta name="generator" content="Hexo 7.3.0">
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css" integrity="sha256-dABdfBfUoC8vJUBOwGVdm8L9qlMWaHTIfXt+7GnZCIo=" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/3.1.1/animate.min.css" integrity="sha256-PR7ttpcvz8qrF57fur/yAx1qXMFJeJFiA6pSzWi0OIE=" crossorigin="anonymous">
+
+<script class="next-config" data-name="main" type="application/json">{"hostname":"example.com","root":"/","images":"/images","scheme":"Gemini","darkmode":false,"version":"8.22.0","exturl":false,"sidebar":{"position":"left","width_expanded":320,"width_dual_column":240,"display":"post","padding":18,"offset":12},"hljswrap":true,"copycode":{"enable":true,"style":"flat"},"fold":{"enable":true,"height":500},"bookmark":{"enable":false,"color":"#222","save":"auto"},"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"stickytabs":false,"motion":{"enable":true,"async":false,"duration":200,"transition":{"menu_item":"fadeInDown","post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"i18n":{"placeholder":"搜索...","empty":"没有找到任何搜索结果：${query}","hits_time":"找到 ${hits} 个搜索结果（用时 ${time} 毫秒）","hits":"找到 ${hits} 个搜索结果"}}</script><script src="/js/config.js"></script>
+
+    <meta name="description" content="Path Confidence based Lookahead Prefetching首先，SPP 使用基于压缩历史的方案，可以准确预测复杂的地址模式。 其次，与其他基于历史的算法不同，当地址模式在物理页面之间转换时，这些算法会错过许多预取机会，而 SPP 会跨物理页面边界跟踪复杂模式，并在它们移动到新页面时立即继续预取。最后，SPP 利用其对预测的信心，根据每个预取流自适应地限制自身。SPP 以">
+<meta property="og:type" content="article">
+<meta property="og:title" content="spp">
+<meta property="og:url" content="http://example.com/2025/02/13/spp/index.html">
+<meta property="og:site_name" content="GB&#39;s Blog">
+<meta property="og:description" content="Path Confidence based Lookahead Prefetching首先，SPP 使用基于压缩历史的方案，可以准确预测复杂的地址模式。 其次，与其他基于历史的算法不同，当地址模式在物理页面之间转换时，这些算法会错过许多预取机会，而 SPP 会跨物理页面边界跟踪复杂模式，并在它们移动到新页面时立即继续预取。最后，SPP 利用其对预测的信心，根据每个预取流自适应地限制自身。SPP 以">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="http://example.com/2025/02/13/spp/1739453981726.png">
+<meta property="og:image" content="http://example.com/2025/02/13/spp/1739454665297.png">
+<meta property="og:image" content="http://example.com/2025/02/13/spp/1739455356234.png">
+<meta property="og:image" content="http://example.com/2025/02/13/spp/1739455842729.png">
+<meta property="og:image" content="http://example.com/2025/02/13/spp/1739457587856.png">
+<meta property="og:image" content="http://example.com/2025/02/13/spp/1739458234710.png">
+<meta property="og:image" content="http://example.com/2025/02/13/spp/1739458632499.png">
+<meta property="og:image" content="http://example.com/2025/02/13/spp/1739459523960.png">
+<meta property="og:image" content="http://example.com/2025/02/13/spp/1739460638587.png">
+<meta property="article:published_time" content="2025-02-13T12:44:38.000Z">
+<meta property="article:modified_time" content="2025-02-13T15:31:31.228Z">
+<meta property="article:author" content="GB">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://example.com/2025/02/13/spp/1739453981726.png">
+
+
+<link rel="canonical" href="http://example.com/2025/02/13/spp/">
+
+
+<script class="next-config" data-name="page" type="application/json">{"sidebar":"","isHome":false,"isPost":true,"lang":"zh-CN","comments":true,"permalink":"http://example.com/2025/02/13/spp/","path":"2025/02/13/spp/","title":"spp"}</script>
+
+<script class="next-config" data-name="calendar" type="application/json">""</script>
+<title>spp | GB's Blog</title>
+  
+
+
+
+
+
+
+
+
+  <noscript>
+    <link rel="stylesheet" href="/css/noscript.css">
+  </noscript>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" class="use-motion">
+  <div class="headband"></div>
+
+  <main class="main">
+    <div class="column">
+      <header class="header" itemscope itemtype="http://schema.org/WPHeader"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏" role="button">
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <i class="logo-line"></i>
+      <p class="site-title">GB's Blog</p>
+      <i class="logo-line"></i>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger" aria-label="搜索" role="button">
+    </div>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  <ul class="main-menu menu"><li class="menu-item menu-item-home"><a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a></li><li class="menu-item menu-item-archives"><a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a></li><li class="menu-item menu-item-categories"><a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类</a></li><li class="menu-item menu-item-tags"><a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签</a></li><li class="menu-item menu-item-about"><a href="/about/" rel="section"><i class="fa fa-user fa-fw"></i>关于</a></li>
+  </ul>
+</nav>
+
+
+
+
+</header>
+        
+  
+  <aside class="sidebar">
+
+    <div class="sidebar-inner sidebar-nav-active sidebar-toc-active">
+      <ul class="sidebar-nav">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <div class="sidebar-panel-container">
+        <!--noindex-->
+        <div class="post-toc-wrap sidebar-panel">
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#Path-Confidence-based-Lookahead-Prefetching"><span class="nav-number">1.</span> <span class="nav-text">Path Confidence based Lookahead Prefetching</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#SPP%E8%B4%A1%E7%8C%AE"><span class="nav-number">1.1.</span> <span class="nav-text">SPP贡献</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#MOTIVATION-AND-PRIOR-WORK"><span class="nav-number">1.2.</span> <span class="nav-text">MOTIVATION AND PRIOR WORK</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#DESIGN"><span class="nav-number">1.3.</span> <span class="nav-text">DESIGN</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%A4%A7%E8%87%B4%E8%AE%BE%E8%AE%A1"><span class="nav-number">1.3.1.</span> <span class="nav-text">大致设计</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Learning-Memory-Access-Patterns"><span class="nav-number">1.3.2.</span> <span class="nav-text">Learning Memory Access Patterns</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Path-Confidence-based-Prefetching"><span class="nav-number">1.3.3.</span> <span class="nav-text">Path Confidence-based Prefetching</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Page-Boundary-Learning"><span class="nav-number">1.3.4.</span> <span class="nav-text">Page Boundary Learning</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Prefetch-Filter"><span class="nav-number">1.3.5.</span> <span class="nav-text">Prefetch Filter</span></a></li></ol></li></ol></li></ol></div>
+        </div>
+        <!--/noindex-->
+
+        <div class="site-overview-wrap sidebar-panel">
+          <div class="site-author animated" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="GB"
+      src="/images/my.jpg">
+  <p class="site-author-name" itemprop="name">GB</p>
+  <div class="site-description" itemprop="description"></div>
+</div>
+<div class="site-state-wrap animated">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+        <a href="/archives/">
+          <span class="site-state-item-count">16</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+          <a href="/categories/">
+        <span class="site-state-item-count">4</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+  </nav>
+</div>
+
+        </div>
+      </div>
+    </div>
+
+    
+  </aside>
+
+
+    </div>
+
+    <div class="main-inner post posts-expand">
+
+
+  
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://example.com/2025/02/13/spp/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/my.jpg">
+      <meta itemprop="name" content="GB">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="GB's Blog">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
+      <meta itemprop="name" content="spp | GB's Blog">
+      <meta itemprop="description" content="">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          spp
+        </h1>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">发表于</span>
+      
+
+      <time title="创建时间：2025-02-13 20:44:38 / 修改时间：23:31:31" itemprop="dateCreated datePublished" datetime="2025-02-13T20:44:38+08:00">2025-02-13</time>
+    </span>
+
+  
+    <span class="post-meta-break"></span>
+    <span class="post-meta-item" title="本文字数">
+      <span class="post-meta-item-icon">
+        <i class="far fa-file-word"></i>
+      </span>
+      <span class="post-meta-item-text">本文字数：</span>
+      <span>2.2k</span>
+    </span>
+    <span class="post-meta-item" title="阅读时长">
+      <span class="post-meta-item-icon">
+        <i class="far fa-clock"></i>
+      </span>
+      <span class="post-meta-item-text">阅读时长 &asymp;</span>
+      <span>8 分钟</span>
+    </span>
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody"><h1 id="Path-Confidence-based-Lookahead-Prefetching"><a href="#Path-Confidence-based-Lookahead-Prefetching" class="headerlink" title="Path Confidence based Lookahead Prefetching"></a>Path Confidence based Lookahead Prefetching</h1><p>首先，SPP 使用基于压缩历史的方案，可以准确预测复杂的地址模式。 其次，与其他基于历史的算法不同，当地址模式在物理页面之间转换时，这些算法会错过许多预取机会，而 SPP 会跨物理页面边界跟踪复杂模式，并在它们移动到新页面时立即继续预取。最后，SPP 利用其对预测的信心，根据每个预取流自适应地限制自身。SPP 以最小的开销实现这一点，严格在物理地址空间内操作，并且不需要任何额外的处理器核心状态，例如 PC。</p>
+<h2 id="SPP贡献"><a href="#SPP贡献" class="headerlink" title="SPP贡献"></a>SPP贡献</h2><ul>
+<li>我们引入了一种签名机制，以压缩形式存储内存访问模式并启动前瞻预取过程。此 12 位签名最多可压缩四个小增量，且不会产生混叠。通过将签名与未来可能的增量模式相关联，SPP 可以快速准确地学习简单和复杂的内存访问模式。签名还可用于检测两个物理页面之间的局部性，并从一个物理页面的末尾继续执行相同的预取模式，直到下一个物理页面。</li>
+<li>我们开发了一种基于路径置信度的预取节流机制。随着lookahead预取的深入，一系列签名构建了一条签名路径。每条签名路径都有不同的置信度值，这取决于其之前的增量历史、预取准确性和预取深度。路径置信度值用于动态限制预取深度，以平衡预取覆盖率和准确性</li>
+<li>与之前基于前瞻的预取器 [12]、[13] 不同，SPP 不需要深入到核心微架构中，而是纯粹基于物理内存访问流</li>
+</ul>
+<h2 id="MOTIVATION-AND-PRIOR-WORK"><a href="#MOTIVATION-AND-PRIOR-WORK" class="headerlink" title="MOTIVATION AND PRIOR WORK"></a>MOTIVATION AND PRIOR WORK</h2><p>对于之前的工作：</p>
+<ul>
+<li>需要去处理复杂的访存模式</li>
+<li>需要去自适应预取深度（lookahead深度）</li>
+<li>需要考虑跨页预取</li>
+</ul>
+<h2 id="DESIGN"><a href="#DESIGN" class="headerlink" title="DESIGN"></a>DESIGN</h2><p>随着lookahead深度增加，预取置信度在下降，公式如下</p>
+<p><img src="/2025/02/13/spp/1739453981726.png" alt="1739453981726"></p>
+<p>然后将Pd与置信度阈值对比，以确定何时<strong>停止预取</strong>，置信度Pd还可以选择插入哪个缓存，置信度高的插入高级别的</p>
+<p>SPP在物理空间运行，不用访问tlb，spp使用一个页面的学习结果来预测其他页，通过两种模式：</p>
+<p>首先，虽然增量历史签名是在每个物理页面的基础上维护的，如第 III-B 节所述，但这些签名索引到用于预测增量的全局表中，该表由所有页面共享。其次，如第 III-D 节所述，当第一次按需访问新的物理页面时，可以继承来自其增量预测跨越页面边界的先前物理页面的增量签名模式，并将其用于引导此新页面中的预测。这使 SPP 具有不需要长时间的每页预热期来开始预取复杂模式的优势，从而导致更高的预取覆盖率。</p>
+<h3 id="大致设计"><a href="#大致设计" class="headerlink" title="大致设计"></a>大致设计</h3><p><img src="/2025/02/13/spp/1739454665297.png" alt="1739454665297"></p>
+<p>主要有三个结构：Signature Table, Pattern Table, and Prefetch Filter以及一个小的GHR（用于跨页预取）</p>
+<p>SPP是用访问L2Cache的流来训练，可以将结果填充至L2或LLC，ST跟踪最近256个页面，每个页面的delta访问压缩为12bits的签名，然后这个可以去访问模式表（PT），存储预测的模式，PT还会去估计给定增量的置信度如果置信度高，就会作为预取候选传送给PF，PF检查是否存在冗余的预取，如果预测的增量跨4k边界，SPP不会发出预取，而是送入GHR学习</p>
+<h3 id="Learning-Memory-Access-Patterns"><a href="#Learning-Memory-Access-Patterns" class="headerlink" title="Learning Memory Access Patterns"></a>Learning Memory Access Patterns</h3><p><img src="/2025/02/13/spp/1739455356234.png" alt="1739455356234"></p>
+<p>ST是在4K页面内捕获访问模式，并将先前的offset记录在表中，如上图A，物理页面3，offset为3的请求访问ST，ST会根据下面公式更新签名</p>
+<p><img src="/2025/02/13/spp/1739455842729.png" alt="1739455842729"></p>
+<p>我们此时可以认为，给定的一组访问，比如0x1，他还会去访问增量为2的地址，如果PT不包含匹配的增量，他会在这个签名所属的一个地方去找一个Cdelta最低的值填入</p>
+<p>我们会在PT中更新这种访问模式，更新策略就是，找到delta为2的，将置信度+1，为了去估计每个delta的预取准确率，还维护了sig计数器，他跟踪签名出现的次数，如果两个技术器其中一个饱和了，与该签名的所有计数器将会右移1，这样做不会去丢失之前的历史记录</p>
+<p>PT的条目是全局共享的，也就是页面A,B共享相同的访问模式，他们会生成同样的签名，并且签名会索引到PT中相同的条目，更新PT访存模式</p>
+<p>PT每个条目可容纳最多四个delta，如果其置信度Cd&gt;&#x3D;Cdelta&#x2F;Csig,则这个条目就成为预取候选者</p>
+<p>delta最大为7bit，假设 4KB 页面具有 64B 缓存行，所有可能的增量都在 (-63) 到 (+63) 的范围内。我们对正增量和负增量都使用 7 位符号+幅度表示。因此，负增量和正增量会产生不同的签名，指向模式表中的不同条目，并最终指向不同的预取目标。但注意大于7的delta会发生混叠</p>
+<h3 id="Path-Confidence-based-Prefetching"><a href="#Path-Confidence-based-Prefetching" class="headerlink" title="Path Confidence-based Prefetching"></a>Path Confidence-based Prefetching</h3><p><img src="/2025/02/13/spp/1739457587856.png" alt="1739457587856"></p>
+<p>路径置信度是根据0XA的签名相关的增量计算的，初次访问置信度为Cdelta&#x2F;Csig，所以+2的增量会被送入预取</p>
+<p>此外PT还会构建新的签名以供下次预取使用，虽然可能会有多个候选，但只选择置信度最高的生成签名，新的lookahead签名用于再次访问PT，直至Pd小于Tp，更大的置信度Tf决定了给定的预取应该送入哪个缓存</p>
+<p>SPP可以引入a来降低lookahead的概率</p>
+<p>请注意，为简单起见，在上面的讨论中，我们在浮点数的背景下描述了路径置信度计算。然而，在实际实现中（以及在我们的模拟器中），我们使用 7 位定点数来表示 0∼100 之间的路径置信度值，并对这些定点数执行乘法和除法。此外，由于 Cdelta 和 Csig 是 4 位饱和计数器，我们可以使用一个简单的 16x16&#x3D;256 条目查找表来存储所有可能的除法结果，这使我们能够完全删除昂贵的除法器模块。此外，额外的计算延迟可以被隐藏，因为 SPP 可以在 L2 缓存等待 DRAM 服务需求未命中时在后台计算路径置信度</p>
+<p><img src="/2025/02/13/spp/1739458234710.png" alt="1739458234710"></p>
+<p>如果预取器观察到以下条件之一，SPP 会停止预取：1) 路径置信度 Pd 较低。 2) L2 读取队列资源太少。</p>
+<h3 id="Page-Boundary-Learning"><a href="#Page-Boundary-Learning" class="headerlink" title="Page Boundary Learning"></a>Page Boundary Learning</h3><p><img src="/2025/02/13/spp/1739458632499.png" alt="1739458632499"></p>
+<p>边界预测被存放到一个8entry的条目中，这个GHR存储当前的签名，路径置信度，以及偏移和delta，页面A发生跨页预取，那么会在新页面B访问GHR，匹配offset相等的，</p>
+<p>也即是发生跨页时：</p>
+<ol>
+<li>写入跨页请求，然后这个请求其实是B的offset为1的访问，此时访问GHR，发现匹配值，然后生成页面B的签名</li>
+</ol>
+<h3 id="Prefetch-Filter"><a href="#Prefetch-Filter" class="headerlink" title="Prefetch Filter"></a>Prefetch Filter</h3><p><img src="/2025/02/13/spp/1739459523960.png" alt="1739459523960"></p>
+<p>SPP总是先检查PF，然后再发出预取，如果PF已经包含一个缓存行，说明这个缓存行已经被预取，预取请求会被丢弃，当缓存行被替换，会重置有效位来清除条目</p>
+<p>通过在每个过滤器条目中添加一个有用位，PF 还可以近似预取精度。SPP 有两个全局计数器，一个用于跟踪预取请求的总数 (Ctotal)，另一个用于跟踪有用预取的数量 (Cuseful)。每当 SPP 发出未被过滤器丢弃的预取时，Ctotal 计数器就会增加。有用的预取由 PF 中命中的实际 L2 缓存需求请求检测到，这会增加 Cuseful 计数器。为了避免每个有用的预取行增加 Cuseful 超过一次，我们在 PF 条目中设置了一个已用位，以防止重复计算。此过滤器跟踪的全局预取精度用于公式 3 中的 α，以限制路径置信度值。</p>
+<p><img src="/2025/02/13/spp/1739460638587.png" alt="1739460638587"></p>
+
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-item">
+                <a href="/2025/02/13/MLOP/" rel="prev" title="MLOP">
+                  <i class="fa fa-angle-left"></i> MLOP
+                </a>
+            </div>
+            <div class="post-nav-item">
+            </div>
+          </div>
+    </footer>
+  </article>
+</div>
+
+
+
+
+
+
+</div>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+
+  <div class="copyright">
+    &copy; 2025-02 – 
+    <span itemprop="copyrightYear">2025</span>
+    <span class="with-love">
+      <i class="fa fa-heart"></i>
+    </span>
+    <span class="author" itemprop="copyrightHolder">GB</span>
+  </div>
+<div class="wordcount">
+  <span class="post-meta-item">
+    <span class="post-meta-item-icon">
+      <i class="fa fa-chart-line"></i>
+    </span>
+    <span title="站点总字数">106k</span>
+  </span>
+  <span class="post-meta-item">
+    <span class="post-meta-item-icon">
+      <i class="fa fa-coffee"></i>
+    </span>
+    <span title="站点阅读时长">6:25</span>
+  </span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io/" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.js.org/" rel="noopener" target="_blank">NexT.Gemini</a> 强力驱动
+  </div>
+
+    </div>
+  </footer>
+
+  
+  <div class="toggle sidebar-toggle" role="button">
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+  </div>
+  <div class="sidebar-dimmer"></div>
+  <div class="back-to-top" role="button" aria-label="返回顶部">
+    <i class="fa fa-arrow-up fa-lg"></i>
+    <span>0%</span>
+  </div>
+
+<noscript>
+  <div class="noscript-warning">Theme NexT works best with JavaScript enabled</div>
+</noscript>
+
+
+  
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js" integrity="sha256-XL2inqUJaslATFnHdJOi9GfQ60on8Wx1C2H8DYiN1xY=" crossorigin="anonymous"></script>
+<script src="/js/comments.js"></script><script src="/js/utils.js"></script><script src="/js/motion.js"></script><script src="/js/sidebar.js"></script><script src="/js/next-boot.js"></script>
+
+  
+
+
+
+
+
+
+  
+
+
+
+
+
+</body>
+</html>
