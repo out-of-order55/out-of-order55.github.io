@@ -1,0 +1,625 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width">
+<meta name="theme-color" content="#222"><meta name="generator" content="Hexo 7.3.0">
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css" integrity="sha256-dABdfBfUoC8vJUBOwGVdm8L9qlMWaHTIfXt+7GnZCIo=" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/3.1.1/animate.min.css" integrity="sha256-PR7ttpcvz8qrF57fur/yAx1qXMFJeJFiA6pSzWi0OIE=" crossorigin="anonymous">
+
+<script class="next-config" data-name="main" type="application/json">{"hostname":"example.com","root":"/","images":"/images","scheme":"Gemini","darkmode":false,"version":"8.22.0","exturl":false,"sidebar":{"position":"left","width_expanded":320,"width_dual_column":240,"display":"post","padding":18,"offset":12},"hljswrap":true,"copycode":{"enable":true,"style":"flat"},"fold":{"enable":true,"height":500},"bookmark":{"enable":false,"color":"#222","save":"auto"},"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"stickytabs":false,"motion":{"enable":true,"async":false,"duration":200,"transition":{"menu_item":"fadeInDown","post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"i18n":{"placeholder":"搜索...","empty":"没有找到任何搜索结果：${query}","hits_time":"找到 ${hits} 个搜索结果（用时 ${time} 毫秒）","hits":"找到 ${hits} 个搜索结果"}}</script><script src="/js/config.js"></script>
+
+    <meta name="description" content="NOC部分参数定义NOC部分的参数定义在&#x2F;Hardware&#x2F;little&#x2F;subsystem&#x2F;Configs.scala,然后NOC的全局参数定义在MEEK&#x2F;Hardware&#x2F;little&#x2F;guardiancouncil&#x2F;GH_GlobalParams.scala 1234567object GH_GlobalPara">
+<meta property="og:type" content="article">
+<meta property="og:title" content="MEEK 代码阅读">
+<meta property="og:url" content="http://example.com/2025/02/21/MEEK-%E4%BB%A3%E7%A0%81%E9%98%85%E8%AF%BB/index.html">
+<meta property="og:site_name" content="GB&#39;s Blog">
+<meta property="og:description" content="NOC部分参数定义NOC部分的参数定义在&#x2F;Hardware&#x2F;little&#x2F;subsystem&#x2F;Configs.scala,然后NOC的全局参数定义在MEEK&#x2F;Hardware&#x2F;little&#x2F;guardiancouncil&#x2F;GH_GlobalParams.scala 1234567object GH_GlobalPara">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2025-02-21T01:20:48.000Z">
+<meta property="article:modified_time" content="2025-02-26T14:06:07.832Z">
+<meta property="article:author" content="GB">
+<meta name="twitter:card" content="summary">
+
+
+<link rel="canonical" href="http://example.com/2025/02/21/MEEK-%E4%BB%A3%E7%A0%81%E9%98%85%E8%AF%BB/">
+
+
+<script class="next-config" data-name="page" type="application/json">{"sidebar":"","isHome":false,"isPost":true,"lang":"zh-CN","comments":true,"permalink":"http://example.com/2025/02/21/MEEK-%E4%BB%A3%E7%A0%81%E9%98%85%E8%AF%BB/","path":"2025/02/21/MEEK-代码阅读/","title":"MEEK 代码阅读"}</script>
+
+<script class="next-config" data-name="calendar" type="application/json">""</script>
+<title>MEEK 代码阅读 | GB's Blog</title>
+  
+
+
+
+
+
+
+
+
+  <noscript>
+    <link rel="stylesheet" href="/css/noscript.css">
+  </noscript>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" class="use-motion">
+  <div class="headband"></div>
+
+  <main class="main">
+    <div class="column">
+      <header class="header" itemscope itemtype="http://schema.org/WPHeader"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏" role="button">
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <i class="logo-line"></i>
+      <p class="site-title">GB's Blog</p>
+      <i class="logo-line"></i>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger" aria-label="搜索" role="button">
+    </div>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  <ul class="main-menu menu"><li class="menu-item menu-item-home"><a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a></li><li class="menu-item menu-item-archives"><a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a></li><li class="menu-item menu-item-categories"><a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类</a></li><li class="menu-item menu-item-tags"><a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签</a></li><li class="menu-item menu-item-about"><a href="/about/" rel="section"><i class="fa fa-user fa-fw"></i>关于</a></li>
+  </ul>
+</nav>
+
+
+
+
+</header>
+        
+  
+  <aside class="sidebar">
+
+    <div class="sidebar-inner sidebar-nav-active sidebar-toc-active">
+      <ul class="sidebar-nav">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <div class="sidebar-panel-container">
+        <!--noindex-->
+        <div class="post-toc-wrap sidebar-panel">
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#NOC%E9%83%A8%E5%88%86"><span class="nav-number">1.</span> <span class="nav-text">NOC部分</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%8F%82%E6%95%B0%E5%AE%9A%E4%B9%89"><span class="nav-number">1.1.</span> <span class="nav-text">参数定义</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#GHT-FILTER-PRFS%E8%A7%A3%E8%AF%BB"><span class="nav-number">1.2.</span> <span class="nav-text">GHT_FILTER_PRFS解读</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#GH-FIFO"><span class="nav-number">1.3.</span> <span class="nav-text">GH_FIFO</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#GHT-FILTERS-PRFS"><span class="nav-number">1.4.</span> <span class="nav-text">GHT_FILTERS_PRFS</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#GHT%E8%A7%A3%E8%AF%BB"><span class="nav-number">1.5.</span> <span class="nav-text">GHT解读</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#GHT%E5%9C%A8%E5%A4%A7%E6%A0%B8%E7%9A%84%E4%BD%9C%E7%94%A8"><span class="nav-number">1.5.1.</span> <span class="nav-text">GHT在大核的作用</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#GHE"><span class="nav-number">1.6.</span> <span class="nav-text">GHE</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#rocc%E6%8C%87%E4%BB%A4"><span class="nav-number">1.6.1.</span> <span class="nav-text">rocc指令</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#rd%E5%86%99%E5%85%A5"><span class="nav-number">1.6.2.</span> <span class="nav-text">rd写入</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E8%BE%93%E5%87%BA%E4%BF%A1%E5%8F%B7"><span class="nav-number">1.6.3.</span> <span class="nav-text">输出信号</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#GHM"><span class="nav-number">1.7.</span> <span class="nav-text">GHM</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#NOC%E8%8A%82%E7%82%B9%E5%AE%9A%E4%B9%89%E4%B8%8E%E8%BF%9E%E6%8E%A5"><span class="nav-number">1.8.</span> <span class="nav-text">NOC节点定义与连接</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%A4%A7%E6%A0%B8%E6%B5%81%E7%A8%8B"><span class="nav-number">1.8.1.</span> <span class="nav-text">大核流程</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#GHE%E4%B8%8EGHT%E4%BA%A4%E4%BA%92%E4%BF%A1%E5%8F%B7"><span class="nav-number">1.8.1.1.</span> <span class="nav-text">GHE与GHT交互信号</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%A4%A7%E6%A0%B8%E4%B8%8EGHT%E4%BA%A4%E4%BA%92%E4%BF%A1%E5%8F%B7"><span class="nav-number">1.8.1.2.</span> <span class="nav-text">大核与GHT交互信号</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%A4%A7%E6%A0%B8%E4%B8%8EGHE%E4%BA%A4%E4%BA%92"><span class="nav-number">1.8.1.3.</span> <span class="nav-text">大核与GHE交互</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%A4%A7%E6%A0%B8%E4%B8%8EGHM%E4%BA%A4%E4%BA%92"><span class="nav-number">1.8.1.4.</span> <span class="nav-text">大核与GHM交互</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#GHM%E4%B8%8EGHE%E4%BA%A4%E4%BA%92"><span class="nav-number">1.8.1.5.</span> <span class="nav-text">GHM与GHE交互</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#GHT%E4%B8%8EGHM%EF%BC%8CGAGG%E4%BA%A4%E4%BA%92"><span class="nav-number">1.8.1.6.</span> <span class="nav-text">GHT与GHM，GAGG交互</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E6%80%BB%E7%BB%93"><span class="nav-number">1.8.1.7.</span> <span class="nav-text">总结</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%B0%8F%E6%A0%B8%E5%BF%83%E6%B5%81%E7%A8%8B"><span class="nav-number">1.8.2.</span> <span class="nav-text">小核心流程</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%B0%8F%E6%A0%B8%E5%BF%83%E4%B8%8EGHE%E4%BA%A4%E4%BA%92"><span class="nav-number">1.8.2.1.</span> <span class="nav-text">小核心与GHE交互</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%B0%8F%E6%A0%B8%E5%BF%83%E4%B8%8EGHM-GAGG%E4%BA%A4%E4%BA%92"><span class="nav-number">1.8.2.2.</span> <span class="nav-text">小核心与GHM,GAGG交互</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#GHE%E4%B8%8EGHM-GAGG%E4%BA%A4%E4%BA%92"><span class="nav-number">1.8.2.3.</span> <span class="nav-text">GHE与GHM,GAGG交互</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E6%80%BB%E7%BB%93-1"><span class="nav-number">1.8.2.4.</span> <span class="nav-text">总结</span></a></li></ol></li></ol></li></ol></li></ol></div>
+        </div>
+        <!--/noindex-->
+
+        <div class="site-overview-wrap sidebar-panel">
+          <div class="site-author animated" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="GB"
+      src="/images/my.jpg">
+  <p class="site-author-name" itemprop="name">GB</p>
+  <div class="site-description" itemprop="description"></div>
+</div>
+<div class="site-state-wrap animated">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+        <a href="/archives/">
+          <span class="site-state-item-count">19</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+          <a href="/categories/">
+        <span class="site-state-item-count">5</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+  </nav>
+</div>
+
+        </div>
+      </div>
+    </div>
+
+    
+  </aside>
+
+
+    </div>
+
+    <div class="main-inner post posts-expand">
+
+
+  
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://example.com/2025/02/21/MEEK-%E4%BB%A3%E7%A0%81%E9%98%85%E8%AF%BB/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/my.jpg">
+      <meta itemprop="name" content="GB">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="GB's Blog">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
+      <meta itemprop="name" content="MEEK 代码阅读 | GB's Blog">
+      <meta itemprop="description" content="">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          MEEK 代码阅读
+        </h1>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">发表于</span>
+
+      <time title="创建时间：2025-02-21 09:20:48" itemprop="dateCreated datePublished" datetime="2025-02-21T09:20:48+08:00">2025-02-21</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar-check"></i>
+      </span>
+      <span class="post-meta-item-text">更新于</span>
+      <time title="修改时间：2025-02-26 22:06:07" itemprop="dateModified" datetime="2025-02-26T22:06:07+08:00">2025-02-26</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">分类于</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/%E4%BB%A3%E7%A0%81%E9%98%85%E8%AF%BB/" itemprop="url" rel="index"><span itemprop="name">代码阅读</span></a>
+        </span>
+    </span>
+
+  
+    <span class="post-meta-break"></span>
+    <span class="post-meta-item" title="本文字数">
+      <span class="post-meta-item-icon">
+        <i class="far fa-file-word"></i>
+      </span>
+      <span class="post-meta-item-text">本文字数：</span>
+      <span>3.1k</span>
+    </span>
+    <span class="post-meta-item" title="阅读时长">
+      <span class="post-meta-item-icon">
+        <i class="far fa-clock"></i>
+      </span>
+      <span class="post-meta-item-text">阅读时长 &asymp;</span>
+      <span>11 分钟</span>
+    </span>
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody"><h1 id="NOC部分"><a href="#NOC部分" class="headerlink" title="NOC部分"></a>NOC部分</h1><h2 id="参数定义"><a href="#参数定义" class="headerlink" title="参数定义"></a>参数定义</h2><p>NOC部分的参数定义在&#x2F;Hardware&#x2F;little&#x2F;subsystem&#x2F;Configs.scala,然后NOC的全局参数定义在MEEK&#x2F;Hardware&#x2F;little&#x2F;guardiancouncil&#x2F;GH_GlobalParams.scala</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">object GH_GlobalParams &#123;</span><br><span class="line">  val GH_NUM_CORES = 5;</span><br><span class="line">  val GH_WIDITH_PACKETS = 145;</span><br><span class="line">  val GH_DEBUG = 0;</span><br><span class="line">  val GH_WIDITH_PERF = 64;</span><br><span class="line">  val IF_THERE_IS_CDC = true;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>然后GAGG和GHM参数定义，第一个参数为小核心的个数，第二个参数为发送包的长度，第一个参数就是找到所有tile的最大值，以此获得小核心的个数，注意hartid是从0开始的</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">case GHMCoreLocated(InSubsystem) =&gt; Some(GHMParams(((site(TilesLocated(InSubsystem)).map(_.tileParams.hartId).max+1)-1), GH_GlobalParams.GH_WIDITH_PACKETS))</span><br><span class="line">case GAGGCoreLocated(InSubsystem) =&gt; Some(GAGGParams(((site(TilesLocated(InSubsystem)).map(_.tileParams.hartId).max+1)-1), GH_GlobalParams.GH_WIDITH_PACKETS))</span><br></pre></td></tr></table></figure>
+
+<p>还有GHT参数定义，该参数不使用cde，而是手动输入参数</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">case class GHTParams(</span><br><span class="line">  width_core_pc: Int,</span><br><span class="line">  width_data: Int,</span><br><span class="line">  totalnumber_of_checkers: Int,</span><br><span class="line">  totaltypes_of_insts: Int,</span><br><span class="line">  totalnumber_of_ses: Int,</span><br><span class="line">  packet_size: Int,</span><br><span class="line">  core_width: Int,</span><br><span class="line">  use_prfs: Boolean</span><br><span class="line">)</span><br></pre></td></tr></table></figure>
+
+<h2 id="GHT-FILTER-PRFS解读"><a href="#GHT-FILTER-PRFS解读" class="headerlink" title="GHT_FILTER_PRFS解读"></a>GHT_FILTER_PRFS解读</h2><p>一开始是IO信号以及一些寄存器</p>
+<p>指令解码如下，解码完成后送入寄存器寄存</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">inst := Mux(io.ght_ft_newcommit_in, io.ght_ft_inst_in, 0x0.U)</span><br><span class="line">func := Mux(io.ght_ft_newcommit_in, inst(14, 12), 0x0.U)</span><br><span class="line">opcode := Mux(io.ght_ft_newcommit_in, </span><br><span class="line">  Mux(is_rvc, Cat(zeros_5bits, inst(1,0)), inst(6,0)), 0x0.U)</span><br></pre></td></tr></table></figure>
+
+<p>解码的同时ght_ft_cfg_in也会送入u_ght_ftable，这个是一个查找表，但目前并不了解这个具体作用</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">val u_ght_ftable                              = Module (new GHT_FTABLE(GHT_FTABLE_Params ()))</span><br><span class="line">u_ght_ftable.io.cfg_ref_inst_func            := this.io.ght_ft_cfg_in(31,28)</span><br><span class="line">u_ght_ftable.io.cfg_ref_inst_opcode          := this.io.ght_ft_cfg_in(27,21)</span><br><span class="line">u_ght_ftable.io.cfg_ref_inst_index           := this.io.ght_ft_cfg_in(8,4)</span><br><span class="line">u_ght_ftable.io.cfg_ref_inst_sel_d           := this.io.ght_ft_cfg_in(20,17)</span><br><span class="line">u_ght_ftable.io.cfg_ref_inst_valid           := this.io.ght_ft_cfg_valid</span><br><span class="line">u_ght_ftable.io.inst_newcommit               := this.io.ght_ft_newcommit_in</span><br><span class="line">u_ght_ftable.io.inst_in_func                 := func</span><br><span class="line">u_ght_ftable.io.inst_in_opcode               := opcode | (is_rvc_msb &lt;&lt; 2)</span><br><span class="line">u_ght_ftable.io.inst_is_rvc                  := is_rvc</span><br></pre></td></tr></table></figure>
+
+<p>之后读出结果dp_sel和inst_idx,进入大核处理阶段（params.use_prfs&#x3D;true），首先得出大核的指令类型，然后根据解码的数据发送转发信号，FTQ转发需要是ret指令,prf转发不能是ret指令（ret不写入寄存器）</p>
+<blockquote>
+<p>目前暂时不清楚这个dp_sel如何选择，</p>
+</blockquote>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br></pre></td><td class="code"><pre><span class="line">io.ght_prfs_forward_ldq                      := MuxCase(0.U, </span><br><span class="line">                                                  Array((dp_sel === 0.U)  -&gt; false.B,</span><br><span class="line">                                                        (dp_sel === 1.U)  -&gt; false.B,</span><br><span class="line">                                                        (dp_sel === 2.U)  -&gt; true.B,</span><br><span class="line">                                                        (dp_sel === 3.U)  -&gt; false.B,</span><br><span class="line">                                                        ((dp_sel === 5.U) &amp;&amp; (!lr_inst)) -&gt; false.B,</span><br><span class="line">                                                        ((dp_sel === 5.U) &amp;&amp; (lr_inst)) -&gt; true.B</span><br><span class="line">                                                        )</span><br><span class="line">                                                        )</span><br><span class="line"></span><br><span class="line">io.ght_prfs_forward_stq                      := MuxCase(0.U, </span><br><span class="line">                                                  Array((dp_sel === 0.U)  -&gt; false.B,</span><br><span class="line">                                                        (dp_sel === 1.U)  -&gt; false.B,</span><br><span class="line">                                                        (dp_sel === 2.U)  -&gt; false.B,</span><br><span class="line">                                                        (dp_sel === 3.U)  -&gt; true.B,</span><br><span class="line">                                                        ((dp_sel === 5.U) &amp;&amp; (!lr_inst))  -&gt; true.B,</span><br><span class="line">                                                        ((dp_sel === 5.U) &amp;&amp; (lr_inst))  -&gt; false.B</span><br><span class="line">                                                        )</span><br><span class="line">                                                        )</span><br><span class="line"></span><br><span class="line">val ght_prfs_forward_prf                      = MuxCase(0.U,</span><br><span class="line">                                                  Array((dp_sel === 0.U)  -&gt; false.B,</span><br><span class="line">                                                        (dp_sel === 1.U)  -&gt; true.B,</span><br><span class="line">                                                        (dp_sel === 2.U)  -&gt; true.B,</span><br><span class="line">                                                        (dp_sel === 3.U)  -&gt; false.B,</span><br><span class="line">                                                        (dp_sel === 5.U)  -&gt; true.B</span><br><span class="line">                                                        )</span><br><span class="line">                                                        )</span><br><span class="line">io.ght_prfs_forward_prf                      := (ght_prfs_forward_prf === true.B) &amp;&amp; (!(inst_ret|inst_ret_rvc))</span><br><span class="line">io.ght_prfs_forward_ftq                      := (ght_prfs_forward_prf === true.B) &amp;&amp; (inst_ret|inst_ret_rvc)</span><br></pre></td></tr></table></figure>
+
+<p>最后就是故障注入，这里采用了fi_counter，fi_counter_tiny来控制故障注入的频率，使用end_of_fi控制注入是否完成，然后fi信号就是故障注入信号，fi_dpx数据就是注入的故障数据</p>
+<blockquote>
+<p>注意：这里必须开启fi_mode才会故障注入</p>
+</blockquote>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">val fi                                        = Mux(incr_fi_counters.asBool &amp;&amp; !end_of_fi.asBool &amp;&amp; fi_counter_tiny === 31.U, true.B, false.B)</span><br><span class="line">val if_id                                     = WireInit(0.U(4.W))</span><br><span class="line">if_id                                        := params.id_filter.U</span><br><span class="line">val fi_dp1                                    = Cat(if_id, fi_counter(3,0), io.gtimer(39,0), zero8, dp_ldst_reg)</span><br><span class="line">val fi_dp2                                    = Cat(if_id, fi_counter(3,0), io.gtimer(39,0), zero8, dp_ldst_reg)</span><br><span class="line">val fi_dp3                                    = Cat(if_id, fi_counter(3,0), io.gtimer(39,0), zero8, dp_jump_wire(61,0), jump_type)</span><br></pre></td></tr></table></figure>
+
+<p>最后即使根据dp_sel_reg来选择最后的数据包</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">io.packet_out                                := MuxCase(0.U, </span><br><span class="line">                                                  Array((dp_sel_reg === 0.U) -&gt; 0.U,</span><br><span class="line">                                                        (dp_sel_reg === 5.U) -&gt; Mux((inst_index_reg =/= 0.U), nfi_dp5, 0.U),</span><br><span class="line">                                                        (dp_sel_reg === 2.U) -&gt; Mux((inst_index_reg =/= 0.U), Mux(fi, fi_dp1, nfi_dp1), 0.U),</span><br><span class="line">                                                        (dp_sel_reg === 3.U) -&gt; Mux((inst_index_reg =/= 0.U), Mux(fi, fi_dp2, nfi_dp2), 0.U),</span><br><span class="line">                                                        (dp_sel_reg === 1.U) -&gt; Mux((inst_index_reg =/= 0.U), Mux(fi, fi_dp3, nfi_dp3), 0.U),</span><br><span class="line">                                                        )</span><br><span class="line">                                                        )</span><br></pre></td></tr></table></figure>
+
+<p>这里从new_commit信号开始读出数据，需要两个周期完成数据包送出</p>
+<p>第一个周期：GHT_FTABLE读出数据</p>
+<p>第二个周期：通过各种选择信号将数据送入io.packet_out</p>
+<h2 id="GH-FIFO"><a href="#GH-FIFO" class="headerlink" title="GH_FIFO"></a>GH_FIFO</h2><p>主要解释status_fiveslots为还有五个空位</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">io.status_fiveslots          := Mux(num_contentReg &gt;= ((params.depth).U - 5.U),</span><br><span class="line">                                    1.U, </span><br><span class="line">                                    0.U)</span><br></pre></td></tr></table></figure>
+
+<h2 id="GHT-FILTERS-PRFS"><a href="#GHT-FILTERS-PRFS" class="headerlink" title="GHT_FILTERS_PRFS"></a>GHT_FILTERS_PRFS</h2><p>这个模块主要就是连线逻辑</p>
+<ol>
+<li>连接过滤器</li>
+<li>入队逻辑</li>
+<li>出队逻辑</li>
+</ol>
+<p>这里主要讲解FSM,FSM启动信号就是buffer有数据，或者rsu_merging，此时进入下一个状态，</p>
+<p>考虑fsm_send_first跳转情况，如果ght_stall为false，会跳转到fsm_first_nxt_state，此时主要考虑以下情况：</p>
+<ol>
+<li>buf1有数据，此时跳转到fsm_send_second</li>
+<li>buf1没数据，但buf2有数据，此时跳转到fsm_send_thrid</li>
+<li>buf1，buf2都没数据，buf3有数据，此时跳转到fsm_send_fourth</li>
+<li>如果都没数据，并且此时不满足buffer有数据，或者rsu_merging，跳转到fsm_reset</li>
+</ol>
+<blockquote>
+<p>这里FSM最多处理四个周期：4-width boom，buf下标从0开始</p>
+</blockquote>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br></pre></td><td class="code"><pre><span class="line">val fsm_reset :: fsm_send_first :: fsm_send_second :: fsm_send_third :: fsm_send_fourth :: Nil = Enum(5)</span><br><span class="line"></span><br><span class="line">  switch (fsm_state) &#123;</span><br><span class="line">    is (fsm_reset)&#123; // 0x0b000</span><br><span class="line">      packet                                   := 0.U</span><br><span class="line">      inst_type                                := 0.U</span><br><span class="line">      load_t_buffer                            := Mux((!buffer_empty(0) || (io.rsu_merging === 1.U)), 1.U, 0.U)</span><br><span class="line">      fsm_state                                := Mux((!buffer_empty(0) || (io.rsu_merging === 1.U)), fsm_reset_nxt_state, fsm_reset)</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    is (fsm_send_first)&#123;</span><br><span class="line">      when (io.ght_stall) &#123; // 0x0b001</span><br><span class="line">        packet                                 := 0.U</span><br><span class="line">        inst_type                              := 0.U</span><br><span class="line">        fsm_state                              := fsm_send_first</span><br><span class="line">        load_t_buffer                          := 0.U</span><br><span class="line">      &#125; .otherwise &#123;</span><br><span class="line">        packet                                 := t_buffer_packet(0)</span><br><span class="line">        inst_type                              := t_buffer_inst_type(0)</span><br><span class="line">        fsm_state                              := fsm_first_nxt_state</span><br><span class="line">        load_t_buffer                          := load_t_buffer_first_state</span><br><span class="line">      &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">...</span><br><span class="line"></span><br><span class="line">    is (fsm_send_fourth)&#123;</span><br><span class="line">      when (io.ght_stall) &#123; // 0x0b100</span><br><span class="line">        packet                                 := 0.U</span><br><span class="line">        inst_type                              := 0.U</span><br><span class="line">        fsm_state                              := fsm_send_fourth</span><br><span class="line">        load_t_buffer                          := 0.U</span><br><span class="line">      &#125; .otherwise &#123;</span><br><span class="line">        packet                                 := t_buffer_packet(3)</span><br><span class="line">        inst_type                              := t_buffer_inst_type(3)</span><br><span class="line">        fsm_state                              := fsm_fourth_nxt_state</span><br><span class="line">        load_t_buffer                          := load_t_buffer_fourth_state</span><br><span class="line">      &#125;</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line">  fsm_first_nxt_state                          := MuxCase(fsm_send_first, </span><br><span class="line">                                                    Array((is_valid_t_buffer(1) =/= 0.U)  -&gt; fsm_send_second,</span><br><span class="line">                                                          ((is_valid_t_buffer(1) === 0.U) &amp;&amp; (is_valid_t_buffer(2) =/= 0.U))  -&gt; fsm_send_third,</span><br><span class="line">                                                          ((is_valid_t_buffer(1) === 0.U) &amp;&amp; (is_valid_t_buffer(2) === 0.U) &amp;&amp; (is_valid_t_buffer(3) =/= 0.U))  -&gt; fsm_send_fourth,</span><br><span class="line">                                                          ((is_valid_t_buffer(1) === 0.U) &amp;&amp; (is_valid_t_buffer(2) === 0.U) &amp;&amp; (is_valid_t_buffer(3) === 0.U)) -&gt; Mux((!buffer_empty(0) || (io.rsu_merging === 1.U)), fsm_reset_nxt_state, fsm_reset)</span><br><span class="line">                                                          )</span><br><span class="line">                                                          )</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<p>然后就是几个输出信号，core_hang_up就是揭示buffer快满了，或者filter停了</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line">// Outputs</span><br><span class="line">io.ght_ft_inst_index                        := inst_type(7,0)</span><br><span class="line">io.packet_out                               := Cat(inst_type(15,8), packet(280,145), inst_type(7,0), packet(135,0)) // Added inst_type for checker cores</span><br><span class="line">io.core_hang_up                             := core_hang_up | filter_stall</span><br><span class="line">io.ght_buffer_status                        := Cat(buffer_full(params.core_width-1), buffer_empty.reduce(_&amp;_))</span><br><span class="line">io.ght_filters_empty                        := buffer_empty.reduce(_&amp;_)</span><br><span class="line"></span><br><span class="line">/* R Features */</span><br><span class="line">io.ght_filters_ready                        := MuxCase(0.U,</span><br><span class="line">                                                  Array(((load_t_buffer === 1.U) &amp;&amp; (io.rsu_merging === 0.U)) -&gt; 0.U,</span><br><span class="line">                                                        ((load_t_buffer === 1.U) &amp;&amp; (io.rsu_merging === 1.U)) -&gt; 1.U</span><br><span class="line">                                                       )</span><br><span class="line">                                                       )</span><br></pre></td></tr></table></figure>
+
+<p>filter_stall信号是看s_delay_counter_reg是否为0，不为0说明filter空间不够，</p>
+<p>s_not_enough_filter_width如果不为1且core_hang_up不为1，说明filter正在输出数据，并且buffer位置充裕，当core_hang_up为1，说明buffer空间不足，这时s_delay_counter_reg不变，也就是等待buffer有空位再递减</p>
+<blockquote>
+<p>这里的意思是检测filter是否有空间，空间不足就需要停止，停止的周期就是s_delay_counter的值</p>
+</blockquote>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><span class="line">s_num_packets                                := Cat(zeros_2bits, io.ght_ft_newcommit_in(0))  + Cat(zeros_2bits, io.ght_ft_newcommit_in(1)) + Cat(zeros_2bits, io.ght_ft_newcommit_in(2)) + Cat(zeros_2bits, io.ght_ft_newcommit_in(3))</span><br><span class="line">s_not_enough_filter_width                    := Mux((s_num_packets &gt; filter_width), 1.U, 0.U)</span><br><span class="line"></span><br><span class="line">s_delay_counter                              := MuxCase(0.U,</span><br><span class="line">                                                  Array(((s_not_enough_filter_width === 0.U) || (filter_width === 0.U)) -&gt; 0.U,</span><br><span class="line">                                                        ((s_not_enough_filter_width === 1.U) &amp;&amp; (filter_width === 1.U)) -&gt; (s_num_packets - 1.U),</span><br><span class="line">                                                        ((s_not_enough_filter_width === 1.U) &amp;&amp; (filter_width === 2.U)) -&gt; 1.U</span><br><span class="line">                                                        )</span><br><span class="line">                                                        )</span><br><span class="line"></span><br><span class="line">when (s_not_enough_filter_width === 1.U) &#123;</span><br><span class="line">  s_delay_counter_reg                        := s_delay_counter_reg + s_delay_counter</span><br><span class="line">&#125; .otherwise &#123;</span><br><span class="line">  when (core_hang_up =/= 1.U) &#123;</span><br><span class="line">    s_delay_counter_reg                      := Mux(s_delay_counter_reg =/= 0.U, (s_delay_counter_reg - 1.U), 0.U)</span><br><span class="line">  &#125; .otherwise &#123;</span><br><span class="line">    s_delay_counter_reg                      := s_delay_counter_reg</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">val filter_stall                              = Mux((s_delay_counter_reg =/= 0.U), 1.U, 0.U)</span><br></pre></td></tr></table></figure>
+
+<h2 id="GHT解读"><a href="#GHT解读" class="headerlink" title="GHT解读"></a>GHT解读</h2><p>GHT是在大核和小核都部署的部件，</p>
+<p>模块例化位置：MEEK&#x2F;Hardware&#x2F;big&#x2F;common&#x2F;tile.scala和MEEK&#x2F;Hardware&#x2F;little&#x2F;tile&#x2F;RocketTile.scala</p>
+<p>该模块主要讲解之前没有的信号</p>
+<p><strong>配置路径</strong>如下，通过输入的低三位来说明</p>
+<blockquote>
+<p><del>目前并不知道cfg传入的是什么</del></p>
+<p>cfg是通过GHE解码后传入的信号,cfg_in也就是ROCC指令的rs1的值(a1),cfg_valid也就是解码的指令为CFG指令</p>
+</blockquote>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">val ght_cfg_in_ft_filter                       = WireInit(0.U(32.W))</span><br><span class="line">val ght_cfg_valid_ft_filter                    = WireInit(0.U(1.W))</span><br><span class="line">ght_cfg_in_ft_filter                          := Mux((this.io.ght_cfg_in(3,0) === 2.U),</span><br><span class="line">                                                      this.io.ght_cfg_in, 0.U)</span><br><span class="line">ght_cfg_valid_ft_filter                       := Mux((this.io.ght_cfg_in(3,0) === 2.U),</span><br><span class="line">                                                      this.io.ght_cfg_valid, 0.U)</span><br><span class="line">u_ght_filters.io.ght_ft_cfg_in                := ght_cfg_in_ft_filter</span><br><span class="line">u_ght_filters.io.ght_ft_cfg_valid             := ght_cfg_valid_ft_filter</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<p>执行路径主要就是输出转发信号到ldq，stq，ftq</p>
+<p>然后就是<strong>mapper</strong>部分，这里主要就是将shared_CP_CFG解码，下面的代码是对cfg的解码，</p>
+<blockquote>
+<p>同样，shared_CP_CFG并不知道包含什么，且不知道inst_arfs和inst_c是干什么的</p>
+</blockquote>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line">val u_ght_mapper_arfs                          = Module (new GHT_MAPPER(GHT_MAPPER_Params(params.totaltypes_of_insts, params.totalnumber_of_ses)))</span><br><span class="line">// configuration path</span><br><span class="line">u_ght_mapper_arfs.io.ght_mp_cfg_in            := ght_cfg_in_mp_filter</span><br><span class="line">u_ght_mapper_arfs.io.ght_mp_cfg_valid         := ght_cfg_valid_mp_filter</span><br><span class="line">u_ght_mapper_arfs.io.shared_CP_CFG            := io.shared_CP_CFG</span><br><span class="line"></span><br><span class="line">// execution path</span><br><span class="line">u_ght_mapper_arfs.io.inst_index               := io.inst_index_arfs</span><br><span class="line">for (i &lt;- 0 to params.totalnumber_of_ses - 1) &#123;</span><br><span class="line">  inst_arfs(i)                                := u_ght_mapper_arfs.io.inst_c(i)</span><br><span class="line">&#125;</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<p>之后来到GHT_SE部分，这个部分的输入也用到了cfg_in，首先se首先例化GHT_STABLE，将下面信号做一个寄存（感觉这里可以使用Reg_enable）</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line">val u_ght_stable                              = Module (new GHT_STABLE(GHT_STABLE_Params ()))</span><br><span class="line">val sch_reset                                 = WireInit(0.U(1.W))</span><br><span class="line">sch_reset                                    := Mux(((this.io.ght_se_cfg_valid === 1.U) &amp;&amp; (this.io.ght_se_cfg_in(27,21) === 0xF.U)), 1.U, 0.U)</span><br><span class="line"></span><br><span class="line">u_ght_stable.io.cfg_sch_end_id               := Mux(sch_reset === 1.U, 0.U, this.io.ght_se_cfg_in(31,28))</span><br><span class="line">u_ght_stable.io.cfg_sch_policy               := Mux(sch_reset === 1.U, 0.U, this.io.ght_se_cfg_in(27,21))</span><br><span class="line">u_ght_stable.io.cfg_sch_start_id             := Mux(sch_reset === 1.U, 0.U, this.io.ght_se_cfg_in(20,17))</span><br><span class="line">u_ght_stable.io.cfg_sch_valid                := Mux(sch_reset === 1.U, 0.U, this.io.ght_se_cfg_valid)</span><br><span class="line"></span><br><span class="line">val sch_end_id                                = WireInit(0.U(4.W))</span><br><span class="line">val sch_policy                                = WireInit(0.U(7.W))</span><br><span class="line">val sch_start_id                              = WireInit(0.U(4.W))</span><br><span class="line"></span><br><span class="line">sch_policy                                   := u_ght_stable.io.sch_policy</span><br><span class="line">sch_end_id                                   := u_ght_stable.io.sch_end_id</span><br><span class="line">sch_start_id                                 := u_ght_stable.io.sch_start_id</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<p>然后还有一个SCH部分，这里个人目前理解c后缀的代表commit，core_s代表checker 的id，core_d代表目的checker</p>
+<p>这个的功能就是得出目的checker的id？然后io.cpuna没有用到</p>
+<blockquote>
+<p>注意，这里io.sch_hang始终为0</p>
+</blockquote>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line">val u_sch_p                                   = Module (new GHT_SCH_PIN(GHT_SCH_Params (params.totalnumber_of_checkers)))</span><br><span class="line">val core_d_p                                  = WireInit(0.U(params.totalnumber_of_checkers.W))</span><br><span class="line">u_sch_p.io.core_s                            := sch_start_id</span><br><span class="line">u_sch_p.io.core_e                            := sch_end_id</span><br><span class="line">u_sch_p.io.inst_c                            := Mux(sch_policy === 1.U, io.inst_c, 0.U)</span><br><span class="line">for (i &lt;- 0 to params.totalnumber_of_checkers - 1) &#123;</span><br><span class="line">  u_sch_p.io.core_na(i)                      := io.core_na(i)</span><br><span class="line">&#125;</span><br><span class="line">core_d_p                                     := u_sch_p.io.core_d</span><br><span class="line">u_sch_p.io.rst_sch                           := sch_reset</span><br><span class="line">io.sch_hang                                  := u_sch_p.io.sch_hang</span><br><span class="line">io.core_d                                    := core_d_p</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<p>再回到GHT，Scheduler Engines得到core_d_all，core_d_all_arfs，也就是调度的core id</p>
+<blockquote>
+<p>注意，这里的sch_hang总是为0</p>
+</blockquote>
+<p>然后到<strong>AGG Configuration，这里也是用到了ght_cfg_in</strong></p>
+<h3 id="GHT在大核的作用"><a href="#GHT在大核的作用" class="headerlink" title="GHT在大核的作用"></a>GHT在大核的作用</h3><p>下面的核心信号只要是bridge出去的信号都和cmdrounter有关，其他信号使用了diplomacy的Node</p>
+<p>目前暂时还没看cmdrounter，数据全部从cmd_counter传入</p>
+<blockquote>
+<p>为什么大核送入GHT的rsu_merging为0</p>
+</blockquote>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line">ght.io.ght_mask_in                           := (ght_bridge.io.out | (!if_correct_process_bridge.io.out))</span><br><span class="line">ght.io.gtimer                                := debug_gtimer</span><br><span class="line">ght.io.gtimer_reset                          := debug_gtimer_reset</span><br><span class="line">ght.io.use_fi_mode                           := s_or_r</span><br><span class="line">ght.io.ght_cfg_in                            := ght_cfg_bridge.io.out</span><br><span class="line">ght.io.ght_cfg_valid                         := ght_cfg_v_bridge.io.out</span><br><span class="line">ght.io.debug_bp_reset                        := debug_bp_reset_bridge.io.out</span><br><span class="line">outer.ght_packet_out_SRNode.bundle           := ght.io.ght_packet_out</span><br><span class="line">outer.ght_packet_dest_SRNode.bundle          := Cat(ght.io.arfs_dest, ght.io.ght_packet_dest)</span><br><span class="line">core.io.gh_stall                             := ght.io.core_hang_up</span><br><span class="line">outer.ghe_event_out_SRNode.bundle            := ghe_bridge.io.out</span><br><span class="line">outer.clear_ic_status_SRNode.bundle          := 0.U</span><br><span class="line">core.io.clear_ic_status_tomain               := outer.clear_ic_status_tomainSKNode.bundle</span><br><span class="line">core.io.icsl_na                              := outer.icsl_naSKNode.bundle</span><br><span class="line">ght.io.core_na                               := outer.sch_na_inSKNode.bundle</span><br><span class="line">if_ght_filters_empty_bridge.io.in            := ght.io.ght_filters_empty</span><br></pre></td></tr></table></figure>
+
+<p>核心信号连接，主要连接了从大核来的pc_addr,inst,commit信号。以及alu数据</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line">for (w &lt;- 0 until gc_core_width) &#123;</span><br><span class="line">  ght.io.ght_pcaddr_in(w)                    := core.io.pc(w)</span><br><span class="line">  ght.io.ght_inst_in(w)                      := core.io.inst(w)</span><br><span class="line">  ght.io.new_commit(w)                       := core.io.new_commit(w)</span><br><span class="line">  ght.io.ght_alu_in(w)                       := MuxCase(0.U, </span><br><span class="line">                                                      Array((ght.io.ght_prfs_forward_ldq(w) === true.B) -&gt; Cat(zeros_8bits, ldq_header(w)),</span><br><span class="line">                                                            (ght.io.ght_prfs_forward_stq(w) === true.B) -&gt; Cat(zeros_8bits, stq_header(w)),</span><br><span class="line">                                                            (ght.io.ght_prfs_forward_ftq(w) === true.B) -&gt; Cat(zeros_72bits, jal_or_jlar_target_buffer(w))</span><br><span class="line">                                                          )</span><br><span class="line">                                                          )</span><br><span class="line">&#125;</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<h2 id="GHE"><a href="#GHE" class="headerlink" title="GHE"></a>GHE</h2><p>接下来解读rocc，因为大核内部除了GHT就是rocc和cmdcounter连接，rocc实际上为GHE，GHE主要就是解码器，对输入的ROCC指令解码</p>
+<p>首先要明确ROCC指令的格式</p>
+<blockquote>
+<p>GHE的作用类似于中间层,去处理rocc指令,然后通过cmdrounter路由</p>
+</blockquote>
+<h3 id="rocc指令"><a href="#rocc指令" class="headerlink" title="rocc指令"></a>rocc指令</h3><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">#define CUSTOMX(X, xd, xs1, xs2, rd, rs1, rs2, funct) \</span><br><span class="line">  CUSTOMX_OPCODE(X)                     |             \</span><br><span class="line">  (rd                 &lt;&lt; (7))           |             \</span><br><span class="line">  (xs2                &lt;&lt; (7+5))         |             \</span><br><span class="line">  (xs1                &lt;&lt; (7+5+1))       |             \</span><br><span class="line">  (xd                 &lt;&lt; (7+5+2))       |             \</span><br><span class="line">  (rs1                &lt;&lt; (7+5+3))       |             \</span><br><span class="line">  (rs2                &lt;&lt; (7+5+3+5))     |             \</span><br><span class="line">  (EXTRACT(funct, 7, 0) &lt;&lt; (7+5+3+5+5))</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<p>rd,rs1,rs2分别代表目的寄存器,源寄存器1,源寄存器2的标号,xd,xs1,xs2分别代表是否使用这些寄存器,然后funct指示了func,最后还有X(op_code),指示指令属于custom_x</p>
+<p>之后分别解读各个信号:</p>
+<blockquote>
+<p>下面的解释将LW作为读取作用的指令(含有rd的),</p>
+</blockquote>
+<p>doCheck:funct为0x00,在软件中为ghe_status</p>
+<p>doSorR: funct为0x1,在软件中为ghe_asR,ghe_asG</p>
+<p>doEvent: (funct &#x3D;&#x3D;&#x3D;0x40.U) || (funct &#x3D;&#x3D;&#x3D;0x41.U) || (funct &#x3D;&#x3D;&#x3D;0x42.U) || (funct &#x3D;&#x3D;&#x3D;0x43.U),在软件中分别为ghe_go,ghe_complete,ghe_release,0x42暂时没有找到</p>
+<p>doCheckBigStatus:funct为0x07,为LW,在软件中为ghe_checkght_status</p>
+<p>doCheckAgg:funct为0x10,为LW,在软件中为ghe_agg_status:</p>
+<p>doInitialised:funct为0x50||0x51,软件中为ghe_initailised,这个函数有一个if_initailised输入,来选择执行funct为0x50的指令还是0x51的指令</p>
+<p>doCopy:funct为0x60,并未找到0x60的函数</p>
+<p>doCheckRSU:funct为0x61,软件中为ghe_rsur_status</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">// 0b00: idle</span><br><span class="line">    // 0b01: snapshot received</span><br><span class="line">    // 0b11: snapshot and results recieved</span><br><span class="line">    // 0b10: wrong status</span><br></pre></td></tr></table></figure>
+
+<p>doDeqELU:funct为0x63,软件中没有这个<br>doRecordPC:funct为0x64,软件中没有<br>doCoreTrace:funct为0x69,软件中没有</p>
+<blockquote>
+<p>好像只是没有封装为函数</p>
+</blockquote>
+<p>doBigCheckComp:funct为0x06,软件中很多0x6的</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">ght_get_status:LW</span><br></pre></td></tr></table></figure>
+
+<p>doMask:满足的软件函数很多 funct 从0x30-0x38</p>
+<p>0x30-0x34:ght_set_status,通过输入index选择执行不同的指令,其他暂时没有实现</p>
+<p>doCritical:0x39:暂时没有找到</p>
+<p>doCheckCritial:0x49,暂时没有找到</p>
+<p>doPID_Cfg:0x16,软件中为ght_set_satp_priv,ght_unset_satp_priv</p>
+<p>doGHT_Cfg:0x06并且rs2_val&#x3D;&#x3D;2||3||4,软件中对应的是</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">ght_cfg_filter</span><br><span class="line">ght_cfg_se</span><br><span class="line">ght_cfg_mapper</span><br><span class="line">ghm_cfg_agg</span><br><span class="line">ght_debug_filter_width</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<p>doGHTBufferCheck:0x08,为LW,软件中为ght_get_buffer_status</p>
+<p>doBigCheckIni：0x1b,为LW,软件中为ght_get_initialisation</p>
+<p>doSetActivatedCheckers：0x1c,软件中为ght_set_numberofcheckers<br>doDebug_bp_checker：0x1d,为LW,软件中为debug_bp_checker<br>doDebug_bp_cdc：0x1e,为LW,软件中为debug_bp_cdc<br>doDebug_bp_filter：0x1f,为LW,软件中为debug_bp_filter<br>doDebug_Reset_bp：0x2d,软件中为debug_bp_reset</p>
+<p>doICCTRL<br>doSetTValue<br>doStoreFromChecker<br>doStoreFromMain<br>doRecord</p>
+<p>上面的均未使用函数封装<br>doPerfCtrl:funct为0x76,软件中为ghe_perf_ctrl<br>doPerfRead:0x77,LW,软件中为ghe_perf_read</p>
+<h3 id="rd写入"><a href="#rd写入" class="headerlink" title="rd写入"></a>rd写入</h3><p>下面介绍需要写入rd的操作</p>
+<p>首先是doCheck,写回值为Cat(channel_full, channel_empty),2-bits</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">// 0b01: empty; </span><br><span class="line">// 0b10: full;</span><br><span class="line">// 0b00: data buffered;</span><br><span class="line">// 0b11: error</span><br></pre></td></tr></table></figure>
+
+<p>doCheckBigStatus,写回值为ghe_status_in,从GHM传入</p>
+<p>doCheckAgg,写回值为Cat(zeros_62bits, io.agg_buffer_full, zeros_1bit),</p>
+<blockquote>
+<p>此处只会检查full,但不检查error</p>
+</blockquote>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">// 0b01: empty; </span><br><span class="line">// 0b10: full;</span><br><span class="line">// 0b00: data buffered;</span><br><span class="line">// 0b11: error</span><br></pre></td></tr></table></figure>
+
+<p>doBigCheckComp,写回值为Cat(bigComp, rs1_val(15, 0)),bigComp为ghm传入,rs1_val为寄存器读出</p>
+<p>doBigCheckIni,写回值为bigInialised,该信号为ghm传入</p>
+<p>doGHTBufferCheck:写回值为Cat(zeros_62bits, io.ght_buffer_status),该信号为ght传入</p>
+<p>doCheckCritial:写回值为ght_critial_reg(也就是rs1_val(1,0)的寄存器)</p>
+<p>doCheckRSU:写回值为Cat(io.rsu_status_in, zeros_3bit),从rocketchip传入</p>
+<p>doDebug_bp_checker:写回值为io.debug_bp_checker,从ght传入</p>
+<p>doDebug_bp_checker  -&gt; io.debug_bp_checker,<br>doDebug_bp_cdc      -&gt; io.debug_bp_cdc,<br>doDebug_bp_filter   -&gt; io.debug_bp_filter,</p>
+<p>这三个和上面同理</p>
+<p>doPerfRead写回值来自io.elu_data_in(63,0),由Boom传入</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line">rd_val                     := MuxCase(0.U, </span><br><span class="line">                                Array(doCheck             -&gt; Cat(zeros_channel_status, channel_status_wire), </span><br><span class="line">                                      doCheckBigStatus    -&gt; ghe_status_reg,</span><br><span class="line">                                      doCheckAgg          -&gt; Cat(zeros_62bits, io.agg_buffer_full, zeros_1bit),</span><br><span class="line">                                      doBigCheckComp      -&gt; Cat(bigComp, rs1_val(15, 0)),</span><br><span class="line">                                      doBigCheckIni       -&gt; Cat(bigInialised),</span><br><span class="line">                                      doGHTBufferCheck    -&gt; Cat(zeros_62bits, io.ght_buffer_status),</span><br><span class="line">                                      doCheckCritial      -&gt; Cat(zeros_62bits, ght_critial_reg(1,0)),</span><br><span class="line">                                      doCheckRSU          -&gt; Cat(io.rsu_status_in, zeros_3bit),</span><br><span class="line">                                      doDebug_bp_checker  -&gt; io.debug_bp_checker,</span><br><span class="line">                                      doDebug_bp_cdc      -&gt; io.debug_bp_cdc,</span><br><span class="line">                                      doDebug_bp_filter   -&gt; io.debug_bp_filter,</span><br><span class="line">                                      doPerfRead          -&gt; io.elu_data_in(63,0)</span><br><span class="line">                                      )</span><br><span class="line">                                      )</span><br></pre></td></tr></table></figure>
+
+<h3 id="输出信号"><a href="#输出信号" class="headerlink" title="输出信号"></a>输出信号</h3><p>ghe_event_out:Cat(0.U, ghe_initialised_reg, ghe_event_reg, channel_warning),传输了ghe_initialised_reg,ghe_event_reg,这两条信息分别与doInitialised和doEvent有关</p>
+<p>ght_mask_out:~(ght_status_reg(0)),与doMask有关</p>
+<p>ght_status_out:Cat(0.U, num_activated_cores, ght_status_reg(22,0)),与doSetActivatedCheckers和doMask有关</p>
+<p>ght_cfg_out,ght_cfg_valid:Mux(doGHT_Cfg, rs1_val(31,0), 0.U),Mux(doGHT_Cfg, 1.U, 0.U),与doGHT_Cfg有关</p>
+<p>debug_bp_reset:Mux(doDebug_Reset_bp, 1.U, 0.U),与doDebug_Reset_bp有关</p>
+<p>agg_packet_out,report_fi_detection_out,agg_core_status_out,ght_sch_na_out,fi_sel_out:与输入直连</p>
+<p>ght_sch_na:channel_sch_na:控制信号由channel_nearfull和ght_sch_refresh(GHM传入)控制</p>
+<p>ght_sch_dorefresh:恒为0</p>
+<p>if_correct_process:Mux((define_monitor_target &#x3D;&#x3D;&#x3D;1.U), 1.U, (hit_satp_ppn &amp; hit_privi &amp; has_monitor_target))</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">define_monitor_target      := Mux((doPID_Cfg &amp;&amp; (rs1_val === 1.U)), 1.U, 0.U)</span><br><span class="line">undefine_monitor_target    := Mux((doPID_Cfg &amp;&amp; (rs1_val === 2.U)), 1.U, 0.U)</span><br></pre></td></tr></table></figure>
+
+<p>t_value_out:t_Value和doSetTValue有关</p>
+<p><del>RoccCommandRouterBoom也就是cmdrounter，内部加入了MEEK的信号，目前暂时不知道这些信号含义</del></p>
+<blockquote>
+<p>目前该模块虽然得知各个信号代表什么,但怎莫用,如何去用还需研究</p>
+</blockquote>
+<h2 id="GHM"><a href="#GHM" class="headerlink" title="GHM"></a>GHM</h2><p>ghm和gagg都是在顶层定义的，然后在这个文件中定义了GBUS，MEEK&#x2F;Hardware&#x2F;little&#x2F;subsystem&#x2F;BusTopology.scala，主要用于外设的访问</p>
+<p>文件位置：MEEK&#x2F;Hardware&#x2F;top&#x2F;System.scala中的ChipyardSystem</p>
+<p>其中DigitalTop继承了这个类</p>
+<p>GHM主要就是将</p>
+<h2 id="NOC节点定义与连接"><a href="#NOC节点定义与连接" class="headerlink" title="NOC节点定义与连接"></a>NOC节点定义与连接</h2><p>位于MEEK&#x2F;Hardware&#x2F;little&#x2F;subsystem&#x2F;HasTiles,主要在该trait定义了Ephemeral节点，且指定了数据类型，然后这个trait只能被BaseSubsystem或者其子类继承</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">trait HasGHnodes extends InstantiatesTiles &#123; this: BaseSubsystem =&gt;</span><br><span class="line">  val tile_ghm_agg_core_id_EPNode                = BundleBridgeEphemeralNode[UInt]()</span><br><span class="line">  val tile_ght_packet_out_EPNode                 = BundleBridgeEphemeralNode[UInt]()</span><br><span class="line">  val tile_core_r_arfs_EPNode                    = BundleBridgeEphemeralNode[UInt]()</span><br><span class="line">......</span><br><span class="line">  val tile_debug_gcounter_EPNode                 = BundleBridgeEphemeralNode[UInt]()</span><br><span class="line">  var tile_agg_packet_in_EPNodes                 = Seq[BundleBridgeEphemeralNode[UInt]]()</span><br><span class="line">  val tile_agg_empty_EPNode                      = BundleBridgeEphemeralNode[UInt]()</span><br><span class="line">  val tile_agg_free_EPNode                       = BundleBridgeEphemeralNode[UInt]()</span><br><span class="line">&#125;</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<p>这里是trait CanAttachTile内部的一个连接函数，主要作用是将tile信号传送到总线上，并且经过跨时钟域处理</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"></span><br><span class="line">def connectMasterPorts(domain: TilePRCIDomain[TileType], context: Attachable): Unit = &#123;</span><br><span class="line">  implicit val p = context.p</span><br><span class="line">  val dataBus = context.locateTLBusWrapper(crossingParams.master.where)</span><br><span class="line">  dataBus.coupleFrom(tileParams.name.getOrElse(&quot;tile&quot;)) &#123; bus =&gt;</span><br><span class="line">    bus :=* crossingParams.master.injectNode(context) :=* domain.crossMasterPort(crossingParams.crossingType)</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h3 id="大核流程"><a href="#大核流程" class="headerlink" title="大核流程"></a>大核流程</h3><p>大核首先将rocc的cmd送入rocc，rocc模块处理完成后会将处理完成的信号送入cmdrouter,</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">rocc.module.io.cmd &lt;&gt; cmdRouter.io.out(i)</span><br><span class="line">cmdRouter.io.in &lt;&gt; core.io.rocc.cmd</span><br></pre></td></tr></table></figure>
+
+
+
+<p>大核会去和ght以及ghe交互</p>
+<p>大核和rocc</p>
+<h4 id="GHE与GHT交互信号"><a href="#GHE与GHT交互信号" class="headerlink" title="GHE与GHT交互信号"></a>GHE与GHT交互信号</h4><blockquote>
+<p>只要是rocc指令，均为GHE传入</p>
+</blockquote>
+<p>然后与GHT有关的信号会送入GHT处理，具体的</p>
+<p>ght_mask_in：rocc指令</p>
+<p>use_fi_mode：rocc指令</p>
+<p>ght_cfg_in:rocc指令中rs1的值</p>
+<p>ght_cfg_valid：rocc指令中rs1的（1，0）</p>
+<p>debug_bp_reset：rocc指令</p>
+<p>if_correct_process：相对比较复杂的ROCC指令</p>
+<p>ght_buffer_status:看ght buf的空满，2 bit 信号，其中高位为1是满，低位为1是空<br>debug_mcounter：debug_icounter：没有找到任何实现，且在GHT赋值为0<br>debug_bp_checker：由软件读出<br>debug_bp_cdc：同由软件读出<br>debug_bp_filter：同</p>
+<h4 id="大核与GHT交互信号"><a href="#大核与GHT交互信号" class="headerlink" title="大核与GHT交互信号"></a>大核与GHT交互信号</h4><p>主要获取核的状态：pc，inst，commit，alu</p>
+<p>是否prfs_rd，是否为rvc</p>
+<p>解释ght是否准备好</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><span class="line">    for (w &lt;- 0 until gc_core_width) &#123;</span><br><span class="line">      jal_or_jlar_target_buffer(w)               := core.io.alu_out(w)</span><br><span class="line">      ght.io.ght_pcaddr_in(w)                    := core.io.pc(w)</span><br><span class="line">      ght.io.ght_inst_in(w)                      := core.io.inst(w)</span><br><span class="line">      ght.io.new_commit(w)                       := core.io.new_commit(w)</span><br><span class="line">      ght.io.ght_alu_in(w)                       := MuxCase(0.U, </span><br><span class="line">                                                      Array((ght.io.ght_prfs_forward_ldq(w) === true.B) -&gt; Cat(zeros_8bits, ldq_header(w)),</span><br><span class="line">                                                            (ght.io.ght_prfs_forward_stq(w) === true.B) -&gt; Cat(zeros_8bits, stq_header(w)),</span><br><span class="line">                                                            (ght.io.ght_prfs_forward_ftq(w) === true.B) -&gt; Cat(zeros_72bits, jal_or_jlar_target_buffer(w))</span><br><span class="line">                                                          )</span><br><span class="line">                                                          )</span><br><span class="line">      core.io.ght_prfs_forward_prf(w)            := ght.io.ght_prfs_forward_prf(w)</span><br><span class="line">      ght.io.ght_prfs_rd(w)                      := core.io.prf_rd(w)</span><br><span class="line">      outer.frontend.module.io.gh.gh_ftq_idx(w)  := Mux((core.io.is_jal_or_jalr(w) === true.B), core.io.ft_idx(w), 0.U)</span><br><span class="line">      ght.io.ght_is_rvc_in(w)                    := core.io.is_rvc(w)</span><br><span class="line">    &#125;</span><br><span class="line">    ght.io.ic_crnt_target                        := core.io.ic_crnt_target</span><br><span class="line">    ght.io.shared_CP_CFG                         := core.io.shared_CP_CFG</span><br><span class="line">	...</span><br><span class="line">ght.io.inst_index_arfs                       := core.io.r_arfs_pidx(0)</span><br><span class="line">core.io.ght_filters_ready                    := ght.io.ght_filters_ready</span><br><span class="line">core.io.gh_stall                             := ght.io.core_hang_up</span><br></pre></td></tr></table></figure>
+
+<h4 id="大核与GHE交互"><a href="#大核与GHE交互" class="headerlink" title="大核与GHE交互"></a>大核与GHE交互</h4><blockquote>
+<p>i说明是输入core的信号</p>
+<p>o说明是输出core的信号</p>
+</blockquote>
+<p>icctrl：i ：rocc指令，输出值为rs1（3，0）</p>
+<p>t_value：i：rocc指令，输出值为rs1（14，0）</p>
+<p>if_correct_process：i：rocc：该信号同时也会传入GHT</p>
+<p>num_of_checker：i：rocc：GHE的ght_status_out（30，23）</p>
+<p>debug_perf_ctrl：i：rocc：rs1（4，0）</p>
+<p>core.io.ptw.ptbr.ppn：o：rocc，GHE的ght_satp_ppn信号，和GHE的if_correct_process信号有关</p>
+<p>core.io.ght_prv：o：rocc，GHE的ght_sys_mode信号，和上面一个信号共同影响if_correct_process</p>
+<p>debug_perf_val：o：rocc，GHE的elu_data_in信号，软件读出</p>
+<h4 id="大核与GHM交互"><a href="#大核与GHM交互" class="headerlink" title="大核与GHM交互"></a>大核与GHM交互</h4><p>clear_ic_status_tomain：i：GHM的clear_ic_status_tomain信号，从小核的clear_ic_status传入</p>
+<p>icsl_na：i：GHM的icsl_na信号，从小核lsl_highwatermark传入</p>
+<p>ic_counter：o：在ghm中连接如下，最后连接到小核的ic_counter</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">for (i &lt;- 0 to params.number_of_little_cores - 1) &#123;</span><br><span class="line">  io.icsl_counter(i)                         := Cat(io.debug_maincore_status, io.ic_counter((i+1)*16+15, (i+1)*16))</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>debug_maincore_status：o,在GHM对应信号为debug_maincore_status，和上面信号同时组成了icsl_counter</p>
+<h4 id="GHM与GHE交互"><a href="#GHM与GHE交互" class="headerlink" title="GHM与GHE交互"></a>GHM与GHE交互</h4><p>ghe_packet_in：ghe_status_ini：ghm的ghm_packet_outs信号,大核不连接GHE，也就是大核不接受ghe数据，大核只发出数据</p>
+<p>ght_status_out：o：在GHM中为ghm_status_in</p>
+<p>agg_packet_out：一直送入GAGG的agg_packet_in，大核没有使用</p>
+<p>bigcore_comp：i：为GHM的传入bigcore_comp<br>ght_sch_dorefresh_out：大核没有使用</p>
+<h4 id="GHT与GHM，GAGG交互"><a href="#GHT与GHM，GAGG交互" class="headerlink" title="GHT与GHM，GAGG交互"></a>GHT与GHM，GAGG交互</h4><p>ght_packet_out：o：送入GHM的信号就是packet ghm_packet_in</p>
+<p>Cat(ght.io.arfs_dest, ght.io.ght_packet_dest)：送入GHM为ghm_packet_dest信号</p>
+<p>ghm_agg_core_id：o：ghm_agg_core_id_SKNode:送入GAGG的信号为agg_core_id</p>
+<p>debug_bp:i:在GHM信号为debug_bp</p>
+<p>ght_stall：i：在GHM中信号为bigcore_hang</p>
+<h4 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h4><p>大核的命令先送入GHE处理，然后根据GHE来展开接下来的操作，首先，大核的数据会送入GHT，GHT首先过滤请求，并且向大核发出forward请求，然后处理完数据后，送入GHM，经过CDC送入小核</p>
+<h3 id="小核心流程"><a href="#小核心流程" class="headerlink" title="小核心流程"></a>小核心流程</h3><h4 id="小核心与GHE交互"><a href="#小核心与GHE交互" class="headerlink" title="小核心与GHE交互"></a>小核心与GHE交互</h4><p>arfs_if_CPS:i:所以该信号需要s_or_r以及arfs_in:</p>
+<p>首先为s_or_r,为GHE的s_or_r_out传入</p>
+<p>arfs_in：i:由GHM的core_r_arfs_c传入</p>
+<p>packet_arfs：i:由下面代码看到这个信号和arfs_if_CPS类似</p>
+<p>packet_lsl:i:该信号的组成为s_or_r,+GHM的ghm_packet_outs信号,该信号也就是从大核经CDC传入的数据</p>
+<p>packet_lsl1:i:该信号和上面类似</p>
+<p>arf_copy_in:i:从GHE传入的arf_copy_out</p>
+<p>s_or_r:i:为GHE的s_or_r_out传入</p>
+<p>if_correct_process:i:GHE传入的if_correct_process</p>
+<p>record_pc:i:GHE传入record_pc</p>
+<p>elu_deq:i:GHE传入的elu_deq_out</p>
+<p>elu_sel:i:GHE传入的elu_sel_out</p>
+<p>debug_perf_ctrl:i:debug_perf_ctrl</p>
+<p>record_and_store:i:record_and_store_out</p>
+<p>rsu_status:o;rsu_status_in:软件读出</p>
+<p>elu_status:o;GHE并未找到使用</p>
+<p>core_trace:i:core_trace_out<br>ptw.ptbr.ppn:o;</p>
+<p>ght_prv:o;</p>
+<p>上面两个信号共同影响if_correct_process</p>
+<p>elu_data:o;elu_data_in:由软件读取</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br></pre></td><td class="code"><pre><span class="line">val packet_in_superset = outer.ghe_packet_in_SKNode.bundle</span><br><span class="line"> val packet_in = packet_in_superset(143, 0)</span><br><span class="line"> val packet_index = packet_in (143, 136)</span><br><span class="line"> val ptype_fg = Mux(((packet_index(2) === 0.U) &amp;&amp; (packet_index(1,0) =/= 0.U) &amp;&amp; (s_or_r === 0.U)), 1.U, 0.U)</span><br><span class="line"></span><br><span class="line"> val ptype_lsl = Mux((s_or_r.asBool &amp;&amp; (packet_index(2,0) =/= 7.U) &amp;&amp; (packet_index(2,0) =/= 0.U)), 1.U, 0.U)</span><br><span class="line"> val core_trace = Wire(0.U(2.W))</span><br><span class="line"> val debug_perf_ctrl = Wire(0.U(5.W))</span><br><span class="line"> val record_and_store = Wire(0.U(2.W))</span><br><span class="line"></span><br><span class="line"> cdc_flag := Mux((ptype_fg.asBool || ptype_lsl.asBool) &amp;&amp; (packet_in_superset(288) =/= cdc_flag), packet_in_superset(288), cdc_flag)</span><br><span class="line"> cdc_ack := Mux((ptype_fg.asBool || ptype_lsl.asBool) &amp;&amp; (packet_in_superset(288) =/= cdc_flag), cdc_ack + 1.U, cdc_ack)</span><br><span class="line"></span><br><span class="line"> val arfs_in = outer.core_r_arfs_c_SKNode.bundle</span><br><span class="line"> val arfs_index = arfs_in (143, 136)</span><br><span class="line"> val ptype_rcu = Mux(s_or_r.asBool &amp;&amp; (arfs_index(2,0) === 7.U), 1.U, 0.U)</span><br><span class="line"> val arfs_if_CPS = Mux(ptype_rcu.asBool &amp;&amp; (arfs_index (6, 3) === outer.rocketParams.hartId.U), 1.U, 0.U)</span><br><span class="line"></span><br><span class="line"> val packet_fg = Mux((ptype_fg === 1.U) &amp;&amp; (packet_in_superset(288) =/= cdc_flag), packet_in, 0.U)</span><br><span class="line"> val packet_rcu = Mux((ptype_rcu === 1.U), arfs_in, 0.U)</span><br><span class="line"> val packet_lsl = Mux((ptype_lsl === 1.U) &amp;&amp; (packet_in_superset(288) =/= cdc_flag), packet_in, 0.U)</span><br><span class="line"></span><br><span class="line"> val packet_in1 = packet_in_superset(287, 144)</span><br><span class="line"> val packet_index1 = packet_in1(143, 136)</span><br><span class="line"> val ptype_lsl1 = Mux((s_or_r.asBool &amp;&amp; (packet_index1(2,0) =/= 7.U) &amp;&amp; (packet_index1(2,0) =/= 0.U)), 1.U, 0.U)</span><br><span class="line"> val packet_lsl1 = Mux((ptype_lsl1 === 1.U) &amp;&amp; (packet_in_superset(288) =/= cdc_flag), packet_in1, 0.U)</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<h4 id="小核心与GHM-GAGG交互"><a href="#小核心与GHM-GAGG交互" class="headerlink" title="小核心与GHM,GAGG交互"></a>小核心与GHM,GAGG交互</h4><p>本节不介绍前一节介绍过的</p>
+<p>首先介绍下面两个:</p>
+<p>1.送入GHM的信号为ghe_event_in</p>
+<p>2.送入GHM的信号为ghe_revent_in</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">outer.ghe_event_out_SRNode.bundle := Cat(cdc_ack, (ghe_bridge.io.out | Cat(core.io.packet_cdc_ready, zeros_4bits) | Cat(zeros_4bits, core.io.lsl_near_full)))</span><br><span class="line">outer.ghe_revent_out_SRNode.bundle := core.io.lsl_highwatermark</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<p>ic_counter:i:icsl_counter:GHM</p>
+<p>clear_ic_status:o;clear_ic_status:GHM</p>
+<h4 id="GHE与GHM-GAGG交互"><a href="#GHE与GHM-GAGG交互" class="headerlink" title="GHE与GHM,GAGG交互"></a>GHE与GHM,GAGG交互</h4><blockquote>
+<p>GHE信号:(i or o):GHM or GAGG</p>
+</blockquote>
+<p>ghe_status_in:i:ghm_status_outs:该信号需要软件读出</p>
+<p>ght_status_out:o;ghm_status_in</p>
+<p>agg_packet_out:在GHE中赋值为0</p>
+<p>report_fi_detection_out:未在小核心使用</p>
+<p>agg_buffer_full:i:agg_buffer_full:软件读取</p>
+<p>agg_core_status:o;agg_core_status,注意该信号还使用到了其他模块的信号</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">outer.agg_core_status_SRNode.bundle := Mux(!s_or_r.asBool, cmdRouter.get.io.agg_core_status_out, core.io.icsl_status)</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<p>ght_sch_na:o;sch_na_in</p>
+<p>ght_sch_refresh:i:sch_refresh_out</p>
+<p>ght_buffer_status:恒为0,软件读取</p>
+<h4 id="总结-1"><a href="#总结-1" class="headerlink" title="总结"></a>总结</h4><p>小核心接受从GHM传入的数据包,根据GHE的指令来选择对应的操作</p>
+
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-item">
+                <a href="/2025/02/19/nemu-linux/" rel="prev" title="nemu linux">
+                  <i class="fa fa-angle-left"></i> nemu linux
+                </a>
+            </div>
+            <div class="post-nav-item">
+            </div>
+          </div>
+    </footer>
+  </article>
+</div>
+
+
+
+
+
+
+</div>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+
+  <div class="copyright">
+    &copy; 2025-02 – 
+    <span itemprop="copyrightYear">2025</span>
+    <span class="with-love">
+      <i class="fa fa-heart"></i>
+    </span>
+    <span class="author" itemprop="copyrightHolder">GB</span>
+  </div>
+<div class="wordcount">
+  <span class="post-meta-item">
+    <span class="post-meta-item-icon">
+      <i class="fa fa-chart-line"></i>
+    </span>
+    <span title="站点总字数">112k</span>
+  </span>
+  <span class="post-meta-item">
+    <span class="post-meta-item-icon">
+      <i class="fa fa-coffee"></i>
+    </span>
+    <span title="站点阅读时长">6:46</span>
+  </span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io/" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.js.org/" rel="noopener" target="_blank">NexT.Gemini</a> 强力驱动
+  </div>
+
+    </div>
+  </footer>
+
+  
+  <div class="toggle sidebar-toggle" role="button">
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+  </div>
+  <div class="sidebar-dimmer"></div>
+  <div class="back-to-top" role="button" aria-label="返回顶部">
+    <i class="fa fa-arrow-up fa-lg"></i>
+    <span>0%</span>
+  </div>
+
+<noscript>
+  <div class="noscript-warning">Theme NexT works best with JavaScript enabled</div>
+</noscript>
+
+
+  
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js" integrity="sha256-XL2inqUJaslATFnHdJOi9GfQ60on8Wx1C2H8DYiN1xY=" crossorigin="anonymous"></script>
+<script src="/js/comments.js"></script><script src="/js/utils.js"></script><script src="/js/motion.js"></script><script src="/js/sidebar.js"></script><script src="/js/next-boot.js"></script>
+
+  
+
+
+
+
+
+
+  
+
+
+
+
+
+</body>
+</html>

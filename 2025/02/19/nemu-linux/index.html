@@ -19,26 +19,28 @@
 
 <script class="next-config" data-name="main" type="application/json">{"hostname":"example.com","root":"/","images":"/images","scheme":"Gemini","darkmode":false,"version":"8.22.0","exturl":false,"sidebar":{"position":"left","width_expanded":320,"width_dual_column":240,"display":"post","padding":18,"offset":12},"hljswrap":true,"copycode":{"enable":true,"style":"flat"},"fold":{"enable":true,"height":500},"bookmark":{"enable":false,"color":"#222","save":"auto"},"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"stickytabs":false,"motion":{"enable":true,"async":false,"duration":200,"transition":{"menu_item":"fadeInDown","post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"i18n":{"placeholder":"搜索...","empty":"没有找到任何搜索结果：${query}","hits_time":"找到 ${hits} 个搜索结果（用时 ${time} 毫秒）","hits":"找到 ${hits} 个搜索结果"}}</script><script src="/js/config.js"></script>
 
-    <meta name="description" content="假定已经安装了gem5,并且编译了RISCV的gem5.opt 环境准备编译m5term,这个是连接终端的 12cd gem5&#x2F;util&#x2F;termmake CFLAGS&#x3D;-O3  编译m5 12cd gem5&#x2F;util&#x2F;m5python3 &#96;which scons&#96; build&#x2F;RISCV&#x2F;out&#x2F;m5  获取linux内核获取riscv linux内核和img映像,获取方法  官网资源,使用ri">
+    <meta name="description" content="Difftest 适配在跑linux需要加入csr的检查,以测出特权指令执行的结果是否正确 首先需要做的就是维护一套csr寄存器,我个人做法就是设置一个csr_map结构体,然后查询这个结构体来找到csr是否实现 1234567891011121314151617181920212223242526nemu_csr_t csr_map[] &#x3D; &#123;     &#123;0x100, &amp;qu">
 <meta property="og:type" content="article">
-<meta property="og:title" content="gem5在fs模式运行spec2006">
-<meta property="og:url" content="http://example.com/2025/02/10/gem5%E5%9C%A8fs%E6%A8%A1%E5%BC%8F%E8%BF%90%E8%A1%8Cspec2006/index.html">
+<meta property="og:title" content="nemu linux">
+<meta property="og:url" content="http://example.com/2025/02/19/nemu-linux/index.html">
 <meta property="og:site_name" content="GB&#39;s Blog">
-<meta property="og:description" content="假定已经安装了gem5,并且编译了RISCV的gem5.opt 环境准备编译m5term,这个是连接终端的 12cd gem5&#x2F;util&#x2F;termmake CFLAGS&#x3D;-O3  编译m5 12cd gem5&#x2F;util&#x2F;m5python3 &#96;which scons&#96; build&#x2F;RISCV&#x2F;out&#x2F;m5  获取linux内核获取riscv linux内核和img映像,获取方法  官网资源,使用ri">
+<meta property="og:description" content="Difftest 适配在跑linux需要加入csr的检查,以测出特权指令执行的结果是否正确 首先需要做的就是维护一套csr寄存器,我个人做法就是设置一个csr_map结构体,然后查询这个结构体来找到csr是否实现 1234567891011121314151617181920212223242526nemu_csr_t csr_map[] &#x3D; &#123;     &#123;0x100, &amp;qu">
 <meta property="og:locale" content="zh_CN">
-<meta property="article:published_time" content="2025-02-10T09:34:21.000Z">
-<meta property="article:modified_time" content="2025-02-26T14:07:13.361Z">
+<meta property="og:image" content="http://example.com/2025/02/19/nemu-linux/nemu-linux/1740061516016.png">
+<meta property="article:published_time" content="2025-02-19T08:34:35.000Z">
+<meta property="article:modified_time" content="2025-02-26T14:06:50.988Z">
 <meta property="article:author" content="GB">
 <meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://example.com/2025/02/19/nemu-linux/nemu-linux/1740061516016.png">
 
 
-<link rel="canonical" href="http://example.com/2025/02/10/gem5%E5%9C%A8fs%E6%A8%A1%E5%BC%8F%E8%BF%90%E8%A1%8Cspec2006/">
+<link rel="canonical" href="http://example.com/2025/02/19/nemu-linux/">
 
 
-<script class="next-config" data-name="page" type="application/json">{"sidebar":"","isHome":false,"isPost":true,"lang":"zh-CN","comments":true,"permalink":"http://example.com/2025/02/10/gem5%E5%9C%A8fs%E6%A8%A1%E5%BC%8F%E8%BF%90%E8%A1%8Cspec2006/","path":"2025/02/10/gem5在fs模式运行spec2006/","title":"gem5在fs模式运行spec2006"}</script>
+<script class="next-config" data-name="page" type="application/json">{"sidebar":"","isHome":false,"isPost":true,"lang":"zh-CN","comments":true,"permalink":"http://example.com/2025/02/19/nemu-linux/","path":"2025/02/19/nemu-linux/","title":"nemu linux"}</script>
 
 <script class="next-config" data-name="calendar" type="application/json">""</script>
-<title>gem5在fs模式运行spec2006 | GB's Blog</title>
+<title>nemu linux | GB's Blog</title>
   
 
 
@@ -110,7 +112,7 @@
       <div class="sidebar-panel-container">
         <!--noindex-->
         <div class="post-toc-wrap sidebar-panel">
-            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#%E7%8E%AF%E5%A2%83%E5%87%86%E5%A4%87"><span class="nav-number">1.</span> <span class="nav-text">环境准备</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E8%8E%B7%E5%8F%96linux%E5%86%85%E6%A0%B8"><span class="nav-number">2.</span> <span class="nav-text">获取linux内核</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E4%BF%AE%E6%94%B9img%E6%96%87%E4%BB%B6"><span class="nav-number">3.</span> <span class="nav-text">修改img文件</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E7%94%9F%E6%88%90checkpoint"><span class="nav-number">4.</span> <span class="nav-text">生成checkpoint</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E6%81%A2%E5%A4%8Dcheckpoint"><span class="nav-number">5.</span> <span class="nav-text">恢复checkpoint</span></a></li></ol></div>
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#Difftest-%E9%80%82%E9%85%8D"><span class="nav-number">1.</span> <span class="nav-text">Difftest 适配</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E7%A7%BB%E6%A4%8Dopensbi"><span class="nav-number">2.</span> <span class="nav-text">移植opensbi</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E7%A7%BB%E6%A4%8Dlinux"><span class="nav-number">3.</span> <span class="nav-text">移植linux</span></a></li></ol></div>
         </div>
         <!--/noindex-->
 
@@ -158,7 +160,7 @@
   
 
   <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="zh-CN">
-    <link itemprop="mainEntityOfPage" href="http://example.com/2025/02/10/gem5%E5%9C%A8fs%E6%A8%A1%E5%BC%8F%E8%BF%90%E8%A1%8Cspec2006/">
+    <link itemprop="mainEntityOfPage" href="http://example.com/2025/02/19/nemu-linux/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="image" content="/images/my.jpg">
@@ -171,12 +173,12 @@
     </span>
 
     <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
-      <meta itemprop="name" content="gem5在fs模式运行spec2006 | GB's Blog">
+      <meta itemprop="name" content="nemu linux | GB's Blog">
       <meta itemprop="description" content="">
     </span>
       <header class="post-header">
         <h1 class="post-title" itemprop="name headline">
-          gem5在fs模式运行spec2006
+          nemu linux
         </h1>
 
         <div class="post-meta-container">
@@ -187,14 +189,14 @@
       </span>
       <span class="post-meta-item-text">发表于</span>
 
-      <time title="创建时间：2025-02-10 17:34:21" itemprop="dateCreated datePublished" datetime="2025-02-10T17:34:21+08:00">2025-02-10</time>
+      <time title="创建时间：2025-02-19 16:34:35" itemprop="dateCreated datePublished" datetime="2025-02-19T16:34:35+08:00">2025-02-19</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2025-02-26 22:07:13" itemprop="dateModified" datetime="2025-02-26T22:07:13+08:00">2025-02-26</time>
+      <time title="修改时间：2025-02-26 22:06:50" itemprop="dateModified" datetime="2025-02-26T22:06:50+08:00">2025-02-26</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -213,14 +215,14 @@
         <i class="far fa-file-word"></i>
       </span>
       <span class="post-meta-item-text">本文字数：</span>
-      <span>314</span>
+      <span>420</span>
     </span>
     <span class="post-meta-item" title="阅读时长">
       <span class="post-meta-item-icon">
         <i class="far fa-clock"></i>
       </span>
       <span class="post-meta-item-text">阅读时长 &asymp;</span>
-      <span>1 分钟</span>
+      <span>2 分钟</span>
     </span>
 </div>
 
@@ -230,40 +232,26 @@
     
     
     
-    <div class="post-body" itemprop="articleBody"><p>假定已经安装了gem5,并且编译了RISCV的gem5.opt</p>
-<h1 id="环境准备"><a href="#环境准备" class="headerlink" title="环境准备"></a>环境准备</h1><p>编译m5term,这个是连接终端的</p>
-<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">cd gem5/util/term</span><br><span class="line">make CFLAGS=-O3</span><br></pre></td></tr></table></figure>
+    <div class="post-body" itemprop="articleBody"><h1 id="Difftest-适配"><a href="#Difftest-适配" class="headerlink" title="Difftest 适配"></a>Difftest 适配</h1><p>在跑linux需要加入csr的检查,以测出特权指令执行的结果是否正确</p>
+<p>首先需要做的就是维护一套csr寄存器,我个人做法就是设置一个csr_map结构体,然后查询这个结构体来找到csr是否实现</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br></pre></td><td class="code"><pre><span class="line">nemu_csr_t csr_map[] = &#123; </span><br><span class="line">    &#123;0x100, &quot;sstatus&quot; ,true&#125;, </span><br><span class="line">    &#123;0x104, &quot;sie&quot;     ,true&#125;, </span><br><span class="line">    &#123;0x105, &quot;stvec&quot;   ,true&#125;, </span><br><span class="line">    &#123;0x140, &quot;sscratch&quot;,true&#125;, </span><br><span class="line">    &#123;0x141, &quot;sepc&quot;    ,true&#125;, </span><br><span class="line">    &#123;0x142, &quot;scause&quot;  ,true&#125;, </span><br><span class="line">    &#123;0x143, &quot;stval&quot;   ,true&#125;, </span><br><span class="line">    &#123;0x144, &quot;sip&quot;     ,true&#125;, </span><br><span class="line">    &#123;0x180, &quot;satp&quot;    ,true&#125;, </span><br><span class="line">    &#123;0x300, &quot;mstatus&quot; ,true&#125;,</span><br><span class="line">    &#123;0x301, &quot;misa&quot;    ,false&#125;,</span><br><span class="line">    &#123;0x302, &quot;medeleg&quot; ,true&#125;, </span><br><span class="line">    &#123;0x303, &quot;mideleg&quot; ,true&#125;,  </span><br><span class="line">    &#123;0x304, &quot;mie&quot;     ,true&#125;,  </span><br><span class="line">    &#123;0x305, &quot;mtvec&quot;   ,true&#125;,  </span><br><span class="line">    &#123;0x310, &quot;mstatush&quot;,true&#125;,</span><br><span class="line">    // &#123;0x312, &quot;medelegh&quot;,true&#125;,////2024 standard  </span><br><span class="line">    &#123;0x340, &quot;mscratch&quot;,true&#125;,</span><br><span class="line">    &#123;0x341, &quot;mepc&quot;    ,true&#125;,</span><br><span class="line">    &#123;0x342, &quot;mcause&quot;  ,true&#125;,</span><br><span class="line">    &#123;0x343, &quot;mtval&quot;   ,true&#125;,  </span><br><span class="line">    &#123;0x344, &quot;mip&quot;     ,true&#125;,  </span><br><span class="line">    &#123;0xf11, &quot;mvendorid&quot;,true&#125;,   </span><br><span class="line">    &#123;0xf14, &quot;mhartid&quot; ,true&#125;   </span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 
-<p>编译m5</p>
-<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">cd gem5/util/m5</span><br><span class="line">python3 `which scons` build/RISCV/out/m5</span><br></pre></td></tr></table></figure>
+<p>然后每次增加一个csr寄存器,只需在difftest.cc和inst.c同时将寄存器加入map即可</p>
+<p>之后我们需要实现非法指令异常,可以参考yield在nemu实现,当遇到一些没实现的csr时,就可以触发异常,然后sbi会自己处理这些没实现的csr,我们此时也要去将这个非法指令访问异常同步到spike中,具体可以参考spike的get_csr</p>
+<p>完成上述,基本difftest改造完成</p>
+<h1 id="移植opensbi"><a href="#移植opensbi" class="headerlink" title="移植opensbi"></a>移植opensbi</h1><p>首先下载opensbi</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">git clone https://github.com/riscv-software-src/opensbi</span><br></pre></td></tr></table></figure>
 
-<h1 id="获取linux内核"><a href="#获取linux内核" class="headerlink" title="获取linux内核"></a>获取linux内核</h1><p>获取riscv linux内核和img映像,获取方法</p>
-<ol>
-<li>官网<a target="_blank" rel="noopener" href="https://resources.gem5.org/resources?q=gem5_versions:24.1+image&page=1&sort=relevance&limit=10">资源</a>,使用riscv-disk-img,内核使用bootloader开头的</li>
-<li>使用buildroot一键构建内核和img</li>
-<li>busybox构建img,然后自己编译linux内核</li>
-</ol>
-<h1 id="修改img文件"><a href="#修改img文件" class="headerlink" title="修改img文件"></a>修改img文件</h1><p>添加自己的文件</p>
-<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">sudo mkdir -p /mnt/rootfs</span><br><span class="line">sudo mount -o loop riscv-disk.img /mnt/rootfs</span><br><span class="line">cp path/to/your_program /mnt/rootfs/root</span><br><span class="line">sudo umount /mnt/rootfs</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+<p>然后复制一份platform&#x2F;templete,将这个改为适配nemu的平台,具体改动:</p>
+<p>先设置objects.mk,然后</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line">PLATFORM_RISCV_XLEN = 32</span><br><span class="line">PLATFORM_RISCV_ABI = ilp32</span><br><span class="line">PLATFORM_RISCV_ISA = rv32ima_zicsr_zifencei</span><br><span class="line">PLATFORM_RISCV_CODE_MODEL = medany</span><br><span class="line">FW_TEXT_START=0x80000000//如果这个不行,可以直接修改链接脚本,具体在firmware/fw_jump.elf.ldS</span><br><span class="line">FW_JUMP=y</span><br><span class="line">ifeq ($(PLATFORM_RISCV_XLEN), 32)</span><br><span class="line">FW_JUMP_ADDR=0x0</span><br><span class="line">else</span><br><span class="line">FW_JUMP_ADDR=0x80200000</span><br><span class="line">endif</span><br><span class="line"></span><br></pre></td></tr></table></figure>
 
-<p>然后我们还要去设置img的&#x2F;etc&#x2F;inittab,将 <code>::respawn:/sbin/getty ...</code>这一行修改为</p>
-<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">::respawn:-/bin/sh /root/init.sh</span><br></pre></td></tr></table></figure>
-
-<p>也就是开机直接启动&#x2F;root&#x2F;init.sh</p>
-<p>之后创建&#x2F;root&#x2F;init.sh</p>
-<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">/root/m5 checkpoint</span><br><span class="line">/root/m5 readfile |sh</span><br><span class="line">/root/m5 exit</span><br></pre></td></tr></table></figure>
-
-<p>这个意思就是创建checkpoint,然后运行从readfile读入的脚本,运行完成退出,其中readfile的文件来自–script参数</p>
-<h1 id="生成checkpoint"><a href="#生成checkpoint" class="headerlink" title="生成checkpoint"></a>生成checkpoint</h1><p>首次运行需要生成checkpoint</p>
-<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">build/RISCV/gem5.opt configs/example/riscv/fs_linux.py \</span><br><span class="line">  --kernel=path/to/your_kernel \</span><br><span class="line">  --disk-image=path/to/your_img</span><br></pre></td></tr></table></figure>
-
-<p>生成了checkpoint后,我们会在gem5的m5out文件夹下发现cpt前缀,数字后缀的文件夹,该文件夹就是生成的checkpoint,之后我们均从该checkpoint运行benckmark</p>
-<h1 id="恢复checkpoint"><a href="#恢复checkpoint" class="headerlink" title="恢复checkpoint"></a>恢复checkpoint</h1><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">build/RISCV/gem5.opt \</span><br><span class="line">  configs/example/riscv/fs_linux.py \</span><br><span class="line">  --kernel=../bootloader-vmlinux-5.10 \</span><br><span class="line">  --disk-image=../riscv-disk.img \</span><br><span class="line">  --restore-with-cpu=O3CPU \</span><br><span class="line">  --bp-type=TAGE_SC_L_64KB \</span><br><span class="line">  --caches --l2cache \</span><br><span class="line">  --checkpoint-restore=1 \</span><br><span class="line">  --script=your.sh</span><br></pre></td></tr></table></figure>
-
-<p>但是在恢复运行时目前遇到这个问题(即使使用O3单独运行也会出现这个问题):</p>
-<p>src&#x2F;cpu&#x2F;o3&#x2F;fetch.cc:603: warn: Address 0xffffffe000004400 is outside of physical memory, stopping fetch</p>
-<p>在issue找到了,但并没得到有效信息</p>
-
+<p>然后设置platform.c,主要就是设置timer,uart的地址,这里可以根据自己的想法去设置设备地址,也可以使用nemu内部的地址,建议uart使用nemu的,只需稍微改动即可,改动可参考uart8250手册</p>
+<p>之后就是debug过程,最后由于跳转到0x0,所以会直接段错误退出,注意最好看19年的手册,24年新出的手册会增加一些csr,从而导致spike触发非法指令</p>
+<p>运行结果如下</p>
+<p><img src="/2025/02/19/nemu-linux/nemu-linux/1740061516016.png" alt="1740061516016"></p>
+<p>如果不确定需要实现哪些寄存器,可以先抛出非法指令异常,之后opensbi会告诉你要设置哪些寄存器</p>
+<h1 id="移植linux"><a href="#移植linux" class="headerlink" title="移植linux"></a>移植linux</h1>
     </div>
 
     
@@ -276,13 +264,13 @@
 
           <div class="post-nav">
             <div class="post-nav-item">
-                <a href="/2025/02/09/%E8%AE%BA%E6%96%87%E7%A7%BB%E6%A4%8D/" rel="prev" title="论文移植">
-                  <i class="fa fa-angle-left"></i> 论文移植
+                <a href="/2025/02/14/bingo/" rel="prev" title="bingo">
+                  <i class="fa fa-angle-left"></i> bingo
                 </a>
             </div>
             <div class="post-nav-item">
-                <a href="/2025/02/13/MEEK/" rel="next" title="MEEK">
-                  MEEK <i class="fa fa-angle-right"></i>
+                <a href="/2025/02/21/MEEK-%E4%BB%A3%E7%A0%81%E9%98%85%E8%AF%BB/" rel="next" title="MEEK 代码阅读">
+                  MEEK 代码阅读 <i class="fa fa-angle-right"></i>
                 </a>
             </div>
           </div>
