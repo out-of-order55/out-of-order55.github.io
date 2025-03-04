@@ -19,12 +19,12 @@
 
 <script class="next-config" data-name="main" type="application/json">{"hostname":"example.com","root":"/","images":"/images","scheme":"Gemini","darkmode":false,"version":"8.22.0","exturl":false,"sidebar":{"position":"left","width_expanded":320,"width_dual_column":240,"display":"post","padding":18,"offset":12},"hljswrap":true,"copycode":{"enable":true,"style":"flat"},"fold":{"enable":true,"height":500},"bookmark":{"enable":false,"color":"#222","save":"auto"},"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"stickytabs":false,"motion":{"enable":true,"async":false,"duration":200,"transition":{"menu_item":"fadeInDown","post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"i18n":{"placeholder":"搜索...","empty":"没有找到任何搜索结果：${query}","hits_time":"找到 ${hits} 个搜索结果（用时 ${time} 毫秒）","hits":"找到 ${hits} 个搜索结果"}}</script><script src="/js/config.js"></script>
 
-    <meta name="description" content="MEEK:Re-thinking Heterogeneous Parallel Error Detection Architecture for Real-World OoO Superscalar Processors芯片检测错误关键就是增加冗余去检测错误，大致可以分为三种，本文采用的是物理冗余，  摘要我们构建了首个全RTL设计的MEEK，并将其集成到一个开源SoC中，从微架构和指令集架构（I">
+    <meta name="description" content="MEEK:Re-thinking Heterogeneous Parallel Error Detection Architecture for Real-World OoO Superscalar Processors芯片检测错误关键就是增加冗余去检测错误，大致可以分为三种，本文采用的是物理冗余  摘要我们构建了首个全RTL设计的MEEK，并将其集成到一个开源SoC中，从微架构和指令集架构（IS">
 <meta property="og:type" content="article">
 <meta property="og:title" content="MEEK">
 <meta property="og:url" content="http://example.com/2025/02/13/MEEK/index.html">
 <meta property="og:site_name" content="GB&#39;s Blog">
-<meta property="og:description" content="MEEK:Re-thinking Heterogeneous Parallel Error Detection Architecture for Real-World OoO Superscalar Processors芯片检测错误关键就是增加冗余去检测错误，大致可以分为三种，本文采用的是物理冗余，  摘要我们构建了首个全RTL设计的MEEK，并将其集成到一个开源SoC中，从微架构和指令集架构（I">
+<meta property="og:description" content="MEEK:Re-thinking Heterogeneous Parallel Error Detection Architecture for Real-World OoO Superscalar Processors芯片检测错误关键就是增加冗余去检测错误，大致可以分为三种，本文采用的是物理冗余  摘要我们构建了首个全RTL设计的MEEK，并将其集成到一个开源SoC中，从微架构和指令集架构（IS">
 <meta property="og:locale" content="zh_CN">
 <meta property="og:image" content="http://example.com/2025/02/13/MEEK/MEEK/1740120752592.png">
 <meta property="og:image" content="http://example.com/2025/02/13/MEEK/1739418044205.png">
@@ -36,7 +36,7 @@
 <meta property="og:image" content="http://example.com/2025/02/13/MEEK/1739429918710.png">
 <meta property="og:image" content="http://example.com/2025/02/13/MEEK/1739433129563.png">
 <meta property="article:published_time" content="2025-02-13T08:14:15.000Z">
-<meta property="article:modified_time" content="2025-02-26T14:06:25.786Z">
+<meta property="article:modified_time" content="2025-03-02T07:06:06.565Z">
 <meta property="article:author" content="GB">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:image" content="http://example.com/2025/02/13/MEEK/MEEK/1740120752592.png">
@@ -204,7 +204,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2025-02-26 22:06:25" itemprop="dateModified" datetime="2025-02-26T22:06:25+08:00">2025-02-26</time>
+      <time title="修改时间：2025-03-02 15:06:06" itemprop="dateModified" datetime="2025-03-02T15:06:06+08:00">2025-03-02</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -240,7 +240,7 @@
     
     
     
-    <div class="post-body" itemprop="articleBody"><h1 id="MEEK-Re-thinking-Heterogeneous-Parallel-Error-Detection-Architecture-for-Real-World-OoO-Superscalar-Processors"><a href="#MEEK-Re-thinking-Heterogeneous-Parallel-Error-Detection-Architecture-for-Real-World-OoO-Superscalar-Processors" class="headerlink" title="MEEK:Re-thinking Heterogeneous Parallel Error Detection Architecture for Real-World OoO Superscalar Processors"></a>MEEK:Re-thinking Heterogeneous Parallel Error Detection Architecture for Real-World OoO Superscalar Processors</h1><p>芯片检测错误关键就是增加冗余去检测错误，大致可以分为三种，本文采用的是物理冗余，</p>
+    <div class="post-body" itemprop="articleBody"><h1 id="MEEK-Re-thinking-Heterogeneous-Parallel-Error-Detection-Architecture-for-Real-World-OoO-Superscalar-Processors"><a href="#MEEK-Re-thinking-Heterogeneous-Parallel-Error-Detection-Architecture-for-Real-World-OoO-Superscalar-Processors" class="headerlink" title="MEEK:Re-thinking Heterogeneous Parallel Error Detection Architecture for Real-World OoO Superscalar Processors"></a>MEEK:Re-thinking Heterogeneous Parallel Error Detection Architecture for Real-World OoO Superscalar Processors</h1><p>芯片检测错误关键就是增加冗余去检测错误，大致可以分为三种，本文采用的是物理冗余</p>
 <p><img src="/2025/02/13/MEEK/MEEK/1740120752592.png" alt="1740120752592"></p>
 <h2 id="摘要"><a href="#摘要" class="headerlink" title="摘要"></a>摘要</h2><p>我们构建了首个全RTL设计的MEEK，并将其集成到一个开源SoC中，从微架构和指令集架构（ISA）到操作系统和编程模型。我们识别并解决了之前工作中被忽视的瓶颈和错误，并证明MEEK能够在可承受的开销下实现微秒级的检测能力。通过在协同设计的硬件-软件层之间权衡架构功能，MEEK仅对成熟的乱序超标量核心进行了轻微的改动，简化了协调软件层，并且只需要几行操作系统代码</p>
 <h2 id="介绍"><a href="#介绍" class="headerlink" title="介绍"></a>介绍</h2><p>硬件故障，无论是永久性的还是瞬态的，都会导致系统异常和执行错误，随着现代处理器中晶体管数量的增加和工作电压的降低，这种情况变得更加普遍[1]、[2]、[3]、[4]、[5]。为了减轻硬件故障引起的错误，存在从错误代码到容错架构的保护机制。检测始终是关键：一旦检测到错误，系统可以转换到安全状态，从而采取纠正措施（例如系统恢复或故障隔离）。</p>
@@ -275,7 +275,7 @@
 </blockquote>
 <h3 id="B-转发结构（F2）"><a href="#B-转发结构（F2）" class="headerlink" title="B. 转发结构（F2）"></a>B. 转发结构（F2）</h3><p>由于大核心的并行提交产生的大量运行时数据，与RCPs的频繁到达（通常以突发形式出现）发生拥塞，特别是在核心在RCP边界处提交多个加载或存储指令时，需要在一个周期内进行多次数据传输并需要高吞吐量。我们设计了F2，带有双通道缓冲区（DC-Buffers）和半双工多播片上网络（HM-NoC），用于存储和路由提取的数据（图2 b）。<strong>每个提交路径连接一个DC-Buffer，为状态和运行时数据添加独立的FIFO。这确保了所有运行时数据可以在提交的同一周期内存储，即使同时生成状态数据，避免了数据需要在原始核心设计中更长时间地存储在核心内部结构中。</strong></p>
 <p><strong>HM-NoC使用半双工（1到N）曼哈顿网格。为了实现足够高的吞吐量，这个NoC允许每周期传输两个数据包，同时保持顺序。</strong></p>
-<p>转发策略。与之前的工作不同，之前所有段的数据在RCP处缓冲并集体转发，**F2允许在收集时立即传输和使用数据，使小核心能够更早地重新执行。**此外，由于相同的状态数据可能被两个小核心需要（分别用作SRCP和ERCP），当小核心能够接收数据时，数据会被选择性地广播到小核心，消除了冗余事务。</p>
+<p>转发策略。与之前的工作不同，之前所有段的数据在RCP处缓冲并集体转发，<strong>F2允许在收集时立即传输和使用数据，使小核心能够更早地重新执行</strong>。此外，由于相同的状态数据可能被两个小核心需要（分别用作SRCP和ERCP），当小核心能够接收数据时，数据会被选择性地广播到小核心，消除了冗余事务。</p>
 <h3 id="C-顺序标量核心（小核心）"><a href="#C-顺序标量核心（小核心）" class="headerlink" title="C. 顺序标量核心（小核心）"></a><strong>C. 顺序标量核心（小核心）</strong></h3><p><img src="/2025/02/13/MEEK/1739420233845.png" alt="1739420233845"><br>为了实现线程级错误检测并允许检查线程和应用程序线程共存，小核心的微架构必须支持不同的操作模式并抽象出一个软件控制接口。</p>
 <p>因此，我们升级了小核心的微架构（图4），增加了模式切换单元（MSU，图4 a）和加载存储日志（LSL，图4 b）。MSU作为控制引擎，LSL缓冲接收到的数据包。在复制大核心的状态时，MSU记录小核心的架构寄存器文件并用LSL中的状态数据替换它们。MSU还通过检查运行线程的线程ID（TID）与检查线程的TID来管理小核心的操作模式。当调度<strong>检查线程</strong>时，MSU切换操作模式，此时加载和不可重复指令的结果从LSL中获取。鉴于小核心以顺序方式访问LSL，我们使用双路FIFO实现了LSL，比传统的组相联架构更简单。</p>
 <blockquote>
@@ -287,6 +287,9 @@
 <p>新的ISA分为两类（表I），用于大核心（b.x()）和小核心（l.x()）。我们使用b.hook()设置大核心和小核心之间的关联，然后使用b.check()通过打开&#x2F;关闭DEU来启用&#x2F;禁用检查功能。对于小核心，l.mode()设置其操作模式，一对l.record()和l.apply()从给定来源记录和应用架构寄存器。为了将PC重定向到应用程序线程，我们开发了一个l.jal()，从原始跳转指令修改而来，目标地址有所更改。通过将检查点结束视为类似分支的操作，流水线处理了PC更改的控制危害，无需进一步更改。最后，l.rslt()指示是否检测到RCP不匹配。由于b.hook()和b.check()可能导致小核心的使用争用，l.mode()可能导致意外的内存访问错误，因此它们是特权指令，通过OS syscall执行。</p>
 <h3 id="B-检查线程及其编程模型"><a href="#B-检查线程及其编程模型" class="headerlink" title="B. 检查线程及其编程模型"></a><strong>B. 检查线程及其编程模型</strong></h3><p><img src="/2025/02/13/MEEK/1739429031611.png" alt="1739429031611"></p>
 <p>检查线程在初始化应用程序线程时，通过使用构造函数和析构函数 [35] 增强应用程序线程的main函数（算法1：第14行）。由于检查线程依赖于LSL中的数据来重放内存操作，而LSL使用FIFO设计，因此上下文切换的日志是不可取的。因此，在调度时间，LSL被保留用于单个检查线程（算法1：第12行），即使多个线程可以调度到核心上。一旦LSL被保留，只有与关联的检查线程相关的数据才会被转发，直到重执行完成。同样，固定到特定应用程序线程的检查线程在重执行完成之前不能迁移。由于每个检查点的大小是有限的（最多5000条指令），并且所有权在每个检查点结束时返回给OS以供重新分配，因此这不会导致资源饥饿。编程模型。我们基于新的ISA开发了检查线程，确保最小的编码工作量：最初，使用l.record()记录当前的架构寄存器状态（算法2：第15行），允许核心在验证后返回。然后，创建一个忙等待循环，等待LSL中的状态数据到达（算法2：第19行）。接收到后，调用l.apply()以根据应用程序段修改核心的架构状态（算法2：第20行），并调用l.jalr()将PC重定向到复制的目标（算法2：第21行）。最后，使用l.rslt()返回验证状态。如果检测到错误，则触发中断以通知OS采取纠正措施（算法2：第16-18行）。</p>
+<blockquote>
+<p><strong>大小核心都有可能陷入模式</strong></p>
+</blockquote>
 <h3 id="C-操作系统内核及其验证"><a href="#C-操作系统内核及其验证" class="headerlink" title="C. 操作系统内核及其验证"></a><strong>C. 操作系统内核及其验证</strong></h3><p>有了新的ISA，内核修改可以限制在调度程序中的上下文切换函数内，允许配置检查功能并管理检查线程 [36] [37]。根据大核心和小核心的不同角色，应用程序线程和检查线程的上下文切换被不同地修改。在从应用程序线程进入上下文切换时，调用b.check(DISABLE)禁用检查功能（算法1：第3行），在离开上下文切换时，调用b.check(ENABLE)重新启用它（算法1：第20行）。此外，如果调度了一个新发布的线程执行，则使用b.hook(core_index, next→checker_index[x])将其与小核心关联（算法1：第10-13行）。对于应用程序线程的上下文切换，唯一需要的修改是使用l.mode()切换小核心的操作模式（算法1：第3和7行），其余部分保持不变。内核验证和死锁解决。由于MEEK在线程级别启用错误检查，OS内核可以被视为一个专用的应用程序线程，并像其他应用程序线程一样进行验证。然而，在开发过程中，我们观察到一个之前文献 [21] [22] [26] 中遗漏的死锁，这是由于缺乏对OS的评估。因为检查线程可能会阻塞主线程，直到小核心完成，由于SRAM日志是有限的，这种行为表现为小核心持有的锁，而大核心需要。如果出现相反的情况（大核心持有锁，例如软件互斥锁，小核心需要），则会导致死锁（图5 a）。</p>
 <p>这个死锁可以通过使检查线程永远不需要获取锁来解决。确保检查线程至少比主线程落后一条指令，这意味着后者会首先到达故障。通过在I&#x2F;O上进行同步，可以防止写入可能被未完成的检查线程使用的页面（图5 b）。</p>
 <p><img src="/2025/02/13/MEEK/1739429918710.png" alt="1739429918710"></p>
@@ -344,13 +347,13 @@
     <span class="post-meta-item-icon">
       <i class="fa fa-chart-line"></i>
     </span>
-    <span title="站点总字数">112k</span>
+    <span title="站点总字数">117k</span>
   </span>
   <span class="post-meta-item">
     <span class="post-meta-item-icon">
       <i class="fa fa-coffee"></i>
     </span>
-    <span title="站点阅读时长">6:46</span>
+    <span title="站点阅读时长">7:04</span>
   </span>
 </div>
   <div class="powered-by">由 <a href="https://hexo.io/" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.js.org/" rel="noopener" target="_blank">NexT.Gemini</a> 强力驱动
