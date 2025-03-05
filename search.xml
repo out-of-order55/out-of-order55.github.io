@@ -147,91 +147,6 @@
       </categories>
   </entry>
   <entry>
-    <title>DNN 加速器</title>
-    <url>/2025/02/05/DNN-%E5%8A%A0%E9%80%9F%E5%99%A8/</url>
-    <content><![CDATA[<h1 id="DNN加速器综述"><a href="#DNN加速器综述" class="headerlink" title="DNN加速器综述"></a>DNN加速器综述</h1><h2 id="硬件方案"><a href="#硬件方案" class="headerlink" title="硬件方案"></a>硬件方案</h2><p>两种架构:temporal and spatial architectures<br><img src="/2025/02/05/DNN-%E5%8A%A0%E9%80%9F%E5%99%A8/image00.png" alt="alt text"><br>其中asic和fpga主要为spatial结构,而CPU和GPU主要为temporal结构<br><strong>本次主要介绍空间架构</strong><br>这种结构有相当一部分能耗在存储上,故数据重用是研究重点<br><img src="/2025/02/05/DNN-%E5%8A%A0%E9%80%9F%E5%99%A8/image-1.png" alt="基本结构"><br>一些重用名词<br>input reuse:FC层<br>weight reuse:CONV层<br>conv reuse:卷积层的滑窗每次都有重复的<br><strong>Weight Stationary</strong><br>所有使用相同weight的mac必须映射到同一PE上进行串行处理。这最大限度地提高了RF中权重的卷积和滤波器重用，从而最大限度地减少了访问权重的能量消耗<br><img src="/2025/02/05/DNN-%E5%8A%A0%E9%80%9F%E5%99%A8/image-2.png" alt="alt text"><br>这是一个3x3的矩阵2x2的卷积核,最后生成2x2的输出<br><img src="/2025/02/05/DNN-%E5%8A%A0%E9%80%9F%E5%99%A8/image-3.png" alt="alt text"><br>先说上面那一种<br>仅介绍一个输出元素如何产生的,<br>T1:I0XW0<br>T2:I0XW0+I1XW1<br>T3:将结果移入PE2<br>T4:I0XW0+I1XW1+I2XW2<br>T5:I0XW0+I1XW1+I2XW2+I3XW3,完成一次卷积操作<br>下面哪一种和上面类似,不过是再次分块了<br><strong>Output Stationary</strong><br>映射规则是对相同的输出像素的所有mac必须依次映射到同一PE上。<br><img src="/2025/02/05/DNN-%E5%8A%A0%E9%80%9F%E5%99%A8/image-4.png" alt="alt text"><br><strong>Row Stationary</strong><br><img src="/2025/02/05/DNN-%E5%8A%A0%E9%80%9F%E5%99%A8/image-5.png" alt="alt text"><br><strong>No Local Reuse</strong><br><img src="/2025/02/05/DNN-%E5%8A%A0%E9%80%9F%E5%99%A8/image-6.png" alt="alt text"></p>
-]]></content>
-      <categories>
-        <category>论文阅读</category>
-      </categories>
-  </entry>
-  <entry>
-    <title>MEEK</title>
-    <url>/2025/02/13/MEEK/</url>
-    <content><![CDATA[<h1 id="MEEK-Re-thinking-Heterogeneous-Parallel-Error-Detection-Architecture-for-Real-World-OoO-Superscalar-Processors"><a href="#MEEK-Re-thinking-Heterogeneous-Parallel-Error-Detection-Architecture-for-Real-World-OoO-Superscalar-Processors" class="headerlink" title="MEEK:Re-thinking Heterogeneous Parallel Error Detection Architecture for Real-World OoO Superscalar Processors"></a>MEEK:Re-thinking Heterogeneous Parallel Error Detection Architecture for Real-World OoO Superscalar Processors</h1><p>芯片检测错误关键就是增加冗余去检测错误，大致可以分为三种，本文采用的是物理冗余</p>
-<p><img src="/2025/02/13/MEEK/MEEK/1740120752592.png" alt="1740120752592"></p>
-<h2 id="摘要"><a href="#摘要" class="headerlink" title="摘要"></a>摘要</h2><p>我们构建了首个全RTL设计的MEEK，并将其集成到一个开源SoC中，从微架构和指令集架构（ISA）到操作系统和编程模型。我们识别并解决了之前工作中被忽视的瓶颈和错误，并证明MEEK能够在可承受的开销下实现微秒级的检测能力。通过在协同设计的硬件-软件层之间权衡架构功能，MEEK仅对成熟的乱序超标量核心进行了轻微的改动，简化了协调软件层，并且只需要几行操作系统代码</p>
-<h2 id="介绍"><a href="#介绍" class="headerlink" title="介绍"></a>介绍</h2><p>硬件故障，无论是永久性的还是瞬态的，都会导致系统异常和执行错误，随着现代处理器中晶体管数量的增加和工作电压的降低，这种情况变得更加普遍[1]、[2]、[3]、[4]、[5]。为了减轻硬件故障引起的错误，存在从错误代码到容错架构的保护机制。检测始终是关键：一旦检测到错误，系统可以转换到安全状态，从而采取纠正措施（例如系统恢复或故障隔离）。</p>
-<p>根据行业的全球安全标准，例如汽车的ISO26262[6]和航空电子的DO-178C[7]，硬件故障必须在升级为危险之前得到解决，即在容错时间间隔（FTTI）内，通常以毫秒为单位[8]</p>
-<p>软件机制（例如多线程 [4] [9] 和software scanner [10] [11]）通常会导致显著的性能下降或提供有限的故障覆盖范围 [12]，这使得它们不足以满足需要严格可靠性标准的处理器（例如ISO26262中的ASIL-D [6]）。硬件机制通常采用一个专用核心来执行程序副本（lock-step），从而在每个时钟周期比较核心的引脚（例如锁步 [13] [14] [15]）。通过在单独的同步核心上重放所有内容，并在信号级别进行运行时验证，实现了全覆盖和实时保证。尽管双核心和三核心锁步已经在许多生命关键应用场景中的微控制器级处理器核心中得到成功应用 [16] [17]，但由于能量、面积和功耗成本过高 [18] [19] [20]，它们已被证明对于乱序超标量核心不切实际。</p>
-<p><strong>异构并行错误检测</strong> 作为一种有前途的替代方案，异构并行错误检测 [21] [22] [2] 利用强归纳法，将运行在乱序超标量高性能核心（大核心）上的软件程序划分为多个离散段，使用寄存器检查点（RCPs），并在一组较小的能效核心（小核心）上重新执行这些段以进行验证。为了重放内存和其他不可重复的操作，从程序流中提取相关指令（例如load和store）的addr和data，在大核心的commit阶段生成加载和存储操作的分区分布式日志。<strong>当段的日志填满，或指令超时，或陷入内核模式时</strong>，会触发一个新的RCP，相应的小核心开始验证从开始RCP（SRCP）到结束RCP（ERCP）之间的段。通过重叠验证任务，小核心集体提供了足够的计算能力来跟上大核心的步伐，确保全覆盖且开销低 [21]。（很像difftest）</p>
-<p>这使大核心上的应用程序线程可以使用RCPs进行分段，并在任何小核心上使用任何数量的检查线程进行重放和验证，同时仍然允许其他线程在它们上面执行（图1）</p>
-<p><img src="/2025/02/13/MEEK/1739418044205.png" alt="1739418044205"></p>
-<h2 id="II-MEEK：一种CPU-OS协同设计方法"><a href="#II-MEEK：一种CPU-OS协同设计方法" class="headerlink" title="II. MEEK：一种CPU&#x2F;OS协同设计方法"></a><strong>II. MEEK：一种CPU&#x2F;OS协同设计方法</strong></h2><p>为了在保持高性能的同时以最小的复杂度实现MEEK，我们必须在硬件和软件之间进行仔细的设计选择分区（图2）。一方面，我们别无选择，只能在硬件中实现加载和存储日志记录，用于在小核心上重放执行</p>
-<blockquote>
-<p>如果需要重放大核上的程序，必须得记录load和store，因为load和store在重放时可能被大核改变，从而导致错误</p>
-</blockquote>
-<p>另一方面，由于小核心与大核心异步执行PTW，操作系统必须在某种程度上感知它们，因此我们让操作系统完全控制它们的调度，避免在硬件中实现不在性能关键路径上的复杂决策，并允许小核心执行标准进程。</p>
-<p>与其采用完全透明的接口并避免在硬件中实现昂贵的错误纠正 [22]，程序通过在main之前插入的协调函数与MEEK-ISA交互，这些函数请求操作系统提供检查资源，验证检查输出，并在需要时调用故障处理代码。为此，我们对大核心的微架构进行了轻微的修改，在提交阶段插入了一个只读观察通道（图2 a），收集大核心的状态数据（即架构、控制和状态寄存器文件）以及RCP之间的运行时数据（内存和其他不可重复操作的地址和数据）。</p>
-<p>我们构建了一个专用的数据结构（图2 b），选择性地广播&#x2F;路由提取的数据到小核心，最小化数据通信的反压。在小核心中，接收到的数据被缓冲在加载存储日志（LSL）中，替换程序重放期间的L1缓存，允许小核心重置其架构状态到给定的SRCP，重放SRCP和ERCP之间的精确指令，并在ERCP处使用不同类型的数据验证执行的正确性（图2 c）。</p>
-<p>我们的ISA接口（图2 d和表I）（重新）配置小核心的检查特性，即操作模式（应用程序或检查模式）以及它们与大核心的关联：小核心最初以应用程序模式运行，作为标准核心执行程序。当与大核心关联时，可以部署并运行检查线程在检查模式下。应用程序和检查线程仍然在小核心上共存，操作模式仅在上下文切换时切换。</p>
-<p>检测方法。错误检查通过检查线程并行化（图2 b）：应用程序线程使用RCPs进行分段，<strong>当目标LSL已满、指令超时或陷入内核模式时</strong>，这些段由检查线程重新执行，假设所有先前的段都是正确的。重新执行后，检查线程将其架构寄存器与应用程序线程在相同RCP处提供的寄存器进行比较。如果寄存器匹配，则认为该段是正确的。如果所有段都通过检查，则认为整个执行是正确的。然而，在ERCP处无法验证内存操作。在重新执行期间，直接在LSL中比较内存操作的地址和数据。类似的设计方法用于控制和状态寄存器（CSRs）以验证不可重复的指令。</p>
-<blockquote>
-<p>这里讲述了检查线程的触发条件：LSL满，指令超时，陷入内核模式</p>
-</blockquote>
-<p><img src="/2025/02/13/MEEK/1739418630897.png" alt="1739418630897"></p>
-<h2 id="III-微架构"><a href="#III-微架构" class="headerlink" title="III. 微架构"></a><strong>III. 微架构</strong></h2><p>特别是在数据传输方面。我们识别并缓解了之前工作 [21] [22] [26] 中缺失的关键瓶颈，由于缺乏RTL实现，这些工作仅通过抽象模拟进行。我们还识别了冗余数据存储方面的低效，其中大部分转发路径所需的信息已经在提交时间之前缓冲在核心内部，这意味着不需要专用结构；相反，我们可以从现有结构转发数据。尽管存在瓶颈，我们证明可以从一个成熟的异构SoC构建MEEK的微架构，只需进行少量改动，避免大量的工程工作。我们将MEEK构建到一个开源异构SoC（Rocket Chip [24]）中，该SoC既包含高性能核心（BOOM）也包含能效核心（Rocket）。我们利用Rocket Chip来证明我们的方法适用于其他异构SoCs，例如ARM的big.LITTLE [27] 和Intel的P-和E类核心 [28]。</p>
-<h3 id="A-乱序超标量核心（大核心）"><a href="#A-乱序超标量核心（大核心）" class="headerlink" title="A. 乱序超标量核心（大核心）"></a><strong>A. 乱序超标量核心（大核心）</strong></h3><p><img src="/2025/02/13/MEEK/1739419219032.png" alt="1739419219032"></p>
-<p>程序重放需要收集状态数据和运行时数据：PRFs，CSRs，memtrace，在提交阶段提取，并且必须在之后指令提交前提取完成</p>
-<blockquote>
-<p>这里最多两个周期提取？否则可能会被覆盖（）</p>
-</blockquote>
-<p>鉴于此，我们开发了一个非侵入式数据提取单元（DEU）（图3），包含提交检测器（CD）、控制电路和旁路电路，注入到PRFs、CSRs和LDQ。CD监控来自ROB的指令提交，并选择旁路电路以在RCPs或RCP之间的运行时数据处提取数据。这使得可以在不增加额外缓冲区或更改现有寄存器路径的情况下及时提取数据。</p>
-<p>PRF示例。图3展示了使用PRFs（用于收集RCPs）的微架构示例，其中DEU与ROB、PRFs和F2进行交互。在每条指令提交时，操作码和功能码从ROB（图3 a）路由到CD，允许CD确定是否提取数据（图3 b）。如果到达RCP，则控制电路生成一个信号，抢占PRF控制器以读取寄存器文件并将其转发到F2（图3 c）。PRF控制器在ROB和DEU之间多路复用，DEU在需要时具有优先访问权，从而实现数据的立即读取并防止数据被覆盖。CSRs和LSQ。为CSRs实现了类似的微架构，允许从任意CSR地址提取数据。相比之下，由于LSQ的顶部始终持有最近提交指令的数据，当CD决定转发运行时数据时，旁路电路直接从队列顶部传输，最小化了设计复杂性并减少了数据争用。</p>
-<blockquote>
-<p>大核主要工作就是提取出有效的状态</p>
-</blockquote>
-<h3 id="B-转发结构（F2）"><a href="#B-转发结构（F2）" class="headerlink" title="B. 转发结构（F2）"></a>B. 转发结构（F2）</h3><p>由于大核心的并行提交产生的大量运行时数据，与RCPs的频繁到达（通常以突发形式出现）发生拥塞，特别是在核心在RCP边界处提交多个加载或存储指令时，需要在一个周期内进行多次数据传输并需要高吞吐量。我们设计了F2，带有双通道缓冲区（DC-Buffers）和半双工多播片上网络（HM-NoC），用于存储和路由提取的数据（图2 b）。<strong>每个提交路径连接一个DC-Buffer，为状态和运行时数据添加独立的FIFO。这确保了所有运行时数据可以在提交的同一周期内存储，即使同时生成状态数据，避免了数据需要在原始核心设计中更长时间地存储在核心内部结构中。</strong></p>
-<p><strong>HM-NoC使用半双工（1到N）曼哈顿网格。为了实现足够高的吞吐量，这个NoC允许每周期传输两个数据包，同时保持顺序。</strong></p>
-<p>转发策略。与之前的工作不同，之前所有段的数据在RCP处缓冲并集体转发，<strong>F2允许在收集时立即传输和使用数据，使小核心能够更早地重新执行</strong>。此外，由于相同的状态数据可能被两个小核心需要（分别用作SRCP和ERCP），当小核心能够接收数据时，数据会被选择性地广播到小核心，消除了冗余事务。</p>
-<h3 id="C-顺序标量核心（小核心）"><a href="#C-顺序标量核心（小核心）" class="headerlink" title="C. 顺序标量核心（小核心）"></a><strong>C. 顺序标量核心（小核心）</strong></h3><p><img src="/2025/02/13/MEEK/1739420233845.png" alt="1739420233845"><br>为了实现线程级错误检测并允许检查线程和应用程序线程共存，小核心的微架构必须支持不同的操作模式并抽象出一个软件控制接口。</p>
-<p>因此，我们升级了小核心的微架构（图4），增加了模式切换单元（MSU，图4 a）和加载存储日志（LSL，图4 b）。MSU作为控制引擎，LSL缓冲接收到的数据包。在复制大核心的状态时，MSU记录小核心的架构寄存器文件并用LSL中的状态数据替换它们。MSU还通过检查运行线程的线程ID（TID）与检查线程的TID来管理小核心的操作模式。当调度<strong>检查线程</strong>时，MSU切换操作模式，此时加载和不可重复指令的结果从LSL中获取。鉴于小核心以顺序方式访问LSL，我们使用双路FIFO实现了LSL，比传统的组相联架构更简单。</p>
-<blockquote>
-<p>小核直接从这个fifo读取memtrace</p>
-</blockquote>
-<p>流水线集成。图4展示了LSL和MSU如何集成到一个5级流水线的小核心中。LSL被添加到内存访问（MA）阶段（图4 b），通过部署一个复用器并将其连接到加载存储单元（LSU）的地址端口。复用器根据操作模式（由MSU返回）选择性地将内存访问路由到LSL，并将虚拟索引和物理标签（由TLB返回）组合到LSL的地址端口。此外，在MA阶段集成一个解复用器，将读取的数据定向到后续阶段。在指令解码（ID）阶段部署了一对复用器和解复用器，以允许记录和更新架构寄存器。最后，我们在MA阶段部署了一个迷你解码器（Mini-D，图4 c），以区分传统的RISC-V和MEEK-ISA。</p>
-<h2 id="IV-指令集架构、操作系统和编程模型"><a href="#IV-指令集架构、操作系统和编程模型" class="headerlink" title="IV. 指令集架构、操作系统和编程模型"></a><strong>IV. 指令集架构、操作系统和编程模型</strong></h2><p>为了减轻微架构的复杂性，我们在软件支持方面进行了有限的改进，这些改进更简单、更容易验证或对正确功能是必要的。我们详细说明了ISA支持，以添加软件控制块来增强具有容错支持的程序。通过在内核中进行几行代码的更改，它可以调度和保留检查线程的资源，同时允许其他线程的标准调度和上下文切换。</p>
-<h3 id="A-ISA支持"><a href="#A-ISA支持" class="headerlink" title="A. ISA支持"></a><strong>A. ISA支持</strong></h3><p><img src="/2025/02/13/MEEK/1739428633135.png" alt="1739428633135"></p>
-<p>新的ISA分为两类（表I），用于大核心（b.x()）和小核心（l.x()）。我们使用b.hook()设置大核心和小核心之间的关联，然后使用b.check()通过打开&#x2F;关闭DEU来启用&#x2F;禁用检查功能。对于小核心，l.mode()设置其操作模式，一对l.record()和l.apply()从给定来源记录和应用架构寄存器。为了将PC重定向到应用程序线程，我们开发了一个l.jal()，从原始跳转指令修改而来，目标地址有所更改。通过将检查点结束视为类似分支的操作，流水线处理了PC更改的控制危害，无需进一步更改。最后，l.rslt()指示是否检测到RCP不匹配。由于b.hook()和b.check()可能导致小核心的使用争用，l.mode()可能导致意外的内存访问错误，因此它们是特权指令，通过OS syscall执行。</p>
-<h3 id="B-检查线程及其编程模型"><a href="#B-检查线程及其编程模型" class="headerlink" title="B. 检查线程及其编程模型"></a><strong>B. 检查线程及其编程模型</strong></h3><p><img src="/2025/02/13/MEEK/1739429031611.png" alt="1739429031611"></p>
-<p>检查线程在初始化应用程序线程时，通过使用构造函数和析构函数 [35] 增强应用程序线程的main函数（算法1：第14行）。由于检查线程依赖于LSL中的数据来重放内存操作，而LSL使用FIFO设计，因此上下文切换的日志是不可取的。因此，在调度时间，LSL被保留用于单个检查线程（算法1：第12行），即使多个线程可以调度到核心上。一旦LSL被保留，只有与关联的检查线程相关的数据才会被转发，直到重执行完成。同样，固定到特定应用程序线程的检查线程在重执行完成之前不能迁移。由于每个检查点的大小是有限的（最多5000条指令），并且所有权在每个检查点结束时返回给OS以供重新分配，因此这不会导致资源饥饿。编程模型。我们基于新的ISA开发了检查线程，确保最小的编码工作量：最初，使用l.record()记录当前的架构寄存器状态（算法2：第15行），允许核心在验证后返回。然后，创建一个忙等待循环，等待LSL中的状态数据到达（算法2：第19行）。接收到后，调用l.apply()以根据应用程序段修改核心的架构状态（算法2：第20行），并调用l.jalr()将PC重定向到复制的目标（算法2：第21行）。最后，使用l.rslt()返回验证状态。如果检测到错误，则触发中断以通知OS采取纠正措施（算法2：第16-18行）。</p>
-<blockquote>
-<p><strong>大小核心都有可能陷入模式</strong></p>
-</blockquote>
-<h3 id="C-操作系统内核及其验证"><a href="#C-操作系统内核及其验证" class="headerlink" title="C. 操作系统内核及其验证"></a><strong>C. 操作系统内核及其验证</strong></h3><p>有了新的ISA，内核修改可以限制在调度程序中的上下文切换函数内，允许配置检查功能并管理检查线程 [36] [37]。根据大核心和小核心的不同角色，应用程序线程和检查线程的上下文切换被不同地修改。在从应用程序线程进入上下文切换时，调用b.check(DISABLE)禁用检查功能（算法1：第3行），在离开上下文切换时，调用b.check(ENABLE)重新启用它（算法1：第20行）。此外，如果调度了一个新发布的线程执行，则使用b.hook(core_index, next→checker_index[x])将其与小核心关联（算法1：第10-13行）。对于应用程序线程的上下文切换，唯一需要的修改是使用l.mode()切换小核心的操作模式（算法1：第3和7行），其余部分保持不变。内核验证和死锁解决。由于MEEK在线程级别启用错误检查，OS内核可以被视为一个专用的应用程序线程，并像其他应用程序线程一样进行验证。然而，在开发过程中，我们观察到一个之前文献 [21] [22] [26] 中遗漏的死锁，这是由于缺乏对OS的评估。因为检查线程可能会阻塞主线程，直到小核心完成，由于SRAM日志是有限的，这种行为表现为小核心持有的锁，而大核心需要。如果出现相反的情况（大核心持有锁，例如软件互斥锁，小核心需要），则会导致死锁（图5 a）。</p>
-<p>这个死锁可以通过使检查线程永远不需要获取锁来解决。确保检查线程至少比主线程落后一条指令，这意味着后者会首先到达故障。通过在I&#x2F;O上进行同步，可以防止写入可能被未完成的检查线程使用的页面（图5 b）。</p>
-<p><img src="/2025/02/13/MEEK/1739429918710.png" alt="1739429918710"></p>
-<h2 id="V-评估"><a href="#V-评估" class="headerlink" title="V. 评估"></a><strong>V. 评估</strong></h2><h3 id="A-性能开销"><a href="#A-性能开销" class="headerlink" title="A. 性能开销"></a><strong>A. 性能开销</strong></h3><p><img src="/2025/02/13/MEEK/1739433129563.png" alt="1739433129563"></p>
-<p>图6显示了在MEEK中运行SPECint和Parsec时大核心的减速情况，与在LLVM中实现的软件基对应物（Nzdc [39]）和等效面积锁步（EA-LockStep）进行比较。选择Nzdc进行比较是因为它是唯一可用的开源软件机制，而锁步是最广泛使用的硬件机制。然而，简单地在锁步中复制核心会消耗大核心面积的两倍，同时实现与普通核心相同的性能，导致无趣的比较。因此，我们通过线性插值每个可配置的BOOM组件，创建了一个比较器，使两个核心的组合面积与MEEK的面积开销相匹配。在所有情况下，MEEK配置为使用四个小核心。使用四个小核心足以执行SPEC，开销为1.4%，Parsec为4.4%（几何平均值）。对于所有工作负载，除了swaptions，观察到的减速低于5%。然而，swaptions的减速最高，为22%，这是由于频繁的除法，Rocket核心的除法器性能显著低于BOOM核心。对于比较器，Nzdc在Parsec上引入了几何平均值60.2%的开销，在SPEC上引入了94.2%的开销，反映了其软件实现的局限性。硬件对应物EA-LockStep在Parsec上引入了几何平均值31.2%的开销，在SPEC上引入了48.7%的开销，大约是MEEK的6.1倍和33.7倍，证明了MEEK的性能-面积优势。</p>
-<h3 id="B-检测延迟"><a href="#B-检测延迟" class="headerlink" title="B. 检测延迟"></a><strong>B. 检测延迟</strong></h3><p>为了检查检测延迟，我们在连接到大核心的F2中注入了转发数据的错误，例如内存操作的数据和地址以及架构寄存器数据，模拟硬件故障，同时不干扰大核心的正常执行。对于每个工作负载，随机生成了5000到10000个故障，并且检测延迟的密度如图7所示。每个分布都有一个长而非常薄的尾部延伸到右侧：平均检测延迟低于1微秒，而最坏情况下的延迟是平均值的5到10倍，最高可达2.7微秒（在ferret中）。尽管故障注入是随机的，但大量的样本点（总计超过100,000个）表明，3微秒足以覆盖超过99.9%的硬件故障，这比ASIL-D合规所需的毫秒级FTTI要求低几个数量级。</p>
-]]></content>
-      <categories>
-        <category>论文阅读</category>
-      </categories>
-  </entry>
-  <entry>
-    <title>MLOP</title>
-    <url>/2025/02/13/MLOP/</url>
-    <content><![CDATA[<h1 id="Multi-Lookahead-Offset-Prefetching"><a href="#Multi-Lookahead-Offset-Prefetching" class="headerlink" title="Multi-Lookahead Offset Prefetching"></a>Multi-Lookahead Offset Prefetching</h1><h2 id="摘要"><a href="#摘要" class="headerlink" title="摘要"></a>摘要</h2><p>讲的就是MLOP集timelineness和coverage于一体，并且可以弥补BOP只能预测一个offset，MLOP使用一个轻量级的硬件结构，由一个小存储器和一个简单的逻辑组成，用于识别在不同预测前瞻下可以覆盖特定缓存未命中的预取偏移量。基于此，MLOP为预取偏移量分配分数，并为每个前瞻选择分数最高的偏移量来发出预取请求。我们评估并比较了MLOP与各种最近的先进数据预取器，并表明我们的提议比没有数据预取器的系统提高了30%的系统性能，比之前性能最好的数据预取器提高了4%。</p>
-<h2 id="提议"><a href="#提议" class="headerlink" title="提议"></a><strong>提议</strong></h2><p><img src="/2025/02/13/MLOP/1739438759612.png" alt="1739438759612"></p>
-<p>偏移量在前瞻级别X的分数表示预取器能够预取访问的次数，至少在发生前X次访问，例如，偏移量在前瞻级别1的分数表示预取器能够预取任何未来访问的次数</p>
-<p>AMT中存放的是一个一个region的memory访问情况 每个region对应一个entry, entry中存储一个bit vector, 表示每一个位置是否被访问过了。 此外，每个region还会有一个history queue。以queue的形式存最近k个访问的offset，然后每个位向量都有level个级别的历史访问顺序。</p>
-<p>因为MLOP有多个lookahead level, 每个level有自己的最佳offset。因此，MLOP开了level个score table, 记录当前level每个offset的得分</p>
-<p>为了在前瞻级别1更新偏移量分数，每当发生访问时，我们找到其对应的位向量（使用其高位来搜索AMT），然后根据位向量信息，识别可以预取该访问的偏移量，并相应地增加这些偏移量在第一前瞻级别的分数。最后，我们在AMT中设置当前访问块对应的位。更新高位的分数需要先屏蔽低位的访问</p>
-<p>说实话他这个论文比较空，建议读ppt</p>
-]]></content>
-  </entry>
-  <entry>
     <title>A Primer on Memory Consistency</title>
     <url>/2025/02/05/A-Primer-on-Memory-Consistency/</url>
     <content><![CDATA[<h1 id="1-介绍"><a href="#1-介绍" class="headerlink" title="1.介绍"></a>1.介绍</h1><blockquote>
@@ -1083,19 +998,6 @@
 <p>ght_sch_refresh:i:sch_refresh_out</p>
 <p>ght_buffer_status:恒为0,软件读取</p>
 <h4 id="总结-1"><a href="#总结-1" class="headerlink" title="总结"></a>总结</h4><p>小核心接受从GHM传入的数据包,根据GHE的指令来选择对应的操作</p>
-<h2 id="数据传输源码修改部分"><a href="#数据传输源码修改部分" class="headerlink" title="数据传输源码修改部分"></a>数据传输源码修改部分</h2><p>大核:</p>
-<p>MEEK&#x2F;Hardware&#x2F;big&#x2F;common&#x2F;tile.scala</p>
-<p>top:</p>
-<p>MEEK&#x2F;Hardware&#x2F;top&#x2F;System.scala</p>
-<p>MEEK&#x2F;Hardware&#x2F;top&#x2F;CustomBusTopologies.scala</p>
-<p>MEEK&#x2F;chipyard&#x2F;generators&#x2F;chipyard&#x2F;src&#x2F;main&#x2F;scala&#x2F;Subsystem.scala</p>
-<p>小核:MEEK&#x2F;Hardware&#x2F;little&#x2F;guardiancouncil</p>
-<p>MEEK&#x2F;Hardware&#x2F;little&#x2F;subsystem&#x2F;HasTiles.scala</p>
-<p>MEEK&#x2F;Hardware&#x2F;little&#x2F;tile&#x2F;RocketTile.scala</p>
-<p>MEEK&#x2F;Hardware&#x2F;little&#x2F;tile&#x2F;LazyRoCC.scala</p>
-<p>MEEK&#x2F;Hardware&#x2F;little&#x2F;subsystem&#x2F;BusTopology.scala</p>
-<p>MEEK&#x2F;chipyard&#x2F;generators&#x2F;rocket-chip&#x2F;src&#x2F;main&#x2F;scala&#x2F;subsystem&#x2F;Configs.scala</p>
-<p>在移植过程中,会有很多目前不兼容的case,不过都可以通过报错的backtrace解决</p>
 <h1 id="软件执行流程"><a href="#软件执行流程" class="headerlink" title="软件执行流程"></a>软件执行流程</h1><p>以TC_OverTaking为例子，大核首先执行r_ini,进行初始化，首先设置小核心数目，ght_set_numberofcheckers(num_checkers);当大核心执行这条ROCC指令，cmd送入GHE，然后GHE将信息通过ght_status_out送出，然后num core会送入大核内，还会有一部分传入GHM，</p>
 <p>然后会执行ght_cfg_filter</p>
 <p>参数有index，func，opcode以及sel_d,大核执行完ROCC指令会将s1送出GHE，之后会送入GHT，如果rs1的（3，0）&#x3D;&#x3D;2，说明是filter配置，送入GHT_filter,然后congruentFTABLE，之后运行的指令都会去查询这个表，得出dp_sel</p>
@@ -1303,10 +1205,198 @@
 <p>if_overtaking:这个信号个人理解是杀去一些div和fpu指令</p>
 <p>然后该阶段设置了一系列性能计数器</p>
 <figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">ic_counter_shadow                             := io.ic_counter(params.width_of_ic-2,0) + 1.U // The checker core requires to run one more insts due to the custom jump</span><br><span class="line">ic_counter_done                               := io.ic_counter(params.width_of_ic-1)</span><br><span class="line">if_overtaking                                 := Mux((if_just_overtaking.asBool ||  (sl_counter &gt;= ic_counter_shadow)), 1.U, 0.U)</span><br><span class="line">val if_overtaking_next_cycle                   = WireInit(0.U(1.W))</span><br><span class="line">if_overtaking_next_cycle                      := Mux((if_just_overtaking.asBool ||  (sl_counter &gt;= ic_counter_shadow)), 1.U, 0.U)</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">if_ret_special_pc                             := Mux(io.if_check_completed.asBool &amp;&amp; icsl_checkermode.asBool, 1.U, 0.U)</span><br><span class="line"></span><br><span class="line">icsl_run                                      := io.icsl_run</span><br><span class="line">io.clear_ic_status                            := clear_ic_status</span><br><span class="line">io.icsl_checkermode                           := icsl_checkermode</span><br><span class="line">io.if_overtaking                              := (icsl_checkermode &amp; if_overtaking)</span><br><span class="line">io.if_overtaking_next_cycle                   := (icsl_checkermode &amp; if_overtaking_next_cycle)</span><br><span class="line">io.if_ret_special_pc                          := if_ret_special_pc</span><br><span class="line">io.if_rh_cp_pc                                := if_rh_cp_pc</span><br><span class="line">io.icsl_status                                := Mux(fsm_state === fsm_nonchecking, 1.U, 0.U)</span><br><span class="line">io.debug_sl_counter                           := sl_counter</span><br></pre></td></tr></table></figure>
+
+<h3 id="R-LSL解读"><a href="#R-LSL解读" class="headerlink" title="R_LSL解读"></a>R_LSL解读</h3><h4 id="ldst入队"><a href="#ldst入队" class="headerlink" title="ldst入队"></a>ldst入队</h4><p>入队信号如下，我们保证两个通道的fifo数据量一样，所以设置scala_ptr，该信号当来2笔数据时值不变，只有来1笔数据值才会改变，</p>
+<blockquote>
+<p>scala_num_reqs为送入的数据数目</p>
+<p>scala_ptr指示要写入哪个fifo</p>
+</blockquote>
+<p>然后channel_enq_valid只有在有数据送入，如果scala_num_reqs为2，两个channel的enqvalid均为高，若为1，只有在scala_ptr&#x3D;0时才会去置高，enq_data同样如此</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">  has_data                   := io.m_st_valid.asBool || io.m_ld_valid.asBool || io.m_st_valid1.asBool || io.m_ld_valid1.asBool</span><br><span class="line">  //来两笔数据+2等于不变，这个是为了保序用的</span><br><span class="line">  scala_ptr                  := Mux(has_data &amp;&amp; (scala_num_reqs === 1.U), scala_ptr + 1.U, scala_ptr)</span><br><span class="line">  //来了多少数据（最多为2）</span><br><span class="line">  scala_num_reqs             := Mux(io.m_st_valid.asBool || io.m_ld_valid.asBool || io.m_st_valid1.asBool || io.m_ld_valid1.asBool, </span><br><span class="line">                                Mux(((io.m_st_valid.asBool || io.m_ld_valid.asBool)) &amp;&amp; (io.m_st_valid1.asBool || io.m_ld_valid1.asBool), 2.U, 1.U), 0.U)</span><br><span class="line">  </span><br><span class="line">  enq_data                   := Cat(io.m_st_valid, io.m_ld_valid, io.m_ldst_data, io.m_ldst_addr)</span><br><span class="line">  enq_data1                  := Cat(io.m_st_valid1, io.m_ld_valid1, io.m_ldst_data1, io.m_ldst_addr1)</span><br><span class="line"></span><br><span class="line">...</span><br><span class="line"></span><br><span class="line">  //这里enq_valid主要就是区分来的数据是1笔还是两笔，如果两笔数据，都可以入队，如果一笔数据，需要看scala_ptr，enq_data 同理</span><br><span class="line">  channel_enq_valid          := Mux(has_data, Mux(scala_num_reqs === 2.U, 1.U, Mux(scala_ptr === 0.U, 1.U, 0.U)), 0.U)</span><br><span class="line">  channel_enq_valid1         := Mux(has_data, Mux(scala_num_reqs === 2.U, 1.U, Mux(scala_ptr === 1.U, 1.U, 0.U)), 0.U)</span><br><span class="line">  channel_enq_data           := Mux(has_data, Mux(scala_num_reqs === 2.U, Mux(scala_ptr === 0.U, enq_data, enq_data1), Mux(scala_ptr === 0.U, enq_data, 0.U)), 0.U)</span><br><span class="line">  channel_enq_data1          := Mux(has_data, Mux(scala_num_reqs === 2.U, Mux(scala_ptr === 0.U, enq_data1, enq_data), Mux(scala_ptr === 0.U, 0.U, enq_data)), 0.U)</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<h4 id="ldst出队"><a href="#ldst出队" class="headerlink" title="ldst出队"></a>ldst出队</h4><blockquote>
+<p>出队逻辑同样含scala_ptr_core，不过由于小核心为标量，故每次最多传输1笔</p>
+<p>if_lsl_empty根据scala_ptr_core值来选择输出哪个channel</p>
+</blockquote>
+<p>resp_data和resp_addr根据scala_ptr_core选取对应的channel，最后的replay信号发生在输入有效但lsl没数据，输入有效，但该请求被kill</p>
+<p>channel_deq_ready信号根据scala_ptr_core设置ready信号，前提lsl不能为空并且req_kill不为高</p>
+<p>最后ld_deq，st_deq根据cahnnel和cmde是否置高</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">val if_lsl_empty            = Mux(scala_ptr_core === 0.U, channel_empty, channel_empty1)</span><br><span class="line">scala_ptr_core             := Mux((io.req_valid &amp; !if_lsl_empty &amp; !io.req_kill).asBool, scala_ptr_core + 1.U, scala_ptr_core)</span><br><span class="line">req_valid_reg              := io.req_valid</span><br><span class="line">resp_valid_reg             := io.req_valid &amp; !if_lsl_empty &amp; !io.req_kill</span><br><span class="line">resp_tag                   := io.req_tag</span><br><span class="line">cmd                        := io.req_cmd</span><br><span class="line">req_size_reg               := io.req_size</span><br><span class="line"></span><br><span class="line">io.req_ready               := !if_lsl_empty</span><br><span class="line">io.resp_valid              := resp_valid_reg</span><br><span class="line">io.resp_tag                := resp_tag</span><br><span class="line">// Revisit</span><br><span class="line">io.resp_size               := Mux((resp_valid_reg === 1.U), req_size_reg, 0.U)</span><br><span class="line">io.resp_data               := Mux((resp_valid_reg === 1.U), Mux(scala_ptr_core === 0.U, channel_deq_data1(127, 64), channel_deq_data(127, 64)), 0.U)</span><br><span class="line">io.resp_addr               := Mux((resp_valid_reg === 1.U), Mux(scala_ptr_core === 0.U, channel_deq_data1(63, 0), channel_deq_data(63, 0)), 0.U)</span><br><span class="line">io.resp_has_data           := Mux((resp_valid_reg === 1.U) &amp;&amp; (cmd(0) === 1.U), 1.U, 0.U)</span><br><span class="line">io.resp_replay             := req_valid_reg &amp; !resp_valid_reg &amp; !resp_kill_reg</span><br><span class="line"></span><br><span class="line">channel_deq_ready          := io.req_valid &amp; !if_lsl_empty &amp; !io.req_kill &amp; (scala_ptr_core === 0.U)</span><br><span class="line">channel_deq_ready1         := io.req_valid &amp; !if_lsl_empty &amp; !io.req_kill &amp; (scala_ptr_core === 1.U)</span><br><span class="line"></span><br><span class="line">io.ld_deq                  := Mux(channel_deq_ready || channel_deq_ready1, Mux(io.req_cmd === 0x01.U, 1.U, 0.U), 0.U)</span><br><span class="line">io.st_deq                  := Mux(channel_deq_ready || channel_deq_ready1, Mux(io.req_cmd === 0x02.U, 1.U, 0.U), 0.U)</span><br></pre></td></tr></table></figure>
+
+<p>CSR入队出队和LDST类似，故不作解释</p>
+<p>最后会输出LDST的channel是否满了，只有当四个CHANNEL全部为空，这时候if_empty才为空</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">io.resp_data_csr           := Mux((scala_ptr_core_csr === 0.U), csr_channel_deq_data, csr_channel_deq_data1)</span><br><span class="line">// io.resp_replay_csr         := (io.req_valid_csr === 1.U) &amp;&amp; csr_channel_empty</span><br><span class="line">scala_ptr_core_csr         := Mux((io.req_valid_csr === 1.U) &amp;&amp; !if_csr_empty, scala_ptr_core_csr + 1.U, scala_ptr_core_csr)</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">io.cdc_ready               := has_data || has_data_csr</span><br><span class="line">io.near_full               := u_channel(0).io.status_fiveslots | u_channel(1).io.status_fiveslots | csr_channel_nearfull | csr_channel_nearfull1</span><br><span class="line">io.req_ready_csr           := !if_csr_empty</span><br><span class="line">io.if_empty                := csr_channel_empty &amp; csr_channel_empty1 &amp; channel_empty &amp; channel_empty1</span><br><span class="line">io.lsl_highwatermark       := u_channel(0).io.high_watermark | u_channel(1).io.high_watermark | u_channel_csr(0).io.status_fiveslots | u_channel_csr(1).io.status_fiveslots</span><br></pre></td></tr></table></figure>
+
+<p>其中lsl_highwatermark，lsl_near_full最终会送往大核，来指示LSL状态</p>
+<h3 id="R-ELU解读"><a href="#R-ELU解读" class="headerlink" title="R_ELU解读"></a>R_ELU解读</h3><p>该模块主要就是检查ld和st是否错误，对于ld，只需检查地址，而st需要检查地址和数据</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">err_ld                     := Mux(ld_valid &amp;&amp; (req_addr_reg(11,0) =/= io.lsl_resp_addr(11,0)), true.B, false.B)</span><br><span class="line">err_st                     := Mux(st_valid &amp;&amp; ((req_addr_reg(11,0) =/= io.lsl_resp_addr(11,0)) || (req_data_wire =/= resp_data_wire)), true.B, false.B)</span><br></pre></td></tr></table></figure>
+
+<p>如果发生错误，会将错误信息写入fifo</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">err_log_ld                 := Cat(io.wb_pc, resp_data_wire, useless_ones, io.lsl_resp_addr, req_addr_reg) // load data is not compared</span><br><span class="line">err_log_st                 := Cat(io.wb_pc, resp_data_wire, req_data_wire, io.lsl_resp_addr, req_addr_reg)</span><br><span class="line">err_log                    := MuxCase(0.U, </span><br><span class="line">                                  Array(err_ld              -&gt; err_log_ld,</span><br><span class="line">                                        err_st              -&gt; err_log_st</span><br><span class="line">                                        )</span><br><span class="line">                                        )</span><br></pre></td></tr></table></figure>
+
+<p>最后FIFO的出队逻辑elu_deq来自软件的ROCC指令</p>
+<blockquote>
+<p>这里的elu_data和elu_status都没使用，elu_status传入了GHE但没使用</p>
+<p>检测到错误如何进行之后操作</p>
+</blockquote>
+<h1 id="数据传输源码修改部分"><a href="#数据传输源码修改部分" class="headerlink" title="数据传输源码修改部分"></a>数据传输源码修改部分</h1><p>大核:</p>
+<p>MEEK&#x2F;Hardware&#x2F;big&#x2F;common&#x2F;tile.scala</p>
+<p>MEEK&#x2F;Hardware&#x2F;big&#x2F;exu&#x2F;core.scala</p>
+<p>MEEK&#x2F;Hardware&#x2F;big&#x2F;exu&#x2F;rob.scala</p>
+<p>MEEK&#x2F;Hardware&#x2F;big&#x2F;ifu&#x2F;fetch-target-queue.scala</p>
+<p>MEEK&#x2F;Hardware&#x2F;big&#x2F;lsu&#x2F;lsu.scala</p>
+<p>top:</p>
+<p>MEEK&#x2F;Hardware&#x2F;top&#x2F;System.scala</p>
+<p>MEEK&#x2F;Hardware&#x2F;top&#x2F;CustomBusTopologies.scala</p>
+<p>MEEK&#x2F;chipyard&#x2F;generators&#x2F;chipyard&#x2F;src&#x2F;main&#x2F;scala&#x2F;Subsystem.scala</p>
+<p>MEEK&#x2F;Hardware&#x2F;top&#x2F;config&#x2F;RocketConfigs.scala</p>
+<p>小核:</p>
+<p>MEEK&#x2F;Hardware&#x2F;little&#x2F;tile&#x2F;BaseTile.scala</p>
+<p>MEEK&#x2F;Hardware&#x2F;little&#x2F;rocket&#x2F;RocketCore.scala</p>
+<p>MEEK&#x2F;Hardware&#x2F;little&#x2F;rocket&#x2F;CSR.scala</p>
+<p>MEEK&#x2F;Hardware&#x2F;little&#x2F;r</p>
+<p>MEEK&#x2F;Hardware&#x2F;little&#x2F;guardiancouncil</p>
+<p>MEEK&#x2F;Hardware&#x2F;little&#x2F;subsystem&#x2F;HasTiles.scala</p>
+<p>MEEK&#x2F;Hardware&#x2F;little&#x2F;tile&#x2F;RocketTile.scala</p>
+<p>MEEK&#x2F;Hardware&#x2F;little&#x2F;tile&#x2F;LazyRoCC.scala</p>
+<p>MEEK&#x2F;Hardware&#x2F;little&#x2F;subsystem&#x2F;BusTopology.scala</p>
+<p>MEEK&#x2F;chipyard&#x2F;generators&#x2F;rocket-chip&#x2F;src&#x2F;main&#x2F;scala&#x2F;subsystem&#x2F;Configs.scala</p>
+<p>在移植过程中,会有很多目前不兼容的case,不过都可以通过报错的backtrace解决</p>
 ]]></content>
       <categories>
         <category>代码阅读</category>
       </categories>
+  </entry>
+  <entry>
+    <title>DNN 加速器</title>
+    <url>/2025/02/05/DNN-%E5%8A%A0%E9%80%9F%E5%99%A8/</url>
+    <content><![CDATA[<h1 id="DNN加速器综述"><a href="#DNN加速器综述" class="headerlink" title="DNN加速器综述"></a>DNN加速器综述</h1><h2 id="硬件方案"><a href="#硬件方案" class="headerlink" title="硬件方案"></a>硬件方案</h2><p>两种架构:temporal and spatial architectures<br><img src="/2025/02/05/DNN-%E5%8A%A0%E9%80%9F%E5%99%A8/image00.png" alt="alt text"><br>其中asic和fpga主要为spatial结构,而CPU和GPU主要为temporal结构<br><strong>本次主要介绍空间架构</strong><br>这种结构有相当一部分能耗在存储上,故数据重用是研究重点<br><img src="/2025/02/05/DNN-%E5%8A%A0%E9%80%9F%E5%99%A8/image-1.png" alt="基本结构"><br>一些重用名词<br>input reuse:FC层<br>weight reuse:CONV层<br>conv reuse:卷积层的滑窗每次都有重复的<br><strong>Weight Stationary</strong><br>所有使用相同weight的mac必须映射到同一PE上进行串行处理。这最大限度地提高了RF中权重的卷积和滤波器重用，从而最大限度地减少了访问权重的能量消耗<br><img src="/2025/02/05/DNN-%E5%8A%A0%E9%80%9F%E5%99%A8/image-2.png" alt="alt text"><br>这是一个3x3的矩阵2x2的卷积核,最后生成2x2的输出<br><img src="/2025/02/05/DNN-%E5%8A%A0%E9%80%9F%E5%99%A8/image-3.png" alt="alt text"><br>先说上面那一种<br>仅介绍一个输出元素如何产生的,<br>T1:I0XW0<br>T2:I0XW0+I1XW1<br>T3:将结果移入PE2<br>T4:I0XW0+I1XW1+I2XW2<br>T5:I0XW0+I1XW1+I2XW2+I3XW3,完成一次卷积操作<br>下面哪一种和上面类似,不过是再次分块了<br><strong>Output Stationary</strong><br>映射规则是对相同的输出像素的所有mac必须依次映射到同一PE上。<br><img src="/2025/02/05/DNN-%E5%8A%A0%E9%80%9F%E5%99%A8/image-4.png" alt="alt text"><br><strong>Row Stationary</strong><br><img src="/2025/02/05/DNN-%E5%8A%A0%E9%80%9F%E5%99%A8/image-5.png" alt="alt text"><br><strong>No Local Reuse</strong><br><img src="/2025/02/05/DNN-%E5%8A%A0%E9%80%9F%E5%99%A8/image-6.png" alt="alt text"></p>
+]]></content>
+      <categories>
+        <category>论文阅读</category>
+      </categories>
+  </entry>
+  <entry>
+    <title>MEEK</title>
+    <url>/2025/02/13/MEEK/</url>
+    <content><![CDATA[<h1 id="MEEK-Re-thinking-Heterogeneous-Parallel-Error-Detection-Architecture-for-Real-World-OoO-Superscalar-Processors"><a href="#MEEK-Re-thinking-Heterogeneous-Parallel-Error-Detection-Architecture-for-Real-World-OoO-Superscalar-Processors" class="headerlink" title="MEEK:Re-thinking Heterogeneous Parallel Error Detection Architecture for Real-World OoO Superscalar Processors"></a>MEEK:Re-thinking Heterogeneous Parallel Error Detection Architecture for Real-World OoO Superscalar Processors</h1><p>芯片检测错误关键就是增加冗余去检测错误，大致可以分为三种，本文采用的是物理冗余</p>
+<p><img src="/2025/02/13/MEEK/MEEK/1740120752592.png" alt="1740120752592"></p>
+<h2 id="摘要"><a href="#摘要" class="headerlink" title="摘要"></a>摘要</h2><p>我们构建了首个全RTL设计的MEEK，并将其集成到一个开源SoC中，从微架构和指令集架构（ISA）到操作系统和编程模型。我们识别并解决了之前工作中被忽视的瓶颈和错误，并证明MEEK能够在可承受的开销下实现微秒级的检测能力。通过在协同设计的硬件-软件层之间权衡架构功能，MEEK仅对成熟的乱序超标量核心进行了轻微的改动，简化了协调软件层，并且只需要几行操作系统代码</p>
+<h2 id="介绍"><a href="#介绍" class="headerlink" title="介绍"></a>介绍</h2><p>硬件故障，无论是永久性的还是瞬态的，都会导致系统异常和执行错误，随着现代处理器中晶体管数量的增加和工作电压的降低，这种情况变得更加普遍[1]、[2]、[3]、[4]、[5]。为了减轻硬件故障引起的错误，存在从错误代码到容错架构的保护机制。检测始终是关键：一旦检测到错误，系统可以转换到安全状态，从而采取纠正措施（例如系统恢复或故障隔离）。</p>
+<p>根据行业的全球安全标准，例如汽车的ISO26262[6]和航空电子的DO-178C[7]，硬件故障必须在升级为危险之前得到解决，即在容错时间间隔（FTTI）内，通常以毫秒为单位[8]</p>
+<p>软件机制（例如多线程 [4] [9] 和software scanner [10] [11]）通常会导致显著的性能下降或提供有限的故障覆盖范围 [12]，这使得它们不足以满足需要严格可靠性标准的处理器（例如ISO26262中的ASIL-D [6]）。硬件机制通常采用一个专用核心来执行程序副本（lock-step），从而在每个时钟周期比较核心的引脚（例如锁步 [13] [14] [15]）。通过在单独的同步核心上重放所有内容，并在信号级别进行运行时验证，实现了全覆盖和实时保证。尽管双核心和三核心锁步已经在许多生命关键应用场景中的微控制器级处理器核心中得到成功应用 [16] [17]，但由于能量、面积和功耗成本过高 [18] [19] [20]，它们已被证明对于乱序超标量核心不切实际。</p>
+<p><strong>异构并行错误检测</strong> 作为一种有前途的替代方案，异构并行错误检测 [21] [22] [2] 利用强归纳法，将运行在乱序超标量高性能核心（大核心）上的软件程序划分为多个离散段，使用寄存器检查点（RCPs），并在一组较小的能效核心（小核心）上重新执行这些段以进行验证。为了重放内存和其他不可重复的操作，从程序流中提取相关指令（例如load和store）的addr和data，在大核心的commit阶段生成加载和存储操作的分区分布式日志。<strong>当段的日志填满，或指令超时，或陷入内核模式时</strong>，会触发一个新的RCP，相应的小核心开始验证从开始RCP（SRCP）到结束RCP（ERCP）之间的段。通过重叠验证任务，小核心集体提供了足够的计算能力来跟上大核心的步伐，确保全覆盖且开销低 [21]。（很像difftest）</p>
+<p>这使大核心上的应用程序线程可以使用RCPs进行分段，并在任何小核心上使用任何数量的检查线程进行重放和验证，同时仍然允许其他线程在它们上面执行（图1）</p>
+<p><img src="/2025/02/13/MEEK/1739418044205.png" alt="1739418044205"></p>
+<h2 id="II-MEEK：一种CPU-OS协同设计方法"><a href="#II-MEEK：一种CPU-OS协同设计方法" class="headerlink" title="II. MEEK：一种CPU&#x2F;OS协同设计方法"></a><strong>II. MEEK：一种CPU&#x2F;OS协同设计方法</strong></h2><p>为了在保持高性能的同时以最小的复杂度实现MEEK，我们必须在硬件和软件之间进行仔细的设计选择分区（图2）。一方面，我们别无选择，只能在硬件中实现加载和存储日志记录，用于在小核心上重放执行</p>
+<blockquote>
+<p>如果需要重放大核上的程序，必须得记录load和store，因为load和store在重放时可能被大核改变，从而导致错误</p>
+</blockquote>
+<p>另一方面，由于小核心与大核心异步执行PTW，操作系统必须在某种程度上感知它们，因此我们让操作系统完全控制它们的调度，避免在硬件中实现不在性能关键路径上的复杂决策，并允许小核心执行标准进程。</p>
+<p>与其采用完全透明的接口并避免在硬件中实现昂贵的错误纠正 [22]，程序通过在main之前插入的协调函数与MEEK-ISA交互，这些函数请求操作系统提供检查资源，验证检查输出，并在需要时调用故障处理代码。为此，我们对大核心的微架构进行了轻微的修改，在提交阶段插入了一个只读观察通道（图2 a），收集大核心的状态数据（即架构、控制和状态寄存器文件）以及RCP之间的运行时数据（内存和其他不可重复操作的地址和数据）。</p>
+<p>我们构建了一个专用的数据结构（图2 b），选择性地广播&#x2F;路由提取的数据到小核心，最小化数据通信的反压。在小核心中，接收到的数据被缓冲在加载存储日志（LSL）中，替换程序重放期间的L1缓存，允许小核心重置其架构状态到给定的SRCP，重放SRCP和ERCP之间的精确指令，并在ERCP处使用不同类型的数据验证执行的正确性（图2 c）。</p>
+<p>我们的ISA接口（图2 d和表I）（重新）配置小核心的检查特性，即操作模式（应用程序或检查模式）以及它们与大核心的关联：小核心最初以应用程序模式运行，作为标准核心执行程序。当与大核心关联时，可以部署并运行检查线程在检查模式下。应用程序和检查线程仍然在小核心上共存，操作模式仅在上下文切换时切换。</p>
+<p>检测方法。错误检查通过检查线程并行化（图2 b）：应用程序线程使用RCPs进行分段，<strong>当目标LSL已满、指令超时或陷入内核模式时</strong>，这些段由检查线程重新执行，假设所有先前的段都是正确的。重新执行后，检查线程将其架构寄存器与应用程序线程在相同RCP处提供的寄存器进行比较。如果寄存器匹配，则认为该段是正确的。如果所有段都通过检查，则认为整个执行是正确的。然而，在ERCP处无法验证内存操作。在重新执行期间，直接在LSL中比较内存操作的地址和数据。类似的设计方法用于控制和状态寄存器（CSRs）以验证不可重复的指令。</p>
+<blockquote>
+<p>这里讲述了检查线程的触发条件：LSL满，指令超时，陷入内核模式</p>
+</blockquote>
+<p><img src="/2025/02/13/MEEK/1739418630897.png" alt="1739418630897"></p>
+<h2 id="III-微架构"><a href="#III-微架构" class="headerlink" title="III. 微架构"></a><strong>III. 微架构</strong></h2><p>特别是在数据传输方面。我们识别并缓解了之前工作 [21] [22] [26] 中缺失的关键瓶颈，由于缺乏RTL实现，这些工作仅通过抽象模拟进行。我们还识别了冗余数据存储方面的低效，其中大部分转发路径所需的信息已经在提交时间之前缓冲在核心内部，这意味着不需要专用结构；相反，我们可以从现有结构转发数据。尽管存在瓶颈，我们证明可以从一个成熟的异构SoC构建MEEK的微架构，只需进行少量改动，避免大量的工程工作。我们将MEEK构建到一个开源异构SoC（Rocket Chip [24]）中，该SoC既包含高性能核心（BOOM）也包含能效核心（Rocket）。我们利用Rocket Chip来证明我们的方法适用于其他异构SoCs，例如ARM的big.LITTLE [27] 和Intel的P-和E类核心 [28]。</p>
+<h3 id="A-乱序超标量核心（大核心）"><a href="#A-乱序超标量核心（大核心）" class="headerlink" title="A. 乱序超标量核心（大核心）"></a><strong>A. 乱序超标量核心（大核心）</strong></h3><p><img src="/2025/02/13/MEEK/1739419219032.png" alt="1739419219032"></p>
+<p>程序重放需要收集状态数据和运行时数据：PRFs，CSRs，memtrace，在提交阶段提取，并且必须在之后指令提交前提取完成</p>
+<blockquote>
+<p>这里最多两个周期提取？否则可能会被覆盖（）</p>
+</blockquote>
+<p>鉴于此，我们开发了一个非侵入式数据提取单元（DEU）（图3），包含提交检测器（CD）、控制电路和旁路电路，注入到PRFs、CSRs和LDQ。CD监控来自ROB的指令提交，并选择旁路电路以在RCPs或RCP之间的运行时数据处提取数据。这使得可以在不增加额外缓冲区或更改现有寄存器路径的情况下及时提取数据。</p>
+<p>PRF示例。图3展示了使用PRFs（用于收集RCPs）的微架构示例，其中DEU与ROB、PRFs和F2进行交互。在每条指令提交时，操作码和功能码从ROB（图3 a）路由到CD，允许CD确定是否提取数据（图3 b）。如果到达RCP，则控制电路生成一个信号，抢占PRF控制器以读取寄存器文件并将其转发到F2（图3 c）。PRF控制器在ROB和DEU之间多路复用，DEU在需要时具有优先访问权，从而实现数据的立即读取并防止数据被覆盖。CSRs和LSQ。为CSRs实现了类似的微架构，允许从任意CSR地址提取数据。相比之下，由于LSQ的顶部始终持有最近提交指令的数据，当CD决定转发运行时数据时，旁路电路直接从队列顶部传输，最小化了设计复杂性并减少了数据争用。</p>
+<blockquote>
+<p>大核主要工作就是提取出有效的状态</p>
+</blockquote>
+<h3 id="B-转发结构（F2）"><a href="#B-转发结构（F2）" class="headerlink" title="B. 转发结构（F2）"></a>B. 转发结构（F2）</h3><p>由于大核心的并行提交产生的大量运行时数据，与RCPs的频繁到达（通常以突发形式出现）发生拥塞，特别是在核心在RCP边界处提交多个加载或存储指令时，需要在一个周期内进行多次数据传输并需要高吞吐量。我们设计了F2，带有双通道缓冲区（DC-Buffers）和半双工多播片上网络（HM-NoC），用于存储和路由提取的数据（图2 b）。<strong>每个提交路径连接一个DC-Buffer，为状态和运行时数据添加独立的FIFO。这确保了所有运行时数据可以在提交的同一周期内存储，即使同时生成状态数据，避免了数据需要在原始核心设计中更长时间地存储在核心内部结构中。</strong></p>
+<p><strong>HM-NoC使用半双工（1到N）曼哈顿网格。为了实现足够高的吞吐量，这个NoC允许每周期传输两个数据包，同时保持顺序。</strong></p>
+<p>转发策略。与之前的工作不同，之前所有段的数据在RCP处缓冲并集体转发，<strong>F2允许在收集时立即传输和使用数据，使小核心能够更早地重新执行</strong>。此外，由于相同的状态数据可能被两个小核心需要（分别用作SRCP和ERCP），当小核心能够接收数据时，数据会被选择性地广播到小核心，消除了冗余事务。</p>
+<h3 id="C-顺序标量核心（小核心）"><a href="#C-顺序标量核心（小核心）" class="headerlink" title="C. 顺序标量核心（小核心）"></a><strong>C. 顺序标量核心（小核心）</strong></h3><p><img src="/2025/02/13/MEEK/1739420233845.png" alt="1739420233845"><br>为了实现线程级错误检测并允许检查线程和应用程序线程共存，小核心的微架构必须支持不同的操作模式并抽象出一个软件控制接口。</p>
+<p>因此，我们升级了小核心的微架构（图4），增加了模式切换单元（MSU，图4 a）和加载存储日志（LSL，图4 b）。MSU作为控制引擎，LSL缓冲接收到的数据包。在复制大核心的状态时，MSU记录小核心的架构寄存器文件并用LSL中的状态数据替换它们。MSU还通过检查运行线程的线程ID（TID）与检查线程的TID来管理小核心的操作模式。当调度<strong>检查线程</strong>时，MSU切换操作模式，此时加载和不可重复指令的结果从LSL中获取。鉴于小核心以顺序方式访问LSL，我们使用双路FIFO实现了LSL，比传统的组相联架构更简单。</p>
+<blockquote>
+<p>小核直接从这个fifo读取memtrace</p>
+</blockquote>
+<p>流水线集成。图4展示了LSL和MSU如何集成到一个5级流水线的小核心中。LSL被添加到内存访问（MA）阶段（图4 b），通过部署一个复用器并将其连接到加载存储单元（LSU）的地址端口。复用器根据操作模式（由MSU返回）选择性地将内存访问路由到LSL，并将虚拟索引和物理标签（由TLB返回）组合到LSL的地址端口。此外，在MA阶段集成一个解复用器，将读取的数据定向到后续阶段。在指令解码（ID）阶段部署了一对复用器和解复用器，以允许记录和更新架构寄存器。最后，我们在MA阶段部署了一个迷你解码器（Mini-D，图4 c），以区分传统的RISC-V和MEEK-ISA。</p>
+<h2 id="IV-指令集架构、操作系统和编程模型"><a href="#IV-指令集架构、操作系统和编程模型" class="headerlink" title="IV. 指令集架构、操作系统和编程模型"></a><strong>IV. 指令集架构、操作系统和编程模型</strong></h2><p>为了减轻微架构的复杂性，我们在软件支持方面进行了有限的改进，这些改进更简单、更容易验证或对正确功能是必要的。我们详细说明了ISA支持，以添加软件控制块来增强具有容错支持的程序。通过在内核中进行几行代码的更改，它可以调度和保留检查线程的资源，同时允许其他线程的标准调度和上下文切换。</p>
+<h3 id="A-ISA支持"><a href="#A-ISA支持" class="headerlink" title="A. ISA支持"></a><strong>A. ISA支持</strong></h3><p><img src="/2025/02/13/MEEK/1739428633135.png" alt="1739428633135"></p>
+<p>新的ISA分为两类（表I），用于大核心（b.x()）和小核心（l.x()）。我们使用b.hook()设置大核心和小核心之间的关联，然后使用b.check()通过打开&#x2F;关闭DEU来启用&#x2F;禁用检查功能。对于小核心，l.mode()设置其操作模式，一对l.record()和l.apply()从给定来源记录和应用架构寄存器。为了将PC重定向到应用程序线程，我们开发了一个l.jal()，从原始跳转指令修改而来，目标地址有所更改。通过将检查点结束视为类似分支的操作，流水线处理了PC更改的控制危害，无需进一步更改。最后，l.rslt()指示是否检测到RCP不匹配。由于b.hook()和b.check()可能导致小核心的使用争用，l.mode()可能导致意外的内存访问错误，因此它们是特权指令，通过OS syscall执行。</p>
+<h3 id="B-检查线程及其编程模型"><a href="#B-检查线程及其编程模型" class="headerlink" title="B. 检查线程及其编程模型"></a><strong>B. 检查线程及其编程模型</strong></h3><p><img src="/2025/02/13/MEEK/1739429031611.png" alt="1739429031611"></p>
+<p>检查线程在初始化应用程序线程时，通过使用构造函数和析构函数 [35] 增强应用程序线程的main函数（算法1：第14行）。由于检查线程依赖于LSL中的数据来重放内存操作，而LSL使用FIFO设计，因此上下文切换的日志是不可取的。因此，在调度时间，LSL被保留用于单个检查线程（算法1：第12行），即使多个线程可以调度到核心上。一旦LSL被保留，只有与关联的检查线程相关的数据才会被转发，直到重执行完成。同样，固定到特定应用程序线程的检查线程在重执行完成之前不能迁移。由于每个检查点的大小是有限的（最多5000条指令），并且所有权在每个检查点结束时返回给OS以供重新分配，因此这不会导致资源饥饿。编程模型。我们基于新的ISA开发了检查线程，确保最小的编码工作量：最初，使用l.record()记录当前的架构寄存器状态（算法2：第15行），允许核心在验证后返回。然后，创建一个忙等待循环，等待LSL中的状态数据到达（算法2：第19行）。接收到后，调用l.apply()以根据应用程序段修改核心的架构状态（算法2：第20行），并调用l.jalr()将PC重定向到复制的目标（算法2：第21行）。最后，使用l.rslt()返回验证状态。如果检测到错误，则触发中断以通知OS采取纠正措施（算法2：第16-18行）。</p>
+<blockquote>
+<p><strong>大小核心都有可能陷入模式</strong></p>
+</blockquote>
+<h3 id="C-操作系统内核及其验证"><a href="#C-操作系统内核及其验证" class="headerlink" title="C. 操作系统内核及其验证"></a><strong>C. 操作系统内核及其验证</strong></h3><p>有了新的ISA，内核修改可以限制在调度程序中的上下文切换函数内，允许配置检查功能并管理检查线程 [36] [37]。根据大核心和小核心的不同角色，应用程序线程和检查线程的上下文切换被不同地修改。在从应用程序线程进入上下文切换时，调用b.check(DISABLE)禁用检查功能（算法1：第3行），在离开上下文切换时，调用b.check(ENABLE)重新启用它（算法1：第20行）。此外，如果调度了一个新发布的线程执行，则使用b.hook(core_index, next→checker_index[x])将其与小核心关联（算法1：第10-13行）。对于应用程序线程的上下文切换，唯一需要的修改是使用l.mode()切换小核心的操作模式（算法1：第3和7行），其余部分保持不变。内核验证和死锁解决。由于MEEK在线程级别启用错误检查，OS内核可以被视为一个专用的应用程序线程，并像其他应用程序线程一样进行验证。然而，在开发过程中，我们观察到一个之前文献 [21] [22] [26] 中遗漏的死锁，这是由于缺乏对OS的评估。因为检查线程可能会阻塞主线程，直到小核心完成，由于SRAM日志是有限的，这种行为表现为小核心持有的锁，而大核心需要。如果出现相反的情况（大核心持有锁，例如软件互斥锁，小核心需要），则会导致死锁（图5 a）。</p>
+<p>这个死锁可以通过使检查线程永远不需要获取锁来解决。确保检查线程至少比主线程落后一条指令，这意味着后者会首先到达故障。通过在I&#x2F;O上进行同步，可以防止写入可能被未完成的检查线程使用的页面（图5 b）。</p>
+<p><img src="/2025/02/13/MEEK/1739429918710.png" alt="1739429918710"></p>
+<h2 id="V-评估"><a href="#V-评估" class="headerlink" title="V. 评估"></a><strong>V. 评估</strong></h2><h3 id="A-性能开销"><a href="#A-性能开销" class="headerlink" title="A. 性能开销"></a><strong>A. 性能开销</strong></h3><p><img src="/2025/02/13/MEEK/1739433129563.png" alt="1739433129563"></p>
+<p>图6显示了在MEEK中运行SPECint和Parsec时大核心的减速情况，与在LLVM中实现的软件基对应物（Nzdc [39]）和等效面积锁步（EA-LockStep）进行比较。选择Nzdc进行比较是因为它是唯一可用的开源软件机制，而锁步是最广泛使用的硬件机制。然而，简单地在锁步中复制核心会消耗大核心面积的两倍，同时实现与普通核心相同的性能，导致无趣的比较。因此，我们通过线性插值每个可配置的BOOM组件，创建了一个比较器，使两个核心的组合面积与MEEK的面积开销相匹配。在所有情况下，MEEK配置为使用四个小核心。使用四个小核心足以执行SPEC，开销为1.4%，Parsec为4.4%（几何平均值）。对于所有工作负载，除了swaptions，观察到的减速低于5%。然而，swaptions的减速最高，为22%，这是由于频繁的除法，Rocket核心的除法器性能显著低于BOOM核心。对于比较器，Nzdc在Parsec上引入了几何平均值60.2%的开销，在SPEC上引入了94.2%的开销，反映了其软件实现的局限性。硬件对应物EA-LockStep在Parsec上引入了几何平均值31.2%的开销，在SPEC上引入了48.7%的开销，大约是MEEK的6.1倍和33.7倍，证明了MEEK的性能-面积优势。</p>
+<h3 id="B-检测延迟"><a href="#B-检测延迟" class="headerlink" title="B. 检测延迟"></a><strong>B. 检测延迟</strong></h3><p>为了检查检测延迟，我们在连接到大核心的F2中注入了转发数据的错误，例如内存操作的数据和地址以及架构寄存器数据，模拟硬件故障，同时不干扰大核心的正常执行。对于每个工作负载，随机生成了5000到10000个故障，并且检测延迟的密度如图7所示。每个分布都有一个长而非常薄的尾部延伸到右侧：平均检测延迟低于1微秒，而最坏情况下的延迟是平均值的5到10倍，最高可达2.7微秒（在ferret中）。尽管故障注入是随机的，但大量的样本点（总计超过100,000个）表明，3微秒足以覆盖超过99.9%的硬件故障，这比ASIL-D合规所需的毫秒级FTTI要求低几个数量级。</p>
+]]></content>
+      <categories>
+        <category>论文阅读</category>
+      </categories>
+  </entry>
+  <entry>
+    <title>MLOP</title>
+    <url>/2025/02/13/MLOP/</url>
+    <content><![CDATA[<h1 id="Multi-Lookahead-Offset-Prefetching"><a href="#Multi-Lookahead-Offset-Prefetching" class="headerlink" title="Multi-Lookahead Offset Prefetching"></a>Multi-Lookahead Offset Prefetching</h1><h2 id="摘要"><a href="#摘要" class="headerlink" title="摘要"></a>摘要</h2><p>讲的就是MLOP集timelineness和coverage于一体，并且可以弥补BOP只能预测一个offset，MLOP使用一个轻量级的硬件结构，由一个小存储器和一个简单的逻辑组成，用于识别在不同预测前瞻下可以覆盖特定缓存未命中的预取偏移量。基于此，MLOP为预取偏移量分配分数，并为每个前瞻选择分数最高的偏移量来发出预取请求。我们评估并比较了MLOP与各种最近的先进数据预取器，并表明我们的提议比没有数据预取器的系统提高了30%的系统性能，比之前性能最好的数据预取器提高了4%。</p>
+<h2 id="提议"><a href="#提议" class="headerlink" title="提议"></a><strong>提议</strong></h2><p><img src="/2025/02/13/MLOP/1739438759612.png" alt="1739438759612"></p>
+<p>偏移量在前瞻级别X的分数表示预取器能够预取访问的次数，至少在发生前X次访问，例如，偏移量在前瞻级别1的分数表示预取器能够预取任何未来访问的次数</p>
+<p>AMT中存放的是一个一个region的memory访问情况 每个region对应一个entry, entry中存储一个bit vector, 表示每一个位置是否被访问过了。 此外，每个region还会有一个history queue。以queue的形式存最近k个访问的offset，然后每个位向量都有level个级别的历史访问顺序。</p>
+<p>因为MLOP有多个lookahead level, 每个level有自己的最佳offset。因此，MLOP开了level个score table, 记录当前level每个offset的得分</p>
+<p>为了在前瞻级别1更新偏移量分数，每当发生访问时，我们找到其对应的位向量（使用其高位来搜索AMT），然后根据位向量信息，识别可以预取该访问的偏移量，并相应地增加这些偏移量在第一前瞻级别的分数。最后，我们在AMT中设置当前访问块对应的位。更新高位的分数需要先屏蔽低位的访问</p>
+<p>说实话他这个论文比较空，建议读ppt</p>
+]]></content>
+  </entry>
+  <entry>
+    <title>bingo</title>
+    <url>/2025/02/14/bingo/</url>
+    <content><![CDATA[<h1 id="Bingo-Spatial-Data-Prefetcher"><a href="#Bingo-Spatial-Data-Prefetcher" class="headerlink" title="Bingo Spatial Data Prefetcher"></a>Bingo Spatial Data Prefetcher</h1><h2 id="概要"><a href="#概要" class="headerlink" title="概要"></a>概要</h2><p>在本文中，我们做出以下贡献：•我们表明，依靠单个事件发出预取请求是最先进的空间数据预取的主要效率来源。</p>
+<p>•我们提出了一个tage-like预测器，以准确和最大提取空间相关的数据访问模式。</p>
+<p>•我们建议将多个历史表合并到单个统一元数据表中的方案，从而大大降低了存储要求。</p>
+<p>•将所有内容放在一起，我们提出了一个名为Bingo的空间数据预取器，并对各种大数据应用程序进行了精心评估。我们表明，我们的提案平均将系统性能提高了60％，而没有预取器的基线高达285％。同时，它的表现胜过最好的先前的空间数据预取器平均11％，高达67％</p>
+<h2 id="背景"><a href="#背景" class="headerlink" title="背景"></a>背景</h2><p>Spatial data prefetching：</p>
+<ul>
+<li>仅需要存储offset或者delta，不需要存储完整地址</li>
+<li>访问顺序不重要，不需要记录访问顺序</li>
+<li>消除强制cache miss，（cache的3C）</li>
+</ul>
+<p>之前的空间预取器分为两类：</p>
+<ol>
+<li>PPH：记录每个页面的访问历史方法</li>
+<li>SHH：记录全局访问方法（SPP）</li>
+</ol>
+<h2 id="微结构设计"><a href="#微结构设计" class="headerlink" title="微结构设计"></a>微结构设计</h2><p>bingo在访问新页面时去将模式移动到历史表，他使用PC+addr和pc+offset模式，PC+addr预测的为长历史事件（相同的指令和相同的地址应该同时发生），</p>
+<p><img src="/2025/02/14/bingo/1739535735601.png" alt="1739535735601"></p>
+<p>但是实际两个表是多于的</p>
+<p><img src="/2025/02/14/bingo/1739536173909.png" alt="1739536173909"></p>
+<p>也就是短事件和长事件有很多预测一致的表项</p>
+<p>对于Bingo的情况，在“PC+Address”中携带“PC+Offset”的信息;因此，通过知道‘PC+地址’，我们也知道‘PC+偏移’是什么。为了利用这种现象，我们建议只具有一个历史表，该历史表仅存储长事件的历史，但是用长事件和短事件来查找。对于宾果的情况，历史表存储在每个“PC+地址”事件之后观察到的足迹，但是利用触发器访问的“PC+地址”和“PC+偏移”两者来查找足迹，以便提供高准确性，同时不丢失预取机会。</p>
+<p>为了达到这样，我们使用短事件去hash，但长事件作为tag保存，并且替换算法为LRU</p>
+<p>每次访问时，先使用pc+addr匹配，如果没匹配到，就使用pc+offset匹配</p>
+<p><img src="/2025/02/14/bingo/1739537107193.png" alt="1739537107193"></p>
+<h3 id="Bingo历史表的组成"><a href="#Bingo历史表的组成" class="headerlink" title="Bingo历史表的组成"></a>Bingo历史表的组成</h3><p>Bingo的空间数据预取器采用了一个存储高效的单历史表设计，这个表是实现预取功能的核心组件。历史表的每个条目包含了以下几个关键组成部分：</p>
+<ul>
+<li><strong>触发访问事件</strong> ：这是预取器在记录访问模式时所依据的事件，通常包括程序计数器（PC）、地址（Address）和偏移量（Offset）等信息。例如，长事件为 <code>PC+Address</code>，短事件为 <code>PC+Offset</code>。</li>
+<li><strong>页面足迹（Footprint）</strong> ：这是一个位向量，表示页面中哪些块被访问过。每个位对应页面中的一个缓存块，<code>1</code>表示该块被访问过，<code>0</code>表示未被访问。</li>
+<li><strong>踏频信息（Recency）</strong> ：用于记录条目的最近使用情况，帮助预取器选择替换策略，如最久未使用（LRU）。</li>
+<li><strong>标签（Tag）</strong> ：用于标识条目，确保正确的事件匹配。</li>
+</ul>
+<h3 id="Bingo历史表的工作原理"><a href="#Bingo历史表的工作原理" class="headerlink" title="Bingo历史表的工作原理"></a>Bingo历史表的工作原理</h3><p>Bingo历史表的工作过程可以分为以下几个步骤：</p>
+<ol>
+<li><strong>触发访问</strong> ：当处理器访问一个新的页面时，触发访问发生，预取器开始记录该页面的访问模式。</li>
+<li><strong>记录足迹</strong> ：在页面的驻留期间，预取器会记录所有访问到的缓存块，生成页面的足迹（Footprint）。</li>
+<li><strong>存储足迹</strong> ：当页面的驻留结束时，预取器将足迹以及触发访问的事件（如 <code>PC+Address</code>）存储到历史表中。存储时，使用短事件的哈希值来索引表的位置，并将长事件作为标签存储。</li>
+<li><strong>预取决策</strong> ：当后续的访问触发预取时，预取器首先使用长事件（如 <code>PC+Address</code>）查找历史表。如果找到匹配项，就使用对应的足迹进行预取。如果未找到匹配项，则使用短事件（如 <code>PC+Offset</code>）再次查找历史表。如果找到匹配项，就使用对应的足迹进行预取。如果仍未找到匹配项，则不进行预取。</li>
+</ol>
+<p>通过这种设计，Bingo能够在保持高准确性的同时，不丢失预测机会，从而提高系统性能。</p>
+<p>其中足迹的获取是第一次访问这个页面就记录，然后结束后把足迹送入，类似于SMS生成方式</p>
+<h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><p>该论文创新点在于结合了PC+addr和PC+offset，并且将二者存在一个表内，pc+offset索引，pc+addr作为tag</p>
+]]></content>
   </entry>
   <entry>
     <title>SMS预取</title>
@@ -1425,93 +1515,6 @@
       </categories>
   </entry>
   <entry>
-    <title>bingo</title>
-    <url>/2025/02/14/bingo/</url>
-    <content><![CDATA[<h1 id="Bingo-Spatial-Data-Prefetcher"><a href="#Bingo-Spatial-Data-Prefetcher" class="headerlink" title="Bingo Spatial Data Prefetcher"></a>Bingo Spatial Data Prefetcher</h1><h2 id="概要"><a href="#概要" class="headerlink" title="概要"></a>概要</h2><p>在本文中，我们做出以下贡献：•我们表明，依靠单个事件发出预取请求是最先进的空间数据预取的主要效率来源。</p>
-<p>•我们提出了一个tage-like预测器，以准确和最大提取空间相关的数据访问模式。</p>
-<p>•我们建议将多个历史表合并到单个统一元数据表中的方案，从而大大降低了存储要求。</p>
-<p>•将所有内容放在一起，我们提出了一个名为Bingo的空间数据预取器，并对各种大数据应用程序进行了精心评估。我们表明，我们的提案平均将系统性能提高了60％，而没有预取器的基线高达285％。同时，它的表现胜过最好的先前的空间数据预取器平均11％，高达67％</p>
-<h2 id="背景"><a href="#背景" class="headerlink" title="背景"></a>背景</h2><p>Spatial data prefetching：</p>
-<ul>
-<li>仅需要存储offset或者delta，不需要存储完整地址</li>
-<li>访问顺序不重要，不需要记录访问顺序</li>
-<li>消除强制cache miss，（cache的3C）</li>
-</ul>
-<p>之前的空间预取器分为两类：</p>
-<ol>
-<li>PPH：记录每个页面的访问历史方法</li>
-<li>SHH：记录全局访问方法（SPP）</li>
-</ol>
-<h2 id="微结构设计"><a href="#微结构设计" class="headerlink" title="微结构设计"></a>微结构设计</h2><p>bingo在访问新页面时去将模式移动到历史表，他使用PC+addr和pc+offset模式，PC+addr预测的为长历史事件（相同的指令和相同的地址应该同时发生），</p>
-<p><img src="/2025/02/14/bingo/1739535735601.png" alt="1739535735601"></p>
-<p>但是实际两个表是多于的</p>
-<p><img src="/2025/02/14/bingo/1739536173909.png" alt="1739536173909"></p>
-<p>也就是短事件和长事件有很多预测一致的表项</p>
-<p>对于Bingo的情况，在“PC+Address”中携带“PC+Offset”的信息;因此，通过知道‘PC+地址’，我们也知道‘PC+偏移’是什么。为了利用这种现象，我们建议只具有一个历史表，该历史表仅存储长事件的历史，但是用长事件和短事件来查找。对于宾果的情况，历史表存储在每个“PC+地址”事件之后观察到的足迹，但是利用触发器访问的“PC+地址”和“PC+偏移”两者来查找足迹，以便提供高准确性，同时不丢失预取机会。</p>
-<p>为了达到这样，我们使用短事件去hash，但长事件作为tag保存，并且替换算法为LRU</p>
-<p>每次访问时，先使用pc+addr匹配，如果没匹配到，就使用pc+offset匹配</p>
-<p><img src="/2025/02/14/bingo/1739537107193.png" alt="1739537107193"></p>
-<h3 id="Bingo历史表的组成"><a href="#Bingo历史表的组成" class="headerlink" title="Bingo历史表的组成"></a>Bingo历史表的组成</h3><p>Bingo的空间数据预取器采用了一个存储高效的单历史表设计，这个表是实现预取功能的核心组件。历史表的每个条目包含了以下几个关键组成部分：</p>
-<ul>
-<li><strong>触发访问事件</strong> ：这是预取器在记录访问模式时所依据的事件，通常包括程序计数器（PC）、地址（Address）和偏移量（Offset）等信息。例如，长事件为 <code>PC+Address</code>，短事件为 <code>PC+Offset</code>。</li>
-<li><strong>页面足迹（Footprint）</strong> ：这是一个位向量，表示页面中哪些块被访问过。每个位对应页面中的一个缓存块，<code>1</code>表示该块被访问过，<code>0</code>表示未被访问。</li>
-<li><strong>踏频信息（Recency）</strong> ：用于记录条目的最近使用情况，帮助预取器选择替换策略，如最久未使用（LRU）。</li>
-<li><strong>标签（Tag）</strong> ：用于标识条目，确保正确的事件匹配。</li>
-</ul>
-<h3 id="Bingo历史表的工作原理"><a href="#Bingo历史表的工作原理" class="headerlink" title="Bingo历史表的工作原理"></a>Bingo历史表的工作原理</h3><p>Bingo历史表的工作过程可以分为以下几个步骤：</p>
-<ol>
-<li><strong>触发访问</strong> ：当处理器访问一个新的页面时，触发访问发生，预取器开始记录该页面的访问模式。</li>
-<li><strong>记录足迹</strong> ：在页面的驻留期间，预取器会记录所有访问到的缓存块，生成页面的足迹（Footprint）。</li>
-<li><strong>存储足迹</strong> ：当页面的驻留结束时，预取器将足迹以及触发访问的事件（如 <code>PC+Address</code>）存储到历史表中。存储时，使用短事件的哈希值来索引表的位置，并将长事件作为标签存储。</li>
-<li><strong>预取决策</strong> ：当后续的访问触发预取时，预取器首先使用长事件（如 <code>PC+Address</code>）查找历史表。如果找到匹配项，就使用对应的足迹进行预取。如果未找到匹配项，则使用短事件（如 <code>PC+Offset</code>）再次查找历史表。如果找到匹配项，就使用对应的足迹进行预取。如果仍未找到匹配项，则不进行预取。</li>
-</ol>
-<p>通过这种设计，Bingo能够在保持高准确性的同时，不丢失预测机会，从而提高系统性能。</p>
-<p>其中足迹的获取是第一次访问这个页面就记录，然后结束后把足迹送入，类似于SMS生成方式</p>
-<h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><p>该论文创新点在于结合了PC+addr和PC+offset，并且将二者存在一个表内，pc+offset索引，pc+addr作为tag</p>
-]]></content>
-  </entry>
-  <entry>
-    <title>gem5在fs模式运行spec2006</title>
-    <url>/2025/02/10/gem5%E5%9C%A8fs%E6%A8%A1%E5%BC%8F%E8%BF%90%E8%A1%8Cspec2006/</url>
-    <content><![CDATA[<p>假定已经安装了gem5,并且编译了RISCV的gem5.opt</p>
-<h1 id="环境准备"><a href="#环境准备" class="headerlink" title="环境准备"></a>环境准备</h1><p>编译m5term,这个是连接终端的</p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">cd gem5/util/term</span><br><span class="line">make CFLAGS=-O3</span><br></pre></td></tr></table></figure>
-
-<p>编译m5</p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">cd gem5/util/m5</span><br><span class="line">python3 `which scons` build/RISCV/out/m5</span><br></pre></td></tr></table></figure>
-
-<h1 id="获取linux内核"><a href="#获取linux内核" class="headerlink" title="获取linux内核"></a>获取linux内核</h1><p>获取riscv linux内核和img映像,获取方法</p>
-<ol>
-<li>官网<a href="https://resources.gem5.org/resources?q=gem5_versions:24.1+image&page=1&sort=relevance&limit=10">资源</a>,使用riscv-disk-img,内核使用bootloader开头的</li>
-<li>使用buildroot一键构建内核和img</li>
-<li>busybox构建img,然后自己编译linux内核</li>
-</ol>
-<h1 id="修改img文件"><a href="#修改img文件" class="headerlink" title="修改img文件"></a>修改img文件</h1><p>添加自己的文件</p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">sudo mkdir -p /mnt/rootfs</span><br><span class="line">sudo mount -o loop riscv-disk.img /mnt/rootfs</span><br><span class="line">cp path/to/your_program /mnt/rootfs/root</span><br><span class="line">sudo umount /mnt/rootfs</span><br><span class="line"></span><br></pre></td></tr></table></figure>
-
-<p>然后我们还要去设置img的&#x2F;etc&#x2F;inittab,将 <code>::respawn:/sbin/getty ...</code>这一行修改为</p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">::respawn:-/bin/sh /root/init.sh</span><br></pre></td></tr></table></figure>
-
-<p>也就是开机直接启动&#x2F;root&#x2F;init.sh</p>
-<p>之后创建&#x2F;root&#x2F;init.sh</p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">/root/m5 checkpoint</span><br><span class="line">/root/m5 readfile |sh</span><br><span class="line">/root/m5 exit</span><br></pre></td></tr></table></figure>
-
-<p>这个意思就是创建checkpoint,然后运行从readfile读入的脚本,运行完成退出,其中readfile的文件来自–script参数</p>
-<h1 id="生成checkpoint"><a href="#生成checkpoint" class="headerlink" title="生成checkpoint"></a>生成checkpoint</h1><p>首次运行需要生成checkpoint</p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">build/RISCV/gem5.opt configs/example/riscv/fs_linux.py \</span><br><span class="line">  --kernel=path/to/your_kernel \</span><br><span class="line">  --disk-image=path/to/your_img</span><br></pre></td></tr></table></figure>
-
-<p>生成了checkpoint后,我们会在gem5的m5out文件夹下发现cpt前缀,数字后缀的文件夹,该文件夹就是生成的checkpoint,之后我们均从该checkpoint运行benckmark</p>
-<h1 id="恢复checkpoint"><a href="#恢复checkpoint" class="headerlink" title="恢复checkpoint"></a>恢复checkpoint</h1><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">build/RISCV/gem5.opt \</span><br><span class="line">  configs/example/riscv/fs_linux.py \</span><br><span class="line">  --kernel=../bootloader-vmlinux-5.10 \</span><br><span class="line">  --disk-image=../riscv-disk.img \</span><br><span class="line">  --restore-with-cpu=O3CPU \</span><br><span class="line">  --bp-type=TAGE_SC_L_64KB \</span><br><span class="line">  --caches --l2cache \</span><br><span class="line">  --checkpoint-restore=1 \</span><br><span class="line">  --script=your.sh</span><br></pre></td></tr></table></figure>
-
-<p>但是在恢复运行时目前遇到这个问题(即使使用O3单独运行也会出现这个问题):</p>
-<p>src&#x2F;cpu&#x2F;o3&#x2F;fetch.cc:603: warn: Address 0xffffffe000004400 is outside of physical memory, stopping fetch</p>
-<p>在issue找到了,但并没得到有效信息</p>
-]]></content>
-      <categories>
-        <category>计算机体系结构</category>
-      </categories>
-  </entry>
-  <entry>
     <title>gem5</title>
     <url>/2025/02/05/gem5/</url>
     <content><![CDATA[<ul>
@@ -1590,149 +1593,41 @@
 ]]></content>
   </entry>
   <entry>
-    <title>nemu linux</title>
-    <url>/2025/02/19/nemu-linux/</url>
-    <content><![CDATA[<h1 id="Difftest-适配"><a href="#Difftest-适配" class="headerlink" title="Difftest 适配"></a>Difftest 适配</h1><p>在跑linux需要加入csr的检查,以测出特权指令执行的结果是否正确</p>
-<p>首先需要做的就是维护一套csr寄存器,我个人做法就是设置一个csr_map结构体,然后查询这个结构体来找到csr是否实现</p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">nemu_csr_t csr_map[] = &#123; </span><br><span class="line">    &#123;0x100, &quot;sstatus&quot; ,true&#125;, </span><br><span class="line">    &#123;0x104, &quot;sie&quot;     ,true&#125;, </span><br><span class="line">    &#123;0x105, &quot;stvec&quot;   ,true&#125;, </span><br><span class="line">    &#123;0x140, &quot;sscratch&quot;,true&#125;, </span><br><span class="line">    &#123;0x141, &quot;sepc&quot;    ,true&#125;, </span><br><span class="line">    &#123;0x142, &quot;scause&quot;  ,true&#125;, </span><br><span class="line">    &#123;0x143, &quot;stval&quot;   ,true&#125;, </span><br><span class="line">    &#123;0x144, &quot;sip&quot;     ,true&#125;, </span><br><span class="line">    &#123;0x180, &quot;satp&quot;    ,true&#125;, </span><br><span class="line">    &#123;0x300, &quot;mstatus&quot; ,true&#125;,</span><br><span class="line">    &#123;0x301, &quot;misa&quot;    ,false&#125;,</span><br><span class="line">    &#123;0x302, &quot;medeleg&quot; ,true&#125;, </span><br><span class="line">    &#123;0x303, &quot;mideleg&quot; ,true&#125;,  </span><br><span class="line">    &#123;0x304, &quot;mie&quot;     ,true&#125;,  </span><br><span class="line">    &#123;0x305, &quot;mtvec&quot;   ,true&#125;,  </span><br><span class="line">    &#123;0x310, &quot;mstatush&quot;,true&#125;,</span><br><span class="line">    // &#123;0x312, &quot;medelegh&quot;,true&#125;,////2024 standard  </span><br><span class="line">    &#123;0x340, &quot;mscratch&quot;,true&#125;,</span><br><span class="line">    &#123;0x341, &quot;mepc&quot;    ,true&#125;,</span><br><span class="line">    &#123;0x342, &quot;mcause&quot;  ,true&#125;,</span><br><span class="line">    &#123;0x343, &quot;mtval&quot;   ,true&#125;,  </span><br><span class="line">    &#123;0x344, &quot;mip&quot;     ,true&#125;,  </span><br><span class="line">    &#123;0xf11, &quot;mvendorid&quot;,true&#125;,   </span><br><span class="line">    &#123;0xf14, &quot;mhartid&quot; ,true&#125;   </span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+    <title>gem5在fs模式运行spec2006</title>
+    <url>/2025/02/10/gem5%E5%9C%A8fs%E6%A8%A1%E5%BC%8F%E8%BF%90%E8%A1%8Cspec2006/</url>
+    <content><![CDATA[<p>假定已经安装了gem5,并且编译了RISCV的gem5.opt</p>
+<h1 id="环境准备"><a href="#环境准备" class="headerlink" title="环境准备"></a>环境准备</h1><p>编译m5term,这个是连接终端的</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">cd gem5/util/term</span><br><span class="line">make CFLAGS=-O3</span><br></pre></td></tr></table></figure>
 
-<p>然后每次增加一个csr寄存器,只需在difftest.cc和inst.c同时将寄存器加入map即可</p>
-<p>之后我们需要实现非法指令异常,可以参考yield在nemu实现,当遇到一些没实现的csr时,就可以触发异常,然后sbi会自己处理这些没实现的csr,我们此时也要去将这个非法指令访问异常同步到spike中,具体可以参考spike的get_csr</p>
-<p>完成上述,基本difftest改造完成</p>
-<h1 id="移植opensbi"><a href="#移植opensbi" class="headerlink" title="移植opensbi"></a>移植opensbi</h1><p>首先下载opensbi</p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">git clone https://github.com/riscv-software-src/opensbi</span><br></pre></td></tr></table></figure>
+<p>编译m5</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">cd gem5/util/m5</span><br><span class="line">python3 `which scons` build/RISCV/out/m5</span><br></pre></td></tr></table></figure>
 
-<p>然后复制一份platform&#x2F;templete,将这个改为适配nemu的平台,具体改动:</p>
-<p>先设置objects.mk,然后</p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">PLATFORM_RISCV_XLEN = 32</span><br><span class="line">PLATFORM_RISCV_ABI = ilp32</span><br><span class="line">PLATFORM_RISCV_ISA = rv32ima_zicsr_zifencei</span><br><span class="line">PLATFORM_RISCV_CODE_MODEL = medany</span><br><span class="line">FW_TEXT_START=0x80000000//如果这个不行,可以直接修改链接脚本,具体在firmware/fw_jump.elf.ldS</span><br><span class="line">FW_JUMP=y</span><br><span class="line">ifeq ($(PLATFORM_RISCV_XLEN), 32)</span><br><span class="line">FW_JUMP_ADDR=0x0</span><br><span class="line">else</span><br><span class="line">FW_JUMP_ADDR=0x80200000</span><br><span class="line">endif</span><br><span class="line"></span><br></pre></td></tr></table></figure>
-
-<p>然后设置platform.c,主要就是设置timer,uart的地址,这里可以根据自己的想法去设置设备地址,也可以使用nemu内部的地址,建议uart使用nemu的,只需稍微改动即可,改动可参考uart8250手册</p>
-<p>之后就是debug过程,最后由于跳转到0x0,所以会直接段错误退出,注意最好看19年的手册,24年新出的手册会增加一些csr,从而导致spike触发非法指令</p>
-<p>运行结果如下</p>
-<p><img src="/2025/02/19/nemu-linux/nemu-linux/1740061516016.png" alt="1740061516016"></p>
-<p>如果不确定需要实现哪些寄存器,可以先抛出非法指令异常,之后opensbi会告诉你要设置哪些寄存器</p>
-<h1 id="移植linux"><a href="#移植linux" class="headerlink" title="移植linux"></a>移植linux</h1>]]></content>
-      <categories>
-        <category>计算机体系结构</category>
-      </categories>
-  </entry>
-  <entry>
-    <title>runahead</title>
-    <url>/2025/02/05/runahead/</url>
-    <content><![CDATA[<h1 id="runahead"><a href="#runahead" class="headerlink" title="runahead"></a>runahead</h1><p>(又是Onur Mutlu写的文章)</p>
-<h2 id="要解决的问题-摘要"><a href="#要解决的问题-摘要" class="headerlink" title="要解决的问题(摘要)"></a>要解决的问题(摘要)</h2><p>现如今高性能处理器都通过OoO来中和一些高延迟操作(如cache miss,中断异常,设备访问),之前做法都是增大指令窗口(个人理解为rob中可存储指令个数),现在可以提前执行,也即是runahead,在相同的机器上,runahead结合128个Instruction Windows与在没有提前执行和384个Instruction Windows相比性能几乎没有差异</p>
-<h2 id="相关工作"><a href="#相关工作" class="headerlink" title="相关工作"></a>相关工作</h2><p>mem access对CPU的性能影响很大,故之前有人提出了cache,no-blocking cache,硬件预取,软件预取,基于线程预取<br>Balasubramonian提出了长延迟指令阻塞退役时执行未来指令的机制。它们的机制动态地将寄存器文件的一部分分配给“未来线程”，该线程在“主线程”停止时启动。这种机制需要对两种不同上下文的部分硬件支持。<br>缺点:两模式都无法全部享用处理器资源<br>在运行提前执行中，普通模式和运行提前模式都可以利用机器的全部资源，这有助于机器在运行提前模式中获得进一步的领先。<br>Lebeck提出，将依赖于长延迟操作的指令从(相对较小的)调度窗口中移除，放入(相对较大的)等待指令缓冲区(WIB)中，直到操作完成，然后将指令移回调度窗口。这结合了大指令窗口的延迟容忍优势和小调度窗口的快速周期时间优势。(类似于超标量发射队列的推测唤醒那一节)</p>
-<h2 id="IW和SW-和超标量哪一本的含义不同"><a href="#IW和SW-和超标量哪一本的含义不同" class="headerlink" title="IW和SW(和超标量哪一本的含义不同)"></a>IW和SW(和超标量哪一本的含义不同)</h2><p>An out-of-order execution machine<br>accomplishes this using two windows: the instruction window and the scheduling window.</p>
-<p>指令窗口是已经解码的指令但还没退休,也即是在rob的指令,调度窗口是指令窗口的一个子集,其主要作用就是找到可以执行的指令<br><img src="/2025/02/05/runahead/image.png" alt="alt text"><br>可以看到runahead+128表项的IW的停顿百分比与IPC(每个条顶部为IPC),其消除full window<br>stalls获得了20%的IPC提升</p>
-<h2 id="runahead-1"><a href="#runahead-1" class="headerlink" title="runahead"></a>runahead</h2><p>CPU任何时候都可以进入runahead,本论文在l2cache miss,并且该内存操作到达指令窗口的头部时(也就是最老的指令)进入提前执行.提前执行时的pc得存起来,以便退出runahead恢复archstate,IW中所有指令都被标记为runahead inst,在这个模式中取到的指令也是No updates to the checkpointed register file are allowed during runahead mode.runahead的执行与内存通信和无效结果的传播有关,一些规则:</p>
+<h1 id="获取linux内核"><a href="#获取linux内核" class="headerlink" title="获取linux内核"></a>获取linux内核</h1><p>获取riscv linux内核和img映像,获取方法</p>
 <ol>
-<li>Invalid bits and instructions.</li>
-<li>Propagation of INV values.<br>进入runahead的第一条无效指令为load或者store(引起这个问题的原因),若为load,则rf的INV拉高,若为store,则runahead cache分配一个表项,并且将dest 的byte置为无效Any invalid instruction that writes to a register marks that<br>register as INV after it is scheduled or executed. Any valid<br>operation that writes to a register resets the INV bit ofits<br>destination register.</li>
-<li>Runahead store operations and runahead cache.之前的工作runahead load之前有runahead store(raw)被视为无效指令并被删除我们认为转发是必要的,如果两个指令都在IW中,直接通过store buffer获取指令,如果指令伪退休了,<br>我们将其存入runahead cache,其目的是转发数据和状态,被替换的dirty行不会存入下一级存储器,而是会直接删除(正常模式的指令无法访问该cache)store buffer 和runahead cache的每个字节都有对应的INV,而runahead cache 中还有STO为,指示store是否写入该字节,只有访问该cache中的STO和valid 之高的line,才不会miss,规则如下:<ol>
-<li>当有效runahead store执行-&gt;拉低cache的INV,若datacache中该数据缺失,则进行预取</li>
-<li>当无效runahead store被选中-&gt;将store buffer对应位置拉高INV</li>
-<li>当有效runahead store退休,写入cache,重置INV,设置写入字节的STO</li>
-<li>当无效的runahead store执行,cache的INV升高,设置STO</li>
-<li>runahead store不会将数据写入data cache<br>但store地址无效时,其操作将会被视为NOP,这时与之相关的load可能无法获得正确的值,可以使用memory dependence predictors解决</li>
+<li>官网<a href="https://resources.gem5.org/resources?q=gem5_versions:24.1+image&page=1&sort=relevance&limit=10">资源</a>,使用riscv-disk-img,内核使用bootloader开头的</li>
+<li>使用buildroot一键构建内核和img</li>
+<li>busybox构建img,然后自己编译linux内核</li>
 </ol>
-</li>
-<li>Runahead load operations.Runahead load操作可能因三种不同原因而无效它可能源于一个 INV 物理寄存器。（寄存器的INV位）它可能依赖于store buffer中标记为 INV 的存储。（store buffer的INV位）它可能依赖于一个已经伪退休的 INV 存储器。（runahead cache的INV位）Runahead load 执行时会<strong>并行</strong>访问data cache,store buffer和runahead cache访问store buffer和runahead cache:只有访问的line的INV置低,(STO置为高),才能获取数据,若无效,则该指令的dst reg 置为INV如果store buffer和runahead cache 都miss,但data cache hit,使用该数据,但实际这时数据可能是无效的-&gt;依赖于之前的store,但之前的store 的line是INV的或者被驱逐出cache(这种很罕见,故不会影响性能),如果三个都miss,则访问l2cache,如果访问l2cache miss,则驱除该指令,然后当作正常模式的指令运行,(个人理解这个可能会形成嵌套runahead)</li>
-<li>Execution and prediction of branches.<strong>在runahead模式的分支指令预测失败后不会恢复****训练策略</strong>runahead 时就训练BHT,这样其训练效果好不能再runahead训练BHT,这样可能导致分支预测不太行,导致runahead遇见分支性能下降只能在runahead训练BHT,正常模式通过fifo访问BHT两种模式有不同的表</li>
-<li>Instruction pseudo-retirement during runahead mode.<br>runahead模式退休和正常差不多,区别在于:runahead如果检测ROB有inv指令,直接退休,两种模式均会更新RAT</li>
-</ol>
-<h2 id="Exiting-runahead-mode"><a href="#Exiting-runahead-mode" class="headerlink" title="Exiting runahead mode"></a>Exiting runahead mode</h2><p>退出也是可以随时退出,本文使用和分支预测失误后恢复的方法相似<br>本文使用的是当blocking的数据返回后退出runahead,</p>
-<h2 id="一些名词"><a href="#一些名词" class="headerlink" title="一些名词"></a>一些名词</h2><p>BHT,FIFO,ROB,RAT,store buffer</p>
-]]></content>
-  </entry>
-  <entry>
-    <title>spp</title>
-    <url>/2025/02/13/spp/</url>
-    <content><![CDATA[<h1 id="Path-Confidence-based-Lookahead-Prefetching"><a href="#Path-Confidence-based-Lookahead-Prefetching" class="headerlink" title="Path Confidence based Lookahead Prefetching"></a>Path Confidence based Lookahead Prefetching</h1><p>首先，SPP 使用基于压缩历史的方案，可以准确预测复杂的地址模式。 其次，与其他基于历史的算法不同，当地址模式在物理页面之间转换时，这些算法会错过许多预取机会，而 SPP 会跨物理页面边界跟踪复杂模式，并在它们移动到新页面时立即继续预取。最后，SPP 利用其对预测的信心，根据每个预取流自适应地限制自身。SPP 以最小的开销实现这一点，严格在物理地址空间内操作，并且不需要任何额外的处理器核心状态，例如 PC。</p>
-<h2 id="SPP贡献"><a href="#SPP贡献" class="headerlink" title="SPP贡献"></a>SPP贡献</h2><ul>
-<li>我们引入了一种签名机制，以压缩形式存储内存访问模式并启动前瞻预取过程。此 12 位签名最多可压缩四个小增量，且不会产生混叠。通过将签名与未来可能的增量模式相关联，SPP 可以快速准确地学习简单和复杂的内存访问模式。签名还可用于检测两个物理页面之间的局部性，并从一个物理页面的末尾继续执行相同的预取模式，直到下一个物理页面。</li>
-<li>我们开发了一种基于路径置信度的预取节流机制。随着lookahead预取的深入，一系列签名构建了一条签名路径。每条签名路径都有不同的置信度值，这取决于其之前的增量历史、预取准确性和预取深度。路径置信度值用于动态限制预取深度，以平衡预取覆盖率和准确性</li>
-<li>与之前基于前瞻的预取器 [12]、[13] 不同，SPP 不需要深入到核心微架构中，而是纯粹基于物理内存访问流</li>
-</ul>
-<h2 id="MOTIVATION-AND-PRIOR-WORK"><a href="#MOTIVATION-AND-PRIOR-WORK" class="headerlink" title="MOTIVATION AND PRIOR WORK"></a>MOTIVATION AND PRIOR WORK</h2><p>对于之前的工作：</p>
-<ul>
-<li>需要去处理复杂的访存模式</li>
-<li>需要去自适应预取深度（lookahead深度）</li>
-<li>需要考虑跨页预取</li>
-</ul>
-<h2 id="DESIGN"><a href="#DESIGN" class="headerlink" title="DESIGN"></a>DESIGN</h2><p>随着lookahead深度增加，预取置信度在下降，公式如下</p>
-<p><img src="/2025/02/13/spp/1739453981726.png" alt="1739453981726"></p>
-<p>然后将Pd与置信度阈值对比，以确定何时<strong>停止预取</strong>，置信度Pd还可以选择插入哪个缓存，置信度高的插入高级别的</p>
-<p>SPP在物理空间运行，不用访问tlb，spp使用一个页面的学习结果来预测其他页，通过两种模式：</p>
-<p>首先，虽然增量历史签名是在每个物理页面的基础上维护的，如第 III-B 节所述，但这些签名索引到用于预测增量的全局表中，该表由所有页面共享。其次，如第 III-D 节所述，当第一次按需访问新的物理页面时，可以继承来自其增量预测跨越页面边界的先前物理页面的增量签名模式，并将其用于引导此新页面中的预测。这使 SPP 具有不需要长时间的每页预热期来开始预取复杂模式的优势，从而导致更高的预取覆盖率。</p>
-<h3 id="大致设计"><a href="#大致设计" class="headerlink" title="大致设计"></a>大致设计</h3><p><img src="/2025/02/13/spp/1739454665297.png" alt="1739454665297"></p>
-<p>主要有三个结构：Signature Table, Pattern Table, and Prefetch Filter以及一个小的GHR（用于跨页预取）</p>
-<p>SPP是用访问L2Cache的流来训练，可以将结果填充至L2或LLC，ST跟踪最近256个页面，每个页面的delta访问压缩为12bits的签名，然后这个可以去访问模式表（PT），存储预测的模式，PT还会去估计给定增量的置信度如果置信度高，就会作为预取候选传送给PF，PF检查是否存在冗余的预取，如果预测的增量跨4k边界，SPP不会发出预取，而是送入GHR学习</p>
-<h3 id="Learning-Memory-Access-Patterns"><a href="#Learning-Memory-Access-Patterns" class="headerlink" title="Learning Memory Access Patterns"></a>Learning Memory Access Patterns</h3><p><img src="/2025/02/13/spp/1739455356234.png" alt="1739455356234"></p>
-<p>ST是在4K页面内捕获访问模式，并将先前的offset记录在表中，如上图A，物理页面3，offset为3的请求访问ST，ST会根据下面公式更新签名</p>
-<p><img src="/2025/02/13/spp/1739455842729.png" alt="1739455842729"></p>
-<p>我们此时可以认为，给定的一组访问，比如0x1，他还会去访问增量为2的地址，如果PT不包含匹配的增量，他会在这个签名所属的一个地方去找一个Cdelta最低的值填入</p>
-<p>我们会在PT中更新这种访问模式，更新策略就是，找到delta为2的，将置信度+1，为了去估计每个delta的预取准确率，还维护了sig计数器，他跟踪签名出现的次数，如果两个技术器其中一个饱和了，与该签名的所有计数器将会右移1，这样做不会去丢失之前的历史记录</p>
-<p>PT的条目是全局共享的，也就是页面A,B共享相同的访问模式，他们会生成同样的签名，并且签名会索引到PT中相同的条目，更新PT访存模式</p>
-<p>PT每个条目可容纳最多四个delta，如果其置信度Cd&gt;&#x3D;Cdelta&#x2F;Csig,则这个条目就成为预取候选者</p>
-<p>delta最大为7bit，假设 4KB 页面具有 64B 缓存行，所有可能的增量都在 (-63) 到 (+63) 的范围内。我们对正增量和负增量都使用 7 位符号+幅度表示。因此，负增量和正增量会产生不同的签名，指向模式表中的不同条目，并最终指向不同的预取目标。但注意大于7的delta会发生混叠</p>
-<h3 id="Path-Confidence-based-Prefetching"><a href="#Path-Confidence-based-Prefetching" class="headerlink" title="Path Confidence-based Prefetching"></a>Path Confidence-based Prefetching</h3><p><img src="/2025/02/13/spp/1739457587856.png" alt="1739457587856"></p>
-<p>路径置信度是根据0XA的签名相关的增量计算的，初次访问置信度为Cdelta&#x2F;Csig，所以+2的增量会被送入预取</p>
-<p>此外PT还会构建新的签名以供下次预取使用，虽然可能会有多个候选，但只选择置信度最高的生成签名，新的lookahead签名用于再次访问PT，直至Pd小于Tp，更大的置信度Tf决定了给定的预取应该送入哪个缓存</p>
-<p>SPP可以引入a来降低lookahead的概率</p>
-<p>请注意，为简单起见，在上面的讨论中，我们在浮点数的背景下描述了路径置信度计算。然而，在实际实现中（以及在我们的模拟器中），我们使用 7 位定点数来表示 0∼100 之间的路径置信度值，并对这些定点数执行乘法和除法。此外，由于 Cdelta 和 Csig 是 4 位饱和计数器，我们可以使用一个简单的 16x16&#x3D;256 条目查找表来存储所有可能的除法结果，这使我们能够完全删除昂贵的除法器模块。此外，额外的计算延迟可以被隐藏，因为 SPP 可以在 L2 缓存等待 DRAM 服务需求未命中时在后台计算路径置信度</p>
-<p><img src="/2025/02/13/spp/1739458234710.png" alt="1739458234710"></p>
-<p>如果预取器观察到以下条件之一，SPP 会停止预取：1) 路径置信度 Pd 较低。 2) L2 读取队列资源太少。</p>
-<h3 id="Page-Boundary-Learning"><a href="#Page-Boundary-Learning" class="headerlink" title="Page Boundary Learning"></a>Page Boundary Learning</h3><p><img src="/2025/02/13/spp/1739458632499.png" alt="1739458632499"></p>
-<p>边界预测被存放到一个8entry的条目中，这个GHR存储当前的签名，路径置信度，以及偏移和delta，页面A发生跨页预取，那么会在新页面B访问GHR，匹配offset相等的，</p>
-<p>也即是发生跨页时：</p>
-<ol>
-<li>写入跨页请求，然后这个请求其实是B的offset为1的访问，此时访问GHR，发现匹配值，然后生成页面B的签名</li>
-</ol>
-<h3 id="Prefetch-Filter"><a href="#Prefetch-Filter" class="headerlink" title="Prefetch Filter"></a>Prefetch Filter</h3><p><img src="/2025/02/13/spp/1739459523960.png" alt="1739459523960"></p>
-<p>SPP总是先检查PF，然后再发出预取，如果PF已经包含一个缓存行，说明这个缓存行已经被预取，预取请求会被丢弃，当缓存行被替换，会重置有效位来清除条目</p>
-<p>通过在每个过滤器条目中添加一个有用位，PF 还可以近似预取精度。SPP 有两个全局计数器，一个用于跟踪预取请求的总数 (Ctotal)，另一个用于跟踪有用预取的数量 (Cuseful)。每当 SPP 发出未被过滤器丢弃的预取时，Ctotal 计数器就会增加。有用的预取由 PF 中命中的实际 L2 缓存需求请求检测到，这会增加 Cuseful 计数器。为了避免每个有用的预取行增加 Cuseful 超过一次，我们在 PF 条目中设置了一个已用位，以防止重复计算。此过滤器跟踪的全局预取精度用于公式 3 中的 α，以限制路径置信度值。</p>
-<p><img src="/2025/02/13/spp/1739460638587.png" alt="1739460638587"></p>
-]]></content>
-  </entry>
-  <entry>
-    <title>简单的缓存一致性</title>
-    <url>/2025/02/05/%E7%AE%80%E5%8D%95%E7%9A%84%E7%BC%93%E5%AD%98%E4%B8%80%E8%87%B4%E6%80%A7/</url>
-    <content><![CDATA[<p>目录式协议(directory)—-物理存储器中数据块的共享状态被保存在一个称为目录的地方。目录式协议的实现开销比监听式协议的稍微大一些,但可用于实现更大规模的多处理机。<br>监听式协议(snooping)—-当物理存储器中的数据块被调入 Cache 时，其共享状态信息与该数据块一起放在该 Cache 中。系统中没有集中的状态表。这些 Cache 通常连在共享存储器的总线上。当某个 Cache 需要访问存储器时,它会把请求放到总线上广播出去,其他各个 Cache 控制器通过监听总线(它们一直在监听)来判断它们是否有总线上请求的数据块。如果有,就进行相应的操作。</p>
-<p>无论是MSI还是MESI,MOESI,都差不多按照以下思路分析:r_hit,r_miss,w_hit,w_miss讨论状态机实现,其中每个transaction对应3,4,5个状态(MSI-&gt;MESI-&gt;MOESI),且都要考虑本地cache和其他cache,如右图所示</p>
-<p><img src="/2025/02/05/%E7%AE%80%E5%8D%95%E7%9A%84%E7%BC%93%E5%AD%98%E4%B8%80%E8%87%B4%E6%80%A7/1729944912699.png" alt="1729944912699"></p>
-<ul>
-<li>M，modified，表示该数据已修改，即上述所说的“脏”数据，需要在合适的时机写回内存；</li>
-<li>E，Exclusive，表示该数据独占，意指此时该数据只存在某个核中，其他核没有该数据，于是就不需要所谓的广播给其他的核，也就没有缓存一致性的问题；</li>
-<li>S，Shared，表示数据共享，是从<strong>数据独占</strong>状态转移过来的。意指多个核中都有该数据，这个时候就会存在缓存一致性的问题；</li>
-<li>I，Invalidated，表示数据已失效，可以丢弃掉Cache Block的数据了（高并发情况下可能出现两个CPU同时修改变量a，并同时向总线发出将各自的缓存行更改为M状态的情况， <strong>此时总线会采用相应的裁决机制进行裁决</strong> ，将其中一个置为M状态，另一个置为I状态，且I状态的缓存行修改无效）；</li>
-</ul>
-<p>MESI四种状态标志是存储在Cache Line中的</p>
-<h1 id="内存模型"><a href="#内存模型" class="headerlink" title="内存模型"></a><strong>内存模型</strong></h1><h2 id="SC"><a href="#SC" class="headerlink" title="SC"></a>SC</h2><p>所有线程访存一定能构成全局序</p>
-<p><img src="/2025/02/05/%E7%AE%80%E5%8D%95%E7%9A%84%E7%BC%93%E5%AD%98%E4%B8%80%E8%87%B4%E6%80%A7/1730373908924.png" alt="1730373908924"></p>
-<p>所有load结果都是全局序中最近的同地址store值</p>
-<p>  <img src="/2025/02/05/%E7%AE%80%E5%8D%95%E7%9A%84%E7%BC%93%E5%AD%98%E4%B8%80%E8%87%B4%E6%80%A7/1730373977856.png" alt="1730373977856"></p>
-<h2 id="TSO"><a href="#TSO" class="headerlink" title="TSO"></a>TSO</h2><p><img src="/2025/02/05/%E7%AE%80%E5%8D%95%E7%9A%84%E7%BC%93%E5%AD%98%E4%B8%80%E8%87%B4%E6%80%A7/1730374094456.png" alt="1730374094456"><img src="/2025/02/05/%E7%AE%80%E5%8D%95%E7%9A%84%E7%BC%93%E5%AD%98%E4%B8%80%E8%87%B4%E6%80%A7/1730374216003.png" alt="1730374216003"></p>
-<h2 id="RVWMO"><a href="#RVWMO" class="headerlink" title="RVWMO"></a>RVWMO</h2><p><img src="/2025/02/05/%E7%AE%80%E5%8D%95%E7%9A%84%E7%BC%93%E5%AD%98%E4%B8%80%E8%87%B4%E6%80%A7/1730374321974.png" alt="1730374321974"></p>
-<p><img src="/2025/02/05/%E7%AE%80%E5%8D%95%E7%9A%84%E7%BC%93%E5%AD%98%E4%B8%80%E8%87%B4%E6%80%A7/1730374367495.png" alt="1730374367495"></p>
-<h2 id="香山乱序访存"><a href="#香山乱序访存" class="headerlink" title="香山乱序访存"></a>香山乱序访存</h2><p>数据也会存到SQ</p>
-<p><img src="/2025/02/05/%E7%AE%80%E5%8D%95%E7%9A%84%E7%BC%93%E5%AD%98%E4%B8%80%E8%87%B4%E6%80%A7/1730380794423.png" alt="1730380794423"></p>
-<p>设置一个SQ,在派遣时将进入SQ,FIFO结构,当指令</p>
-<p><img src="/2025/02/05/%E7%AE%80%E5%8D%95%E7%9A%84%E7%BC%93%E5%AD%98%E4%B8%80%E8%87%B4%E6%80%A7/1730380916400.png" alt="1730380916400"></p>
-<p><img src="/2025/02/05/%E7%AE%80%E5%8D%95%E7%9A%84%E7%BC%93%E5%AD%98%E4%B8%80%E8%87%B4%E6%80%A7/1730381086089.png" alt="1730381086089"></p>
-<p><img src="/2025/02/05/%E7%AE%80%E5%8D%95%E7%9A%84%E7%BC%93%E5%AD%98%E4%B8%80%E8%87%B4%E6%80%A7/1730381113849.png" alt="1730381113849"></p>
-<p>当<strong>sw遇到TLBmiss</strong> 让她退出流水,然后在SQ标记重发<img src="/2025/02/05/%E7%AE%80%E5%8D%95%E7%9A%84%E7%BC%93%E5%AD%98%E4%B8%80%E8%87%B4%E6%80%A7/1730381020649.png" alt="1730381020649"></p>
-<p><strong>load流水线</strong></p>
-<p>load指令一方面数据来自DCache,另一方面来自SQ,而且SQ优先级更高,在读数据要对SQ和DCache的数据合并</p>
-<p><strong>Store&#x2F;load违例:load先于store执行</strong></p>
-<p>1.阻塞,load得等,等到之前的store指令地址计算完,算是部分乱序</p>
-<p>2.检测:检测到了违例,直接从lw之后把指令刷掉,(一种是ROB,但ROB太大)</p>
-<p>所以可以设置一个LQ,FIFO,是ROB子集只用存LW指令,dispatch入队,sw指令会检测是否有比其更年轻的load(ROB地址值作为age)已经执行完了,从lw下面指令全部刷了.重新取</p>
-<p><img src="/2025/02/05/%E7%AE%80%E5%8D%95%E7%9A%84%E7%BC%93%E5%AD%98%E4%B8%80%E8%87%B4%E6%80%A7/1730381962804.png" alt="1730381962804"></p>
-<p>load异常事件:</p>
-<p>TLBmiss</p>
-<p><img src="/2025/02/05/%E7%AE%80%E5%8D%95%E7%9A%84%E7%BC%93%E5%AD%98%E4%B8%80%E8%87%B4%E6%80%A7/1730382130178.png" alt="1730382130178"></p>
-<p><img src="/2025/02/05/%E7%AE%80%E5%8D%95%E7%9A%84%E7%BC%93%E5%AD%98%E4%B8%80%E8%87%B4%E6%80%A7/1730382342283.png" alt="1730382342283"></p>
-<p>取回数据然后对唤醒LQ的指令</p>
+<h1 id="修改img文件"><a href="#修改img文件" class="headerlink" title="修改img文件"></a>修改img文件</h1><p>添加自己的文件</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">sudo mkdir -p /mnt/rootfs</span><br><span class="line">sudo mount -o loop riscv-disk.img /mnt/rootfs</span><br><span class="line">cp path/to/your_program /mnt/rootfs/root</span><br><span class="line">sudo umount /mnt/rootfs</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<p>然后我们还要去设置img的&#x2F;etc&#x2F;inittab,将 <code>::respawn:/sbin/getty ...</code>这一行修改为</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">::respawn:-/bin/sh /root/init.sh</span><br></pre></td></tr></table></figure>
+
+<p>也就是开机直接启动&#x2F;root&#x2F;init.sh</p>
+<p>之后创建&#x2F;root&#x2F;init.sh</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">/root/m5 checkpoint</span><br><span class="line">/root/m5 readfile |sh</span><br><span class="line">/root/m5 exit</span><br></pre></td></tr></table></figure>
+
+<p>这个意思就是创建checkpoint,然后运行从readfile读入的脚本,运行完成退出,其中readfile的文件来自–script参数</p>
+<h1 id="生成checkpoint"><a href="#生成checkpoint" class="headerlink" title="生成checkpoint"></a>生成checkpoint</h1><p>首次运行需要生成checkpoint</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">build/RISCV/gem5.opt configs/example/riscv/fs_linux.py \</span><br><span class="line">  --kernel=path/to/your_kernel \</span><br><span class="line">  --disk-image=path/to/your_img</span><br></pre></td></tr></table></figure>
+
+<p>生成了checkpoint后,我们会在gem5的m5out文件夹下发现cpt前缀,数字后缀的文件夹,该文件夹就是生成的checkpoint,之后我们均从该checkpoint运行benckmark</p>
+<h1 id="恢复checkpoint"><a href="#恢复checkpoint" class="headerlink" title="恢复checkpoint"></a>恢复checkpoint</h1><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">build/RISCV/gem5.opt \</span><br><span class="line">  configs/example/riscv/fs_linux.py \</span><br><span class="line">  --kernel=../bootloader-vmlinux-5.10 \</span><br><span class="line">  --disk-image=../riscv-disk.img \</span><br><span class="line">  --restore-with-cpu=O3CPU \</span><br><span class="line">  --bp-type=TAGE_SC_L_64KB \</span><br><span class="line">  --caches --l2cache \</span><br><span class="line">  --checkpoint-restore=1 \</span><br><span class="line">  --script=your.sh</span><br></pre></td></tr></table></figure>
+
+<p>但是在恢复运行时目前遇到这个问题(即使使用O3单独运行也会出现这个问题):</p>
+<p>src&#x2F;cpu&#x2F;o3&#x2F;fetch.cc:603: warn: Address 0xffffffe000004400 is outside of physical memory, stopping fetch</p>
+<p>在issue找到了,但并没得到有效信息</p>
 ]]></content>
       <categories>
         <category>计算机体系结构</category>
@@ -1741,8 +1636,7 @@
   <entry>
     <title>diplomacy&amp;boom</title>
     <url>/2025/02/05/diplomacy&amp;boom/</url>
-    <content><![CDATA[<h1 id="1-官方的adder例子"><a href="#1-官方的adder例子" class="headerlink" title="1. 官方的adder例子"></a>1. 官方的adder例子</h1><p><img src="/2025/02/05/diplomacy&boom/1730820232374.png" alt="1730820232374"></p>
-<p><strong>首先定义参数</strong></p>
+    <content><![CDATA[<h2 id="1-官方的adder例子"><a href="#1-官方的adder例子" class="headerlink" title="1. 官方的adder例子"></a>1. 官方的adder例子</h2><h6 id><a href="#" class="headerlink" title></a><img src="/2025/02/05/diplomacy&boom/1730820232374.png" alt="1730820232374"></h6><p><strong>首先定义参数</strong></p>
 <figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">case class UpwardParam(width: Int)</span><br><span class="line">case class DownwardParam(width: Int)</span><br><span class="line">case class EdgeParam(width: Int)</span><br><span class="line"></span><br></pre></td></tr></table></figure>
 
 <p>也即是INT,</p>
@@ -3106,6 +3000,53 @@
 <li><strong>更新叶页表条目</strong> ：修改叶页表条目后，执行 SFENCE.VMA（rs1 设置为虚拟地址），若路径中存在全局 PTE，则 rs2 必须为 x0。</li>
 <li><strong>延迟刷新</strong> ：对于权限提升或使无效 PTE 变为有效叶 PTE 的操作，可延迟执行 SFENCE.VMA，但在页错误发生时需按要求执行。</li>
 </ol>
+<h2 id="DCACHE"><a href="#DCACHE" class="headerlink" title="DCACHE"></a>DCACHE</h2><h4 id="tag组织结构"><a href="#tag组织结构" class="headerlink" title="tag组织结构"></a>tag组织结构</h4><p>tag每个mem通道均含有，写时需要同时写（保证同步），读时需要同时读，但每个通道有独立的读信号</p>
+<blockquote>
+<p>这里tag好像为双端口器件</p>
+</blockquote>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">val meta = Seq.fill(memWidth) &#123; Module(new L1MetadataArray(onReset _)) &#125;</span><br><span class="line">val metaWriteArb = Module(new Arbiter(new L1MetaWriteReq, 2))</span><br><span class="line">// 0 goes to MSHR refills, 1 goes to prober</span><br><span class="line">val metaReadArb = Module(new Arbiter(new BoomL1MetaReadReq, 6))</span><br><span class="line">// 0 goes to MSHR replays, 1 goes to prober, 2 goes to wb, 3 goes to MSHR meta read,</span><br><span class="line">// 4 goes to pipeline, 5 goes to prefetcher</span><br><span class="line"></span><br><span class="line">metaReadArb.io.in := DontCare</span><br><span class="line">for (w &lt;- 0 until memWidth) &#123;</span><br><span class="line">  meta(w).io.write.valid := metaWriteArb.io.out.fire</span><br><span class="line">  meta(w).io.write.bits  := metaWriteArb.io.out.bits</span><br><span class="line">  meta(w).io.read.valid  := metaReadArb.io.out.valid</span><br><span class="line">  meta(w).io.read.bits   := metaReadArb.io.out.bits.req(w)</span><br><span class="line">&#125;</span><br><span class="line">metaReadArb.io.out.ready  := meta.map(_.io.read.ready).reduce(_||_)</span><br><span class="line">metaWriteArb.io.out.ready := meta.map(_.io.write.ready).reduce(_||_)</span><br></pre></td></tr></table></figure>
+
+
+
+<h4 id="数据通道"><a href="#数据通道" class="headerlink" title="数据通道"></a>数据通道</h4><p>megaoom默认使用BoomDuplicatedDataArray，一个cacheline为128bit，rowOffBits&#x3D;4，encDataBits&#x3D;64，rowWords&#x3D;2，data写端口有两个请求，读端口含有3个请求</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">val data = Module(if (boomParams.numDCacheBanks == 1) new BoomDuplicatedDataArray else new BoomBankedDataArray)</span><br><span class="line">val dataWriteArb = Module(new Arbiter(new L1DataWriteReq, 2))</span><br><span class="line">// 0 goes to pipeline, 1 goes to MSHR refills</span><br><span class="line">val dataReadArb = Module(new Arbiter(new BoomL1DataReadReq, 3))</span><br><span class="line">// 0 goes to MSHR replays, 1 goes to wb, 2 goes to pipeline</span><br><span class="line">dataReadArb.io.in := DontCare</span><br><span class="line"></span><br><span class="line">for (w &lt;- 0 until memWidth) &#123;</span><br><span class="line">  data.io.read(w).valid := dataReadArb.io.out.bits.valid(w) &amp;&amp; dataReadArb.io.out.valid</span><br><span class="line">  data.io.read(w).bits  := dataReadArb.io.out.bits.req(w)</span><br><span class="line">&#125;</span><br><span class="line">dataReadArb.io.out.ready := true.B</span><br><span class="line"></span><br><span class="line">data.io.write.valid := dataWriteArb.io.out.fire</span><br><span class="line">data.io.write.bits  := dataWriteArb.io.out.bits</span><br><span class="line">dataWriteArb.io.out.ready := true.BBoomDuplicatedDataArray十分简易，主要讲BoomBankedDataArray：</span><br></pre></td></tr></table></figure>
+
+<p>下面介绍读写端口请求</p>
+<ol>
+<li>pipe请求：该读请求占据meta arbit的端口4和data 的端口2</li>
+<li>mshr replay请求，读请求占据data和meta的端口0</li>
+<li>mshr读meta请求。占据meta的端口3</li>
+<li>写回端口，占据meta的读端口2和data的读端口1</li>
+<li>Prober请求，占据meta读端口1</li>
+<li>prefetch，占据meta端口5</li>
+</ol>
+<p>接下来先介绍dcache主流水线</p>
+<h4 id="S0-stage"><a href="#S0-stage" class="headerlink" title="S0 stage"></a>S0 stage</h4><p>s0阶段的valid信号来自lsu的优先级最高，而req信号优先级如下：</p>
+<ol>
+<li>lsu请求</li>
+<li>wb请求</li>
+<li>prober请求</li>
+<li>prefetch请求</li>
+<li>mshr读meta请求</li>
+</ol>
+<p>s0阶段的事件如下代码</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">val s0_valid = Mux(io.lsu.req.fire, VecInit(io.lsu.req.bits.map(_.valid)),</span><br><span class="line">               Mux(mshrs.io.replay.fire || wb_fire || prober_fire || prefetch_fire || mshrs.io.meta_read.fire,</span><br><span class="line">                                      VecInit(1.U(memWidth.W).asBools), VecInit(0.U(memWidth.W).asBools)))</span><br><span class="line">val s0_req   = Mux(io.lsu.req.fire        , VecInit(io.lsu.req.bits.map(_.bits)),</span><br><span class="line">               Mux(wb_fire                  , wb_req,</span><br><span class="line">               Mux(prober_fire              , prober_req,</span><br><span class="line">               Mux(prefetch_fire            , prefetch_req,</span><br><span class="line">               Mux(mshrs.io.meta_read.fire, mshr_read_req</span><br><span class="line">                                            , replay_req)))))</span><br><span class="line">val s0_type  = Mux(io.lsu.req.fire        , t_lsu,</span><br><span class="line">               Mux(wb_fire                  , t_wb,</span><br><span class="line">               Mux(prober_fire              , t_probe,</span><br><span class="line">               Mux(prefetch_fire            , t_prefetch,</span><br><span class="line">               Mux(mshrs.io.meta_read.fire, t_mshr_meta_read</span><br><span class="line">                                            , t_replay)))))</span><br><span class="line">val s0_send_resp_or_nack = Mux(io.lsu.req.fire, s0_valid,</span><br><span class="line">  VecInit(Mux(mshrs.io.replay.fire &amp;&amp; isRead(mshrs.io.replay.bits.uop.mem_cmd), 1.U(memWidth.W), 0.U(memWidth.W)).asBools))</span><br></pre></td></tr></table></figure>
+
+<p>s0_send_resp_or_nack给出了需要作出回复或者nack的时间</p>
+<h4 id="S1-stage"><a href="#S1-stage" class="headerlink" title="S1 stage"></a>S1 stage</h4><p>s1阶段主要就是一个寄存器regnext，如果此时有以下条件：</p>
+<ol>
+<li>分支预测失败</li>
+<li>lsu发生异常，且该请求为ld请求</li>
+<li>s2 store失败，且该请求为来自lsu的st请求</li>
+</ol>
+<p>此时，s1_valid置低</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">val s1_valid = widthMap(w =&gt;</span><br><span class="line">                RegNext(s0_valid(w)                                     &amp;&amp;</span><br><span class="line">                        !IsKilledByBranch(io.lsu.brupdate, s0_req(w).uop) &amp;&amp;</span><br><span class="line">                        !(io.lsu.exception &amp;&amp; s0_req(w).uop.uses_ldq)   &amp;&amp;</span><br><span class="line">                        !(s2_store_failed &amp;&amp; io.lsu.req.fire &amp;&amp; s0_req(w).uop.uses_stq),</span><br><span class="line">                        init=false.B))</span><br></pre></td></tr></table></figure>
+
+<p>s1阶段大部分信号为s0的reg，s1_nack解释了该阶段会不会阻塞，和prober有关</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">val s1_addr         = s1_req.map(_.addr)</span><br><span class="line">val s1_nack         = s1_addr.map(a =&gt; a(idxMSB,idxLSB) === prober.io.meta_write.bits.idx &amp;&amp; !prober.io.req.ready)</span><br><span class="line">val s1_send_resp_or_nack = RegNext(s0_send_resp_or_nack)</span><br><span class="line">val s1_type         = RegNext(s0_type)</span><br><span class="line"></span><br><span class="line">val s1_mshr_meta_read_way_en = RegNext(mshrs.io.meta_read.bits.way_en)</span><br><span class="line">val s1_replay_way_en         = RegNext(mshrs.io.replay.bits.way_en) // For replays, the metadata isn&#x27;t written yet</span><br><span class="line">val s1_wb_way_en             = RegNext(wb.io.data_req.bits.way_en)</span><br></pre></td></tr></table></figure>
+
+
+
 <h1 id="CDE学习记录"><a href="#CDE学习记录" class="headerlink" title="CDE学习记录"></a>CDE学习记录</h1><p>CDE其中有site&#x2F;here&#x2F;&#x2F;up:</p>
 <p>site:记录查找发生时的Module的偏函数</p>
 <p>here:在本模块的参数</p>
@@ -3146,6 +3087,111 @@
       </categories>
   </entry>
   <entry>
+    <title>nemu linux</title>
+    <url>/2025/02/19/nemu-linux/</url>
+    <content><![CDATA[<h1 id="Difftest-适配"><a href="#Difftest-适配" class="headerlink" title="Difftest 适配"></a>Difftest 适配</h1><p>在跑linux需要加入csr的检查,以测出特权指令执行的结果是否正确</p>
+<p>首先需要做的就是维护一套csr寄存器,我个人做法就是设置一个csr_map结构体,然后查询这个结构体来找到csr是否实现</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">nemu_csr_t csr_map[] = &#123; </span><br><span class="line">    &#123;0x100, &quot;sstatus&quot; ,true&#125;, </span><br><span class="line">    &#123;0x104, &quot;sie&quot;     ,true&#125;, </span><br><span class="line">    &#123;0x105, &quot;stvec&quot;   ,true&#125;, </span><br><span class="line">    &#123;0x140, &quot;sscratch&quot;,true&#125;, </span><br><span class="line">    &#123;0x141, &quot;sepc&quot;    ,true&#125;, </span><br><span class="line">    &#123;0x142, &quot;scause&quot;  ,true&#125;, </span><br><span class="line">    &#123;0x143, &quot;stval&quot;   ,true&#125;, </span><br><span class="line">    &#123;0x144, &quot;sip&quot;     ,true&#125;, </span><br><span class="line">    &#123;0x180, &quot;satp&quot;    ,true&#125;, </span><br><span class="line">    &#123;0x300, &quot;mstatus&quot; ,true&#125;,</span><br><span class="line">    &#123;0x301, &quot;misa&quot;    ,false&#125;,</span><br><span class="line">    &#123;0x302, &quot;medeleg&quot; ,true&#125;, </span><br><span class="line">    &#123;0x303, &quot;mideleg&quot; ,true&#125;,  </span><br><span class="line">    &#123;0x304, &quot;mie&quot;     ,true&#125;,  </span><br><span class="line">    &#123;0x305, &quot;mtvec&quot;   ,true&#125;,  </span><br><span class="line">    &#123;0x310, &quot;mstatush&quot;,true&#125;,</span><br><span class="line">    // &#123;0x312, &quot;medelegh&quot;,true&#125;,////2024 standard  </span><br><span class="line">    &#123;0x340, &quot;mscratch&quot;,true&#125;,</span><br><span class="line">    &#123;0x341, &quot;mepc&quot;    ,true&#125;,</span><br><span class="line">    &#123;0x342, &quot;mcause&quot;  ,true&#125;,</span><br><span class="line">    &#123;0x343, &quot;mtval&quot;   ,true&#125;,  </span><br><span class="line">    &#123;0x344, &quot;mip&quot;     ,true&#125;,  </span><br><span class="line">    &#123;0xf11, &quot;mvendorid&quot;,true&#125;,   </span><br><span class="line">    &#123;0xf14, &quot;mhartid&quot; ,true&#125;   </span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>然后每次增加一个csr寄存器,只需在difftest.cc和inst.c同时将寄存器加入map即可</p>
+<p>之后我们需要实现非法指令异常,可以参考yield在nemu实现,当遇到一些没实现的csr时,就可以触发异常,然后sbi会自己处理这些没实现的csr,我们此时也要去将这个非法指令访问异常同步到spike中,具体可以参考spike的get_csr</p>
+<p>完成上述,基本difftest改造完成</p>
+<h1 id="移植opensbi"><a href="#移植opensbi" class="headerlink" title="移植opensbi"></a>移植opensbi</h1><p>首先下载opensbi</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">git clone https://github.com/riscv-software-src/opensbi</span><br></pre></td></tr></table></figure>
+
+<p>然后复制一份platform&#x2F;templete,将这个改为适配nemu的平台,具体改动:</p>
+<p>先设置objects.mk,然后</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">PLATFORM_RISCV_XLEN = 32</span><br><span class="line">PLATFORM_RISCV_ABI = ilp32</span><br><span class="line">PLATFORM_RISCV_ISA = rv32ima_zicsr_zifencei</span><br><span class="line">PLATFORM_RISCV_CODE_MODEL = medany</span><br><span class="line">FW_TEXT_START=0x80000000//如果这个不行,可以直接修改链接脚本,具体在firmware/fw_jump.elf.ldS</span><br><span class="line">FW_JUMP=y</span><br><span class="line">ifeq ($(PLATFORM_RISCV_XLEN), 32)</span><br><span class="line">FW_JUMP_ADDR=0x0</span><br><span class="line">else</span><br><span class="line">FW_JUMP_ADDR=0x80200000</span><br><span class="line">endif</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<p>然后设置platform.c,主要就是设置timer,uart的地址,这里可以根据自己的想法去设置设备地址,也可以使用nemu内部的地址,建议uart使用nemu的,只需稍微改动即可,改动可参考uart8250手册</p>
+<p>之后就是debug过程,最后由于跳转到0x0,所以会直接段错误退出,注意最好看19年的手册,24年新出的手册会增加一些csr,从而导致spike触发非法指令</p>
+<p>运行结果如下</p>
+<p><img src="/2025/02/19/nemu-linux/nemu-linux/1740061516016.png" alt="1740061516016"></p>
+<p>如果不确定需要实现哪些寄存器,可以先抛出非法指令异常,之后opensbi会告诉你要设置哪些寄存器</p>
+<h1 id="移植linux"><a href="#移植linux" class="headerlink" title="移植linux"></a>移植linux</h1>]]></content>
+      <categories>
+        <category>计算机体系结构</category>
+      </categories>
+  </entry>
+  <entry>
+    <title>runahead</title>
+    <url>/2025/02/05/runahead/</url>
+    <content><![CDATA[<h1 id="runahead"><a href="#runahead" class="headerlink" title="runahead"></a>runahead</h1><p>(又是Onur Mutlu写的文章)</p>
+<h2 id="要解决的问题-摘要"><a href="#要解决的问题-摘要" class="headerlink" title="要解决的问题(摘要)"></a>要解决的问题(摘要)</h2><p>现如今高性能处理器都通过OoO来中和一些高延迟操作(如cache miss,中断异常,设备访问),之前做法都是增大指令窗口(个人理解为rob中可存储指令个数),现在可以提前执行,也即是runahead,在相同的机器上,runahead结合128个Instruction Windows与在没有提前执行和384个Instruction Windows相比性能几乎没有差异</p>
+<h2 id="相关工作"><a href="#相关工作" class="headerlink" title="相关工作"></a>相关工作</h2><p>mem access对CPU的性能影响很大,故之前有人提出了cache,no-blocking cache,硬件预取,软件预取,基于线程预取<br>Balasubramonian提出了长延迟指令阻塞退役时执行未来指令的机制。它们的机制动态地将寄存器文件的一部分分配给“未来线程”，该线程在“主线程”停止时启动。这种机制需要对两种不同上下文的部分硬件支持。<br>缺点:两模式都无法全部享用处理器资源<br>在运行提前执行中，普通模式和运行提前模式都可以利用机器的全部资源，这有助于机器在运行提前模式中获得进一步的领先。<br>Lebeck提出，将依赖于长延迟操作的指令从(相对较小的)调度窗口中移除，放入(相对较大的)等待指令缓冲区(WIB)中，直到操作完成，然后将指令移回调度窗口。这结合了大指令窗口的延迟容忍优势和小调度窗口的快速周期时间优势。(类似于超标量发射队列的推测唤醒那一节)</p>
+<h2 id="IW和SW-和超标量哪一本的含义不同"><a href="#IW和SW-和超标量哪一本的含义不同" class="headerlink" title="IW和SW(和超标量哪一本的含义不同)"></a>IW和SW(和超标量哪一本的含义不同)</h2><p>An out-of-order execution machine<br>accomplishes this using two windows: the instruction window and the scheduling window.</p>
+<p>指令窗口是已经解码的指令但还没退休,也即是在rob的指令,调度窗口是指令窗口的一个子集,其主要作用就是找到可以执行的指令<br><img src="/2025/02/05/runahead/image.png" alt="alt text"><br>可以看到runahead+128表项的IW的停顿百分比与IPC(每个条顶部为IPC),其消除full window<br>stalls获得了20%的IPC提升</p>
+<h2 id="runahead-1"><a href="#runahead-1" class="headerlink" title="runahead"></a>runahead</h2><p>CPU任何时候都可以进入runahead,本论文在l2cache miss,并且该内存操作到达指令窗口的头部时(也就是最老的指令)进入提前执行.提前执行时的pc得存起来,以便退出runahead恢复archstate,IW中所有指令都被标记为runahead inst,在这个模式中取到的指令也是No updates to the checkpointed register file are allowed during runahead mode.runahead的执行与内存通信和无效结果的传播有关,一些规则:</p>
+<ol>
+<li>Invalid bits and instructions.</li>
+<li>Propagation of INV values.<br>进入runahead的第一条无效指令为load或者store(引起这个问题的原因),若为load,则rf的INV拉高,若为store,则runahead cache分配一个表项,并且将dest 的byte置为无效Any invalid instruction that writes to a register marks that<br>register as INV after it is scheduled or executed. Any valid<br>operation that writes to a register resets the INV bit ofits<br>destination register.</li>
+<li>Runahead store operations and runahead cache.之前的工作runahead load之前有runahead store(raw)被视为无效指令并被删除我们认为转发是必要的,如果两个指令都在IW中,直接通过store buffer获取指令,如果指令伪退休了,<br>我们将其存入runahead cache,其目的是转发数据和状态,被替换的dirty行不会存入下一级存储器,而是会直接删除(正常模式的指令无法访问该cache)store buffer 和runahead cache的每个字节都有对应的INV,而runahead cache 中还有STO为,指示store是否写入该字节,只有访问该cache中的STO和valid 之高的line,才不会miss,规则如下:<ol>
+<li>当有效runahead store执行-&gt;拉低cache的INV,若datacache中该数据缺失,则进行预取</li>
+<li>当无效runahead store被选中-&gt;将store buffer对应位置拉高INV</li>
+<li>当有效runahead store退休,写入cache,重置INV,设置写入字节的STO</li>
+<li>当无效的runahead store执行,cache的INV升高,设置STO</li>
+<li>runahead store不会将数据写入data cache<br>但store地址无效时,其操作将会被视为NOP,这时与之相关的load可能无法获得正确的值,可以使用memory dependence predictors解决</li>
+</ol>
+</li>
+<li>Runahead load operations.Runahead load操作可能因三种不同原因而无效它可能源于一个 INV 物理寄存器。（寄存器的INV位）它可能依赖于store buffer中标记为 INV 的存储。（store buffer的INV位）它可能依赖于一个已经伪退休的 INV 存储器。（runahead cache的INV位）Runahead load 执行时会<strong>并行</strong>访问data cache,store buffer和runahead cache访问store buffer和runahead cache:只有访问的line的INV置低,(STO置为高),才能获取数据,若无效,则该指令的dst reg 置为INV如果store buffer和runahead cache 都miss,但data cache hit,使用该数据,但实际这时数据可能是无效的-&gt;依赖于之前的store,但之前的store 的line是INV的或者被驱逐出cache(这种很罕见,故不会影响性能),如果三个都miss,则访问l2cache,如果访问l2cache miss,则驱除该指令,然后当作正常模式的指令运行,(个人理解这个可能会形成嵌套runahead)</li>
+<li>Execution and prediction of branches.<strong>在runahead模式的分支指令预测失败后不会恢复****训练策略</strong>runahead 时就训练BHT,这样其训练效果好不能再runahead训练BHT,这样可能导致分支预测不太行,导致runahead遇见分支性能下降只能在runahead训练BHT,正常模式通过fifo访问BHT两种模式有不同的表</li>
+<li>Instruction pseudo-retirement during runahead mode.<br>runahead模式退休和正常差不多,区别在于:runahead如果检测ROB有inv指令,直接退休,两种模式均会更新RAT</li>
+</ol>
+<h2 id="Exiting-runahead-mode"><a href="#Exiting-runahead-mode" class="headerlink" title="Exiting runahead mode"></a>Exiting runahead mode</h2><p>退出也是可以随时退出,本文使用和分支预测失误后恢复的方法相似<br>本文使用的是当blocking的数据返回后退出runahead,</p>
+<h2 id="一些名词"><a href="#一些名词" class="headerlink" title="一些名词"></a>一些名词</h2><p>BHT,FIFO,ROB,RAT,store buffer</p>
+]]></content>
+  </entry>
+  <entry>
+    <title>spp</title>
+    <url>/2025/02/13/spp/</url>
+    <content><![CDATA[<h1 id="Path-Confidence-based-Lookahead-Prefetching"><a href="#Path-Confidence-based-Lookahead-Prefetching" class="headerlink" title="Path Confidence based Lookahead Prefetching"></a>Path Confidence based Lookahead Prefetching</h1><p>首先，SPP 使用基于压缩历史的方案，可以准确预测复杂的地址模式。 其次，与其他基于历史的算法不同，当地址模式在物理页面之间转换时，这些算法会错过许多预取机会，而 SPP 会跨物理页面边界跟踪复杂模式，并在它们移动到新页面时立即继续预取。最后，SPP 利用其对预测的信心，根据每个预取流自适应地限制自身。SPP 以最小的开销实现这一点，严格在物理地址空间内操作，并且不需要任何额外的处理器核心状态，例如 PC。</p>
+<h2 id="SPP贡献"><a href="#SPP贡献" class="headerlink" title="SPP贡献"></a>SPP贡献</h2><ul>
+<li>我们引入了一种签名机制，以压缩形式存储内存访问模式并启动前瞻预取过程。此 12 位签名最多可压缩四个小增量，且不会产生混叠。通过将签名与未来可能的增量模式相关联，SPP 可以快速准确地学习简单和复杂的内存访问模式。签名还可用于检测两个物理页面之间的局部性，并从一个物理页面的末尾继续执行相同的预取模式，直到下一个物理页面。</li>
+<li>我们开发了一种基于路径置信度的预取节流机制。随着lookahead预取的深入，一系列签名构建了一条签名路径。每条签名路径都有不同的置信度值，这取决于其之前的增量历史、预取准确性和预取深度。路径置信度值用于动态限制预取深度，以平衡预取覆盖率和准确性</li>
+<li>与之前基于前瞻的预取器 [12]、[13] 不同，SPP 不需要深入到核心微架构中，而是纯粹基于物理内存访问流</li>
+</ul>
+<h2 id="MOTIVATION-AND-PRIOR-WORK"><a href="#MOTIVATION-AND-PRIOR-WORK" class="headerlink" title="MOTIVATION AND PRIOR WORK"></a>MOTIVATION AND PRIOR WORK</h2><p>对于之前的工作：</p>
+<ul>
+<li>需要去处理复杂的访存模式</li>
+<li>需要去自适应预取深度（lookahead深度）</li>
+<li>需要考虑跨页预取</li>
+</ul>
+<h2 id="DESIGN"><a href="#DESIGN" class="headerlink" title="DESIGN"></a>DESIGN</h2><p>随着lookahead深度增加，预取置信度在下降，公式如下</p>
+<p><img src="/2025/02/13/spp/1739453981726.png" alt="1739453981726"></p>
+<p>然后将Pd与置信度阈值对比，以确定何时<strong>停止预取</strong>，置信度Pd还可以选择插入哪个缓存，置信度高的插入高级别的</p>
+<p>SPP在物理空间运行，不用访问tlb，spp使用一个页面的学习结果来预测其他页，通过两种模式：</p>
+<p>首先，虽然增量历史签名是在每个物理页面的基础上维护的，如第 III-B 节所述，但这些签名索引到用于预测增量的全局表中，该表由所有页面共享。其次，如第 III-D 节所述，当第一次按需访问新的物理页面时，可以继承来自其增量预测跨越页面边界的先前物理页面的增量签名模式，并将其用于引导此新页面中的预测。这使 SPP 具有不需要长时间的每页预热期来开始预取复杂模式的优势，从而导致更高的预取覆盖率。</p>
+<h3 id="大致设计"><a href="#大致设计" class="headerlink" title="大致设计"></a>大致设计</h3><p><img src="/2025/02/13/spp/1739454665297.png" alt="1739454665297"></p>
+<p>主要有三个结构：Signature Table, Pattern Table, and Prefetch Filter以及一个小的GHR（用于跨页预取）</p>
+<p>SPP是用访问L2Cache的流来训练，可以将结果填充至L2或LLC，ST跟踪最近256个页面，每个页面的delta访问压缩为12bits的签名，然后这个可以去访问模式表（PT），存储预测的模式，PT还会去估计给定增量的置信度如果置信度高，就会作为预取候选传送给PF，PF检查是否存在冗余的预取，如果预测的增量跨4k边界，SPP不会发出预取，而是送入GHR学习</p>
+<h3 id="Learning-Memory-Access-Patterns"><a href="#Learning-Memory-Access-Patterns" class="headerlink" title="Learning Memory Access Patterns"></a>Learning Memory Access Patterns</h3><p><img src="/2025/02/13/spp/1739455356234.png" alt="1739455356234"></p>
+<p>ST是在4K页面内捕获访问模式，并将先前的offset记录在表中，如上图A，物理页面3，offset为3的请求访问ST，ST会根据下面公式更新签名</p>
+<p><img src="/2025/02/13/spp/1739455842729.png" alt="1739455842729"></p>
+<p>我们此时可以认为，给定的一组访问，比如0x1，他还会去访问增量为2的地址，如果PT不包含匹配的增量，他会在这个签名所属的一个地方去找一个Cdelta最低的值填入</p>
+<p>我们会在PT中更新这种访问模式，更新策略就是，找到delta为2的，将置信度+1，为了去估计每个delta的预取准确率，还维护了sig计数器，他跟踪签名出现的次数，如果两个技术器其中一个饱和了，与该签名的所有计数器将会右移1，这样做不会去丢失之前的历史记录</p>
+<p>PT的条目是全局共享的，也就是页面A,B共享相同的访问模式，他们会生成同样的签名，并且签名会索引到PT中相同的条目，更新PT访存模式</p>
+<p>PT每个条目可容纳最多四个delta，如果其置信度Cd&gt;&#x3D;Cdelta&#x2F;Csig,则这个条目就成为预取候选者</p>
+<p>delta最大为7bit，假设 4KB 页面具有 64B 缓存行，所有可能的增量都在 (-63) 到 (+63) 的范围内。我们对正增量和负增量都使用 7 位符号+幅度表示。因此，负增量和正增量会产生不同的签名，指向模式表中的不同条目，并最终指向不同的预取目标。但注意大于7的delta会发生混叠</p>
+<h3 id="Path-Confidence-based-Prefetching"><a href="#Path-Confidence-based-Prefetching" class="headerlink" title="Path Confidence-based Prefetching"></a>Path Confidence-based Prefetching</h3><p><img src="/2025/02/13/spp/1739457587856.png" alt="1739457587856"></p>
+<p>路径置信度是根据0XA的签名相关的增量计算的，初次访问置信度为Cdelta&#x2F;Csig，所以+2的增量会被送入预取</p>
+<p>此外PT还会构建新的签名以供下次预取使用，虽然可能会有多个候选，但只选择置信度最高的生成签名，新的lookahead签名用于再次访问PT，直至Pd小于Tp，更大的置信度Tf决定了给定的预取应该送入哪个缓存</p>
+<p>SPP可以引入a来降低lookahead的概率</p>
+<p>请注意，为简单起见，在上面的讨论中，我们在浮点数的背景下描述了路径置信度计算。然而，在实际实现中（以及在我们的模拟器中），我们使用 7 位定点数来表示 0∼100 之间的路径置信度值，并对这些定点数执行乘法和除法。此外，由于 Cdelta 和 Csig 是 4 位饱和计数器，我们可以使用一个简单的 16x16&#x3D;256 条目查找表来存储所有可能的除法结果，这使我们能够完全删除昂贵的除法器模块。此外，额外的计算延迟可以被隐藏，因为 SPP 可以在 L2 缓存等待 DRAM 服务需求未命中时在后台计算路径置信度</p>
+<p><img src="/2025/02/13/spp/1739458234710.png" alt="1739458234710"></p>
+<p>如果预取器观察到以下条件之一，SPP 会停止预取：1) 路径置信度 Pd 较低。 2) L2 读取队列资源太少。</p>
+<h3 id="Page-Boundary-Learning"><a href="#Page-Boundary-Learning" class="headerlink" title="Page Boundary Learning"></a>Page Boundary Learning</h3><p><img src="/2025/02/13/spp/1739458632499.png" alt="1739458632499"></p>
+<p>边界预测被存放到一个8entry的条目中，这个GHR存储当前的签名，路径置信度，以及偏移和delta，页面A发生跨页预取，那么会在新页面B访问GHR，匹配offset相等的，</p>
+<p>也即是发生跨页时：</p>
+<ol>
+<li>写入跨页请求，然后这个请求其实是B的offset为1的访问，此时访问GHR，发现匹配值，然后生成页面B的签名</li>
+</ol>
+<h3 id="Prefetch-Filter"><a href="#Prefetch-Filter" class="headerlink" title="Prefetch Filter"></a>Prefetch Filter</h3><p><img src="/2025/02/13/spp/1739459523960.png" alt="1739459523960"></p>
+<p>SPP总是先检查PF，然后再发出预取，如果PF已经包含一个缓存行，说明这个缓存行已经被预取，预取请求会被丢弃，当缓存行被替换，会重置有效位来清除条目</p>
+<p>通过在每个过滤器条目中添加一个有用位，PF 还可以近似预取精度。SPP 有两个全局计数器，一个用于跟踪预取请求的总数 (Ctotal)，另一个用于跟踪有用预取的数量 (Cuseful)。每当 SPP 发出未被过滤器丢弃的预取时，Ctotal 计数器就会增加。有用的预取由 PF 中命中的实际 L2 缓存需求请求检测到，这会增加 Cuseful 计数器。为了避免每个有用的预取行增加 Cuseful 超过一次，我们在 PF 条目中设置了一个已用位，以防止重复计算。此过滤器跟踪的全局预取精度用于公式 3 中的 α，以限制路径置信度值。</p>
+<p><img src="/2025/02/13/spp/1739460638587.png" alt="1739460638587"></p>
+]]></content>
+  </entry>
+  <entry>
     <title>论文移植</title>
     <url>/2025/02/09/%E8%AE%BA%E6%96%87%E7%A7%BB%E6%A4%8D/</url>
     <content><![CDATA[<h1 id="代码移植问题"><a href="#代码移植问题" class="headerlink" title="代码移植问题"></a>代码移植问题</h1><ol>
@@ -3167,6 +3213,50 @@
 <h1 id="gem5部分"><a href="#gem5部分" class="headerlink" title="gem5部分"></a>gem5部分</h1><p>编写了se跑spec2006的脚本，目前需要给输入参数加入绝对路径</p>
 <p>明天会编写fs跑spec2006的脚本，主要实现思路就是设置一个checkpoint，然后将所有benchmark打包进去，每次运行完一个benchmark就会poweoff，然后运行下一个（不知道是否可以并行）</p>
 ]]></content>
+  </entry>
+  <entry>
+    <title>简单的缓存一致性</title>
+    <url>/2025/02/05/%E7%AE%80%E5%8D%95%E7%9A%84%E7%BC%93%E5%AD%98%E4%B8%80%E8%87%B4%E6%80%A7/</url>
+    <content><![CDATA[<p>目录式协议(directory)—-物理存储器中数据块的共享状态被保存在一个称为目录的地方。目录式协议的实现开销比监听式协议的稍微大一些,但可用于实现更大规模的多处理机。<br>监听式协议(snooping)—-当物理存储器中的数据块被调入 Cache 时，其共享状态信息与该数据块一起放在该 Cache 中。系统中没有集中的状态表。这些 Cache 通常连在共享存储器的总线上。当某个 Cache 需要访问存储器时,它会把请求放到总线上广播出去,其他各个 Cache 控制器通过监听总线(它们一直在监听)来判断它们是否有总线上请求的数据块。如果有,就进行相应的操作。</p>
+<p>无论是MSI还是MESI,MOESI,都差不多按照以下思路分析:r_hit,r_miss,w_hit,w_miss讨论状态机实现,其中每个transaction对应3,4,5个状态(MSI-&gt;MESI-&gt;MOESI),且都要考虑本地cache和其他cache,如右图所示</p>
+<p><img src="/2025/02/05/%E7%AE%80%E5%8D%95%E7%9A%84%E7%BC%93%E5%AD%98%E4%B8%80%E8%87%B4%E6%80%A7/1729944912699.png" alt="1729944912699"></p>
+<ul>
+<li>M，modified，表示该数据已修改，即上述所说的“脏”数据，需要在合适的时机写回内存；</li>
+<li>E，Exclusive，表示该数据独占，意指此时该数据只存在某个核中，其他核没有该数据，于是就不需要所谓的广播给其他的核，也就没有缓存一致性的问题；</li>
+<li>S，Shared，表示数据共享，是从<strong>数据独占</strong>状态转移过来的。意指多个核中都有该数据，这个时候就会存在缓存一致性的问题；</li>
+<li>I，Invalidated，表示数据已失效，可以丢弃掉Cache Block的数据了（高并发情况下可能出现两个CPU同时修改变量a，并同时向总线发出将各自的缓存行更改为M状态的情况， <strong>此时总线会采用相应的裁决机制进行裁决</strong> ，将其中一个置为M状态，另一个置为I状态，且I状态的缓存行修改无效）；</li>
+</ul>
+<p>MESI四种状态标志是存储在Cache Line中的</p>
+<h1 id="内存模型"><a href="#内存模型" class="headerlink" title="内存模型"></a><strong>内存模型</strong></h1><h2 id="SC"><a href="#SC" class="headerlink" title="SC"></a>SC</h2><p>所有线程访存一定能构成全局序</p>
+<p><img src="/2025/02/05/%E7%AE%80%E5%8D%95%E7%9A%84%E7%BC%93%E5%AD%98%E4%B8%80%E8%87%B4%E6%80%A7/1730373908924.png" alt="1730373908924"></p>
+<p>所有load结果都是全局序中最近的同地址store值</p>
+<p>  <img src="/2025/02/05/%E7%AE%80%E5%8D%95%E7%9A%84%E7%BC%93%E5%AD%98%E4%B8%80%E8%87%B4%E6%80%A7/1730373977856.png" alt="1730373977856"></p>
+<h2 id="TSO"><a href="#TSO" class="headerlink" title="TSO"></a>TSO</h2><p><img src="/2025/02/05/%E7%AE%80%E5%8D%95%E7%9A%84%E7%BC%93%E5%AD%98%E4%B8%80%E8%87%B4%E6%80%A7/1730374094456.png" alt="1730374094456"><img src="/2025/02/05/%E7%AE%80%E5%8D%95%E7%9A%84%E7%BC%93%E5%AD%98%E4%B8%80%E8%87%B4%E6%80%A7/1730374216003.png" alt="1730374216003"></p>
+<h2 id="RVWMO"><a href="#RVWMO" class="headerlink" title="RVWMO"></a>RVWMO</h2><p><img src="/2025/02/05/%E7%AE%80%E5%8D%95%E7%9A%84%E7%BC%93%E5%AD%98%E4%B8%80%E8%87%B4%E6%80%A7/1730374321974.png" alt="1730374321974"></p>
+<p><img src="/2025/02/05/%E7%AE%80%E5%8D%95%E7%9A%84%E7%BC%93%E5%AD%98%E4%B8%80%E8%87%B4%E6%80%A7/1730374367495.png" alt="1730374367495"></p>
+<h2 id="香山乱序访存"><a href="#香山乱序访存" class="headerlink" title="香山乱序访存"></a>香山乱序访存</h2><p>数据也会存到SQ</p>
+<p><img src="/2025/02/05/%E7%AE%80%E5%8D%95%E7%9A%84%E7%BC%93%E5%AD%98%E4%B8%80%E8%87%B4%E6%80%A7/1730380794423.png" alt="1730380794423"></p>
+<p>设置一个SQ,在派遣时将进入SQ,FIFO结构,当指令</p>
+<p><img src="/2025/02/05/%E7%AE%80%E5%8D%95%E7%9A%84%E7%BC%93%E5%AD%98%E4%B8%80%E8%87%B4%E6%80%A7/1730380916400.png" alt="1730380916400"></p>
+<p><img src="/2025/02/05/%E7%AE%80%E5%8D%95%E7%9A%84%E7%BC%93%E5%AD%98%E4%B8%80%E8%87%B4%E6%80%A7/1730381086089.png" alt="1730381086089"></p>
+<p><img src="/2025/02/05/%E7%AE%80%E5%8D%95%E7%9A%84%E7%BC%93%E5%AD%98%E4%B8%80%E8%87%B4%E6%80%A7/1730381113849.png" alt="1730381113849"></p>
+<p>当<strong>sw遇到TLBmiss</strong> 让她退出流水,然后在SQ标记重发<img src="/2025/02/05/%E7%AE%80%E5%8D%95%E7%9A%84%E7%BC%93%E5%AD%98%E4%B8%80%E8%87%B4%E6%80%A7/1730381020649.png" alt="1730381020649"></p>
+<p><strong>load流水线</strong></p>
+<p>load指令一方面数据来自DCache,另一方面来自SQ,而且SQ优先级更高,在读数据要对SQ和DCache的数据合并</p>
+<p><strong>Store&#x2F;load违例:load先于store执行</strong></p>
+<p>1.阻塞,load得等,等到之前的store指令地址计算完,算是部分乱序</p>
+<p>2.检测:检测到了违例,直接从lw之后把指令刷掉,(一种是ROB,但ROB太大)</p>
+<p>所以可以设置一个LQ,FIFO,是ROB子集只用存LW指令,dispatch入队,sw指令会检测是否有比其更年轻的load(ROB地址值作为age)已经执行完了,从lw下面指令全部刷了.重新取</p>
+<p><img src="/2025/02/05/%E7%AE%80%E5%8D%95%E7%9A%84%E7%BC%93%E5%AD%98%E4%B8%80%E8%87%B4%E6%80%A7/1730381962804.png" alt="1730381962804"></p>
+<p>load异常事件:</p>
+<p>TLBmiss</p>
+<p><img src="/2025/02/05/%E7%AE%80%E5%8D%95%E7%9A%84%E7%BC%93%E5%AD%98%E4%B8%80%E8%87%B4%E6%80%A7/1730382130178.png" alt="1730382130178"></p>
+<p><img src="/2025/02/05/%E7%AE%80%E5%8D%95%E7%9A%84%E7%BC%93%E5%AD%98%E4%B8%80%E8%87%B4%E6%80%A7/1730382342283.png" alt="1730382342283"></p>
+<p>取回数据然后对唤醒LQ的指令</p>
+]]></content>
+      <categories>
+        <category>计算机体系结构</category>
+      </categories>
   </entry>
   <entry>
     <title>超标量处理器设计</title>

@@ -329,7 +329,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2025-03-04 14:12:37" itemprop="dateModified" datetime="2025-03-04T14:12:37+08:00">2025-03-04</time>
+      <time title="修改时间：2025-03-05 23:14:05" itemprop="dateModified" datetime="2025-03-05T23:14:05+08:00">2025-03-05</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -355,7 +355,7 @@
         <i class="far fa-clock"></i>
       </span>
       <span class="post-meta-item-text">阅读时长 &asymp;</span>
-      <span>1:51</span>
+      <span>1:53</span>
     </span>
 </div>
 
@@ -366,8 +366,7 @@
     
     
     <div class="post-body" itemprop="articleBody">
-          <h1 id="1-官方的adder例子"><a href="#1-官方的adder例子" class="headerlink" title="1. 官方的adder例子"></a>1. 官方的adder例子</h1><p><img src="/2025/02/05/diplomacy&boom/1730820232374.png" alt="1730820232374"></p>
-<p><strong>首先定义参数</strong></p>
+          <h2 id="1-官方的adder例子"><a href="#1-官方的adder例子" class="headerlink" title="1. 官方的adder例子"></a>1. 官方的adder例子</h2><h6 id><a href="#" class="headerlink" title></a><img src="/2025/02/05/diplomacy&boom/1730820232374.png" alt="1730820232374"></h6><p><strong>首先定义参数</strong></p>
 <figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">case class UpwardParam(width: Int)</span><br><span class="line">case class DownwardParam(width: Int)</span><br><span class="line">case class EdgeParam(width: Int)</span><br><span class="line"></span><br></pre></td></tr></table></figure>
 
 <p>也即是INT,</p>
@@ -1731,6 +1730,53 @@
 <li><strong>更新叶页表条目</strong> ：修改叶页表条目后，执行 SFENCE.VMA（rs1 设置为虚拟地址），若路径中存在全局 PTE，则 rs2 必须为 x0。</li>
 <li><strong>延迟刷新</strong> ：对于权限提升或使无效 PTE 变为有效叶 PTE 的操作，可延迟执行 SFENCE.VMA，但在页错误发生时需按要求执行。</li>
 </ol>
+<h2 id="DCACHE"><a href="#DCACHE" class="headerlink" title="DCACHE"></a>DCACHE</h2><h4 id="tag组织结构"><a href="#tag组织结构" class="headerlink" title="tag组织结构"></a>tag组织结构</h4><p>tag每个mem通道均含有，写时需要同时写（保证同步），读时需要同时读，但每个通道有独立的读信号</p>
+<blockquote>
+<p>这里tag好像为双端口器件</p>
+</blockquote>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line">val meta = Seq.fill(memWidth) &#123; Module(new L1MetadataArray(onReset _)) &#125;</span><br><span class="line">val metaWriteArb = Module(new Arbiter(new L1MetaWriteReq, 2))</span><br><span class="line">// 0 goes to MSHR refills, 1 goes to prober</span><br><span class="line">val metaReadArb = Module(new Arbiter(new BoomL1MetaReadReq, 6))</span><br><span class="line">// 0 goes to MSHR replays, 1 goes to prober, 2 goes to wb, 3 goes to MSHR meta read,</span><br><span class="line">// 4 goes to pipeline, 5 goes to prefetcher</span><br><span class="line"></span><br><span class="line">metaReadArb.io.in := DontCare</span><br><span class="line">for (w &lt;- 0 until memWidth) &#123;</span><br><span class="line">  meta(w).io.write.valid := metaWriteArb.io.out.fire</span><br><span class="line">  meta(w).io.write.bits  := metaWriteArb.io.out.bits</span><br><span class="line">  meta(w).io.read.valid  := metaReadArb.io.out.valid</span><br><span class="line">  meta(w).io.read.bits   := metaReadArb.io.out.bits.req(w)</span><br><span class="line">&#125;</span><br><span class="line">metaReadArb.io.out.ready  := meta.map(_.io.read.ready).reduce(_||_)</span><br><span class="line">metaWriteArb.io.out.ready := meta.map(_.io.write.ready).reduce(_||_)</span><br></pre></td></tr></table></figure>
+
+
+
+<h4 id="数据通道"><a href="#数据通道" class="headerlink" title="数据通道"></a>数据通道</h4><p>megaoom默认使用BoomDuplicatedDataArray，一个cacheline为128bit，rowOffBits&#x3D;4，encDataBits&#x3D;64，rowWords&#x3D;2，data写端口有两个请求，读端口含有3个请求</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line">val data = Module(if (boomParams.numDCacheBanks == 1) new BoomDuplicatedDataArray else new BoomBankedDataArray)</span><br><span class="line">val dataWriteArb = Module(new Arbiter(new L1DataWriteReq, 2))</span><br><span class="line">// 0 goes to pipeline, 1 goes to MSHR refills</span><br><span class="line">val dataReadArb = Module(new Arbiter(new BoomL1DataReadReq, 3))</span><br><span class="line">// 0 goes to MSHR replays, 1 goes to wb, 2 goes to pipeline</span><br><span class="line">dataReadArb.io.in := DontCare</span><br><span class="line"></span><br><span class="line">for (w &lt;- 0 until memWidth) &#123;</span><br><span class="line">  data.io.read(w).valid := dataReadArb.io.out.bits.valid(w) &amp;&amp; dataReadArb.io.out.valid</span><br><span class="line">  data.io.read(w).bits  := dataReadArb.io.out.bits.req(w)</span><br><span class="line">&#125;</span><br><span class="line">dataReadArb.io.out.ready := true.B</span><br><span class="line"></span><br><span class="line">data.io.write.valid := dataWriteArb.io.out.fire</span><br><span class="line">data.io.write.bits  := dataWriteArb.io.out.bits</span><br><span class="line">dataWriteArb.io.out.ready := true.BBoomDuplicatedDataArray十分简易，主要讲BoomBankedDataArray：</span><br></pre></td></tr></table></figure>
+
+<p>下面介绍读写端口请求</p>
+<ol>
+<li>pipe请求：该读请求占据meta arbit的端口4和data 的端口2</li>
+<li>mshr replay请求，读请求占据data和meta的端口0</li>
+<li>mshr读meta请求。占据meta的端口3</li>
+<li>写回端口，占据meta的读端口2和data的读端口1</li>
+<li>Prober请求，占据meta读端口1</li>
+<li>prefetch，占据meta端口5</li>
+</ol>
+<p>接下来先介绍dcache主流水线</p>
+<h4 id="S0-stage"><a href="#S0-stage" class="headerlink" title="S0 stage"></a>S0 stage</h4><p>s0阶段的valid信号来自lsu的优先级最高，而req信号优先级如下：</p>
+<ol>
+<li>lsu请求</li>
+<li>wb请求</li>
+<li>prober请求</li>
+<li>prefetch请求</li>
+<li>mshr读meta请求</li>
+</ol>
+<p>s0阶段的事件如下代码</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line">val s0_valid = Mux(io.lsu.req.fire, VecInit(io.lsu.req.bits.map(_.valid)),</span><br><span class="line">               Mux(mshrs.io.replay.fire || wb_fire || prober_fire || prefetch_fire || mshrs.io.meta_read.fire,</span><br><span class="line">                                      VecInit(1.U(memWidth.W).asBools), VecInit(0.U(memWidth.W).asBools)))</span><br><span class="line">val s0_req   = Mux(io.lsu.req.fire        , VecInit(io.lsu.req.bits.map(_.bits)),</span><br><span class="line">               Mux(wb_fire                  , wb_req,</span><br><span class="line">               Mux(prober_fire              , prober_req,</span><br><span class="line">               Mux(prefetch_fire            , prefetch_req,</span><br><span class="line">               Mux(mshrs.io.meta_read.fire, mshr_read_req</span><br><span class="line">                                            , replay_req)))))</span><br><span class="line">val s0_type  = Mux(io.lsu.req.fire        , t_lsu,</span><br><span class="line">               Mux(wb_fire                  , t_wb,</span><br><span class="line">               Mux(prober_fire              , t_probe,</span><br><span class="line">               Mux(prefetch_fire            , t_prefetch,</span><br><span class="line">               Mux(mshrs.io.meta_read.fire, t_mshr_meta_read</span><br><span class="line">                                            , t_replay)))))</span><br><span class="line">val s0_send_resp_or_nack = Mux(io.lsu.req.fire, s0_valid,</span><br><span class="line">  VecInit(Mux(mshrs.io.replay.fire &amp;&amp; isRead(mshrs.io.replay.bits.uop.mem_cmd), 1.U(memWidth.W), 0.U(memWidth.W)).asBools))</span><br></pre></td></tr></table></figure>
+
+<p>s0_send_resp_or_nack给出了需要作出回复或者nack的时间</p>
+<h4 id="S1-stage"><a href="#S1-stage" class="headerlink" title="S1 stage"></a>S1 stage</h4><p>s1阶段主要就是一个寄存器regnext，如果此时有以下条件：</p>
+<ol>
+<li>分支预测失败</li>
+<li>lsu发生异常，且该请求为ld请求</li>
+<li>s2 store失败，且该请求为来自lsu的st请求</li>
+</ol>
+<p>此时，s1_valid置低</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">val s1_valid = widthMap(w =&gt;</span><br><span class="line">                RegNext(s0_valid(w)                                     &amp;&amp;</span><br><span class="line">                        !IsKilledByBranch(io.lsu.brupdate, s0_req(w).uop) &amp;&amp;</span><br><span class="line">                        !(io.lsu.exception &amp;&amp; s0_req(w).uop.uses_ldq)   &amp;&amp;</span><br><span class="line">                        !(s2_store_failed &amp;&amp; io.lsu.req.fire &amp;&amp; s0_req(w).uop.uses_stq),</span><br><span class="line">                        init=false.B))</span><br></pre></td></tr></table></figure>
+
+<p>s1阶段大部分信号为s0的reg，s1_nack解释了该阶段会不会阻塞，和prober有关</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">val s1_addr         = s1_req.map(_.addr)</span><br><span class="line">val s1_nack         = s1_addr.map(a =&gt; a(idxMSB,idxLSB) === prober.io.meta_write.bits.idx &amp;&amp; !prober.io.req.ready)</span><br><span class="line">val s1_send_resp_or_nack = RegNext(s0_send_resp_or_nack)</span><br><span class="line">val s1_type         = RegNext(s0_type)</span><br><span class="line"></span><br><span class="line">val s1_mshr_meta_read_way_en = RegNext(mshrs.io.meta_read.bits.way_en)</span><br><span class="line">val s1_replay_way_en         = RegNext(mshrs.io.replay.bits.way_en) // For replays, the metadata isn&#x27;t written yet</span><br><span class="line">val s1_wb_way_en             = RegNext(wb.io.data_req.bits.way_en)</span><br></pre></td></tr></table></figure>
+
+
+
 <h1 id="CDE学习记录"><a href="#CDE学习记录" class="headerlink" title="CDE学习记录"></a>CDE学习记录</h1><p>CDE其中有site&#x2F;here&#x2F;&#x2F;up:</p>
 <p>site:记录查找发生时的Module的偏函数</p>
 <p>here:在本模块的参数</p>
@@ -3871,7 +3917,7 @@
     <span class="post-meta-item-icon">
       <i class="fa fa-coffee"></i>
     </span>
-    <span title="站点阅读时长">7:04</span>
+    <span title="站点阅读时长">7:07</span>
   </span>
 </div>
   <div class="powered-by">由 <a href="https://hexo.io/" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.js.org/" rel="noopener" target="_blank">NexT.Gemini</a> 强力驱动
