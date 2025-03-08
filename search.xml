@@ -1571,234 +1571,6 @@
       </categories>
   </entry>
   <entry>
-    <title>Tilelink</title>
-    <url>/2025/03/06/Tilelink/</url>
-    <content><![CDATA[<h1 id="Tilelink协议"><a href="#Tilelink协议" class="headerlink" title="Tilelink协议"></a>Tilelink协议</h1><h2 id="架构与信号描述"><a href="#架构与信号描述" class="headerlink" title="架构与信号描述"></a>架构与信号描述</h2><p>TileLink 支持多种类型的通讯代理模块，并定义了三个从简单到复杂的的协议扩展级别。每个级别定义了兼容该级别的通讯代理模块需要支持的协议扩展子集，如下图所示。最简单的是 TileLink 无缓存轻量级(Uncached Lightweight, TL-UL)，只支持简单的单个字读写(Get&#x2F;Put)的存储器操作。相对复杂的 TileLink无缓存重量级(Uncached Heavyweight,TL-UH)，添加了预处理(hints)、原子访问和突发访问支持，但不支持一致性的缓存访问。最后，缓存相关级别 TileLink Cached(TL-C)是最复杂（完整）的协议，支持使用一致性的缓存模块。</p>
-<p><img src="/2025/03/06/Tilelink/myblog\source_posts\Tilelink\image-20250306151247639.png" alt="image-20250306151247639"></p>
-<p>除了 clock 和 reset 信号之外，TileLink 信号名字的组成：通道识别符（a到e）跟着一个下划线，再接一个信号名（在下面小节中一一列举）。</p>
-<p>对于拥有多个 TileLink 接口的设备，推荐在所有 TileLink 信号名字之前加上一些描述性的标示加下划线。例如，a_opcode 变成 gpio_a_opcode。</p>
-<p><img src="/2025/03/06/Tilelink/myblog\source_posts\Tilelink\image-20250306151441976.png" alt="image-20250306151441976"></p>
-<h3 id="通道A"><a href="#通道A" class="headerlink" title="通道A"></a>通道A</h3><p>通道A从主接口流向从接口，携带发送到特定地址的请求消息。此通道由所有TileLink一致性级别使用，并且是强制性的。</p>
-<p><img src="/2025/03/06/Tilelink/myblog\source_posts\Tilelink\image-20250306151716023.png" alt="image-20250306151716023"></p>
-<h3 id="通道B"><a href="#通道B" class="headerlink" title="通道B"></a>通道B</h3><p>通道B从从接口流到主接口，携带发送到特定主接口保存的特定缓存数据块的请求消息。该通道由TL-C一致性级别使用，在较低级别中是可选的。</p>
-<p><img src="/2025/03/06/Tilelink/myblog\source_posts\Tilelink\image-20250306151802131.png" alt="image-20250306151802131"></p>
-<h3 id="通道C"><a href="#通道C" class="headerlink" title="通道C"></a>通道C</h3><p>通道C从主接口流向从接口。它可以携带对发送到特定缓存数据块的通道B请求的响应消息。它还用于主动写回脏缓存数据。此通道用于TL-C一致性级别，在较低级别中是可选的。</p>
-<p><img src="/2025/03/06/Tilelink/myblog\source_posts\Tilelink\image-20250306151850411.png" alt="image-20250306151850411"></p>
-<h3 id="通道D"><a href="#通道D" class="headerlink" title="通道D"></a>通道D</h3><p>通道D从从接口流向主接口。它携带发送到特定地址的通道A请求的响应消息。它还携带通道C自愿回写的确认。此通道由所有TileLink一致性级别使用，并且是非可选的。</p>
-<p><img src="/2025/03/06/Tilelink/myblog\source_posts\Tilelink\image-20250306151931772.png" alt="image-20250306151931772"></p>
-<h3 id="通道E"><a href="#通道E" class="headerlink" title="通道E"></a>通道E</h3><p>通道E从主接口流向从接口，携带通道D响应消息的接收确认，用于操作序列化，该通道用于TL-C一致性级别，在较低级别可选。</p>
-<p><img src="/2025/03/06/Tilelink/myblog\source_posts\Tilelink\image-20250306152019419.png" alt="image-20250306152019419"></p>
-<h2 id="序列化、死锁"><a href="#序列化、死锁" class="headerlink" title="序列化、死锁"></a>序列化、死锁</h2><h3 id="Flow-Control-Rules"><a href="#Flow-Control-Rules" class="headerlink" title="Flow Control Rules"></a>Flow Control Rules</h3><p>为了实现正确的ready和valid信号握手，需要遵守以下规则：</p>
-<ul>
-<li>当ready信号为低时，接收者不能处理数据并且发送者认为该拍内的数据未被处理。</li>
-<li>当valid信号为低时，接收者应当认为该数据信号并不是一个正确的TileLink数据。</li>
-<li>valid必须与ready信号独立，如果一个发送者希望发送一拍数据，则必须使能一 个valid信号，同时该valid信号是与接收者的ready信号独立的。</li>
-<li>从ready到valid信号或者任何数据或控制信号之间不能存在任何组合逻辑路径。</li>
-<li>一个低优先级的有效不能组合地依赖于一个高优先级的有效。换句话说，发送一个请求的决定不能基于在同一个周期内接收到一个响应</li>
-<li>高优先级就绪可能不会组合依赖于低优先级就绪。换句话说，响应的接受可能不会取决于同一周期内接受的请求。</li>
-</ul>
-<p>对于能够携带簇发的TileLink的通道，有着额外的规则约束。一个簇发一旦第一拍数据 被接收，直到最后一拍数据传输结束都认为处于传输过程中。当一个数据包处于传输过程中 时，如果valid信号为高，发送者必须满足：</p>
-<ul>
-<li>只有同消息的簇发的一拍数据。</li>
-<li>控制信号与第一拍相同。</li>
-<li>数据为与之前拍数据的地址再加上按数据总线的字节宽度得到的地址所对应的数据。</li>
-</ul>
-<p><img src="/2025/03/06/Tilelink/myblog\source_posts\Tilelink\image-20250306153533273.png" alt="image-20250306153533273"></p>
-<p>第一个信息为F，size为5，表示传输32个字节，需要四拍，opcode 0表示为PutFullData 4表示Get操作，第二个信息为G，大小为1字节，H被拒绝接受，并且下个周期控制信号改变，变为了传输4个字节的I，之后J虽然size含有16个字节，但GET操作不含数据，故一周期完成</p>
-<p><img src="/2025/03/06/Tilelink/myblog\source_posts\Tilelink\image-20250306154049652.png" alt="image-20250306154049652"></p>
-<p>第一个信息为L，opcode为1 表示AccessAckData，含有数据，故需要4拍，之后和上面例子类似</p>
-<h3 id="请求响应数据排序"><a href="#请求响应数据排序" class="headerlink" title="请求响应数据排序"></a>请求响应数据排序</h3><p>我们现在定义在一个具有多拍数据包的情况下，发送响应消息时的规则。在如下情况下，响应消息的第一拍可以出现在响应通道上：</p>
-<ul>
-<li>在请求消息被接收了的同一个周期出现，但不会在这周期之前出现。</li>
-<li>在请求消息的第一拍握手成功之后的任意时间</li>
-</ul>
-<p>跟随在包的响应消息的第一拍后的多拍信号可以在任意延迟后出现，但与此同时，<strong>不能有来自其他消息的任一拍数据交错地插入此次传输中</strong>。</p>
-<h4 id="Burst-Responses"><a href="#Burst-Responses" class="headerlink" title="Burst Responses"></a>Burst Responses</h4><p><img src="/2025/03/06/Tilelink/myblog\source_posts\Tilelink\image-20250306155350105.png" alt="image-20250306155350105"></p>
-<p>第一个请求的ack在任意延迟后出现在D通道，第二个请求在被接受的同时，d通道出现ack</p>
-<h4 id="Burst-Requests"><a href="#Burst-Requests" class="headerlink" title="Burst Requests"></a>Burst Requests</h4><p><img src="/2025/03/06/Tilelink/myblog\source_posts\Tilelink\image-20250306155621522.png" alt="image-20250306155621522"></p>
-<p>第一个AcessAck被延迟任意长时间，但请求者会发送余下的信息</p>
-<p>第二个AcessAck在PutFullData同一拍出现，</p>
-<h4 id="Burst-Requests-and-Responses"><a href="#Burst-Requests-and-Responses" class="headerlink" title="Burst Requests and Responses"></a>Burst Requests and Responses</h4><p><img src="/2025/03/06/Tilelink/myblog\source_posts\Tilelink\image-20250306155905329.png" alt="image-20250306155905329"></p>
-<p>对于大小为4，16字节（2拍）的操作，要么在请求和响应消息之间存在较长的延迟，要么两者的各拍信号重叠。如果每条消息的整体都能放入一拍之中(2ˆ3&#x3D;8&#x3D;1beat)，那么这些消息就能完全地重叠。</p>
-<h3 id="Byte-Lanes"><a href="#Byte-Lanes" class="headerlink" title="Byte Lanes"></a>Byte Lanes</h3><p>带有数据域的TileLink通道总是自然地以小端对齐方式运载数据载荷，一个字节通路传输的数据的地址的最低一部分总是相同的，如下图所示。</p>
-<p><img src="/2025/03/06/Tilelink/myblog\source_posts\Tilelink\image-20250306160214144.png" alt="image-20250306160214144"></p>
-<p>一个操作要么使用所有的数据字节通道，要么使用其中一个2的幂大小的片段。操作使用的字节通道称为活动字节通道。</p>
-<p>在携带掩码字段的通道A和B上，所有非活动字节通道的掩码必须始终为LOW。此外，对于PutPartialData以外的所有消息，所有活动字节通道的掩码位必须为HIGH。PutPartialData可以降低掩码的各个位，并且这些位不必连续。</p>
-<p>掩码也用于没有数据有效载荷的消息。当操作大小小于数据总线时，掩码的生成应该与携带数据有效载荷的操作相同。对于大于数据总线的无数据操作，掩码的所有位都应该为高，尽管消息仍然是单拍。例如，参见图12。</p>
-<p><img src="/2025/03/06/Tilelink/myblog\source_posts\Tilelink\image-20250306161231625.png" alt="image-20250306161231625"></p>
-<p>在图12中，PutFullData（0）必须将掩码的所有活动通道驱动为高。因此，第一个消息在多个节拍上具有所有节拍高。相比之下，PutPartialData（1）可以将掩码的活动通道驱动为高或低。Get（4）消息从不是多节拍的，但仍然必须将活动字节通道上的掩码驱动为高。对于小于节拍的消息，掩码的所有非活动字节通道必须被驱动为低（寻址0x62的操作中的位0和1）。</p>
-<h3 id="Deadlock-Freedom"><a href="#Deadlock-Freedom" class="headerlink" title="Deadlock Freedom"></a>Deadlock Freedom</h3><p><img src="/2025/03/06/Tilelink/myblog\source_posts\Tilelink\image-20250306162310858.png" alt="image-20250306162310858"></p>
-<p><img src="/2025/03/06/Tilelink/myblog\source_posts\Tilelink\image-20250306162236254.png" alt="image-20250306162236254"></p>
-<ol>
-<li>接受（accept）一拍：若发送者在某个通道上把valid信号拉高，接收者若把ready信号拉高则接受一拍。</li>
-<li>拒绝（reject）一拍：若发送者在某个通道上把valid信号拉高，接收者若把ready信号拉低则接受一拍。</li>
-<li>撤回（retract）一拍：若接收者拒绝一拍，发送者可以拉低valid或在下一拍修改控制或数据信号来撤回一拍。</li>
-<li>呈现（present）一拍：若valid拉高且所有控制和数据信号在ready也拉高之前都保持不变，称之为呈现一拍。</li>
-<li>进行中（in progress）：一个消息正在进行，表示从被接受的第一拍到最后一拍被接受之间的这段时间。</li>
-<li>传输中（in flight）：一个消息正在进行，表示从被呈现的第一拍到最后一拍被接受之间的这段时间。</li>
-<li>请求消息：需要一个对应的响应消息，所有的TileLink操作都从某个通道的请求消息开始。</li>
-<li>响应消息：跟随在请求消息之后的响应。</li>
-<li>已收到的（received）消息：从簇发传输的第一拍被接受开始，消息被收到。</li>
-<li>已回答的（answered）消息：收到的请求被响应后，消息被回答。</li>
-<li>代理（agent）：TileLink系统中的参与者，有一或多个TileLink链路。</li>
-<li>优先级：一个消息的优先级与对应通道的优先级对应，响应消息的优先级总是比对应请求的优先级高，转发消息的优先级也更高。</li>
-<li>最终事件：一个事件在任意长但并非无穷长之后最终发生。</li>
-<li>向前推进：当所有呈现的拍最终被接受，且所有收到的请求最终被回答时，系统可以向前推进。</li>
-<li>不活动的（quiescent）：当没有添加新的消息时，系统处于不活动的状态，注意尽管TileLink保证不出现死锁，但仍然可能产生活锁或饥饿状态。为了限制这种情况，代理只被允许发送<code>n+rf</code>个消息，包括<code>n</code>为该代理允许发送的新消息、<code>r</code>为该代理接收的消息以及<code>f</code>为该代理为每个收到的消息允许发送的后续消息。</li>
-</ol>
-<h4 id="Examples-of-agent-conformance"><a href="#Examples-of-agent-conformance" class="headerlink" title="Examples of agent conformance"></a>Examples of agent conformance</h4><h5 id="周期性转发的主设备（不符合）"><a href="#周期性转发的主设备（不符合）" class="headerlink" title="周期性转发的主设备（不符合）"></a>周期性转发的主设备（不符合）</h5><p>一个代理有一个主接口和一个从接口，在A通道接受请求消息，但在转发消息时只在偶数周期拉高valid信号。这个代理不符合协议要求，原因是该代理不能完整呈现转发的消息，不能保证最终回答一个收到的请求。</p>
-<h5 id="等待刷新（符合）"><a href="#等待刷新（符合）" class="headerlink" title="等待刷新（符合）"></a>等待刷新（符合）</h5><p>一个DDR控制器周期性地无法处理请求，在这段时间内无条件地拉低所有ready信号，但注意到该代理仍然最终可以接受呈现的拍，因此还是符合协议要求的。</p>
-<h5 id="等待消息被接收（不符合）"><a href="#等待消息被接收（不符合）" class="headerlink" title="等待消息被接收（不符合）"></a>等待消息被接收（不符合）</h5><p>一个代理有两个用于发送消息的链路，在链路1上发起簇发传输A，并且几拍中的第一拍被接受，表明消息已被接收，但仍在传输中，然后在链路2上发起簇发传输B，此时A的传输还未结束。在恢复A之前等待B被接受是不符合协议要求的。</p>
-<h5 id="非常慢的仲裁器（符合）"><a href="#非常慢的仲裁器（符合）" class="headerlink" title="非常慢的仲裁器（符合）"></a>非常慢的仲裁器（符合）</h5><p>考虑一个具有三个链路的TL-UH代理，仲裁来自两条链路的A通道请求，并转发到第三条链路的A通道，但该仲裁器的吞吐量非常低。</p>
-<p>代理空闲时将从任一输入的A通道中选择一个valid请求，一旦选择了一个请求，就会在另一个A通道上拉低ready信号，并在所选链路和输出链路之间连接ready和valid（通道A和D）。一旦请求的所有拍都已被输出通道接受，代理在两个输入A通道上拉低ready信号，并等待响应消息的最后一拍被所选的通道接受。</p>
-<p>该代理符合规则2，因为可以假设输入的A通道都遵守规则2，因此其输出的A通道请求将呈现接收到的请求的所有节拍，D通道也同理。</p>
-<p>假设代理正在处理输入的一个消息，在转发链路上分别有一个未回答或进行中的消息。由于该链路的优先级高于输入的链路，因此适用规则3，并且代理可以无限期地拒绝后续提交的A通道请求。</p>
-<p>假设代理空闲并且没有输入呈现消息，这种情况满足规则3i，因为没有消息可以接受，同时也满足规则3ii，因为只有在收到的请求被回答时，仲裁器才会再次空闲。</p>
-<h2 id="操作与信息"><a href="#操作与信息" class="headerlink" title="操作与信息"></a>操作与信息</h2><h3 id="操作分类"><a href="#操作分类" class="headerlink" title="操作分类"></a>操作分类</h3><p>TileLink 操作能被分为下列三组:</p>
-<ul>
-<li>Accesses (A) 在具体的地址读或写数据。</li>
-<li>Hints (H) 只是提供一些信息，没有实际的影响。</li>
-<li>Transfers (T) 在拓扑网络中改变权限或移动缓存拷贝。</li>
-</ul>
-<p>不是每个TileLink代理都需要支持所有操作。取决于其的TileLink兼容级别，一个代理需要支持的操作如下表所列。</p>
-<p><img src="/2025/03/06/Tilelink/myblog\source_posts\Tilelink\image-20250306165146627.png" alt="image-20250306165146627"></p>
-<h3 id="消息分类"><a href="#消息分类" class="headerlink" title="消息分类"></a>消息分类</h3><p><img src="/2025/03/06/Tilelink/myblog\source_posts\Tilelink\image-20250306165249965.png" alt="image-20250306165249965"></p>
-<p>操作为蓝色，紫色为消息</p>
-<p><img src="/2025/03/06/Tilelink/myblog\source_posts\Tilelink\image-20250306165453357.png" alt="image-20250306165453357"></p>
-<p><img src="/2025/03/06/Tilelink/myblog\source_posts\Tilelink\image-20250306165606275.png" alt="image-20250306165606275"></p>
-<p>在一个TileLink拓扑网络中，在任意给定时间内会有多个操作在进程中。这些操作可能以任意的顺序完成。为了确保主端能在一个操作完成后，再执行其他操作，TileLink要求从端在操作结束时及时发送一个回复消息。因此，如果处理器要确保两个写操作X和Y的顺序被其他所有代理获取时都是一致的，那么处理器发送X的<code>PutFullData</code>后，必须等待<code>AccessAck</code>回复，在此之后，才发送Y的<code>PutFullData</code>。</p>
-<p>TileLink的从端，包括缓存，不能在Put操作确认前就将数据写回。唯一的约束是，一旦确认消息发出后，整个拓扑网络不能观察到过去的状态，这是因为在确认消息发出后，所有的被缓存的数据的拷贝都必须是已更新的。例如，对于一个Put操作，其他缓存要么被<code>Probe</code>现有的数据拷贝，要么通过<code>PutFullData</code>将消息前递给其他缓存，并且在确认原始的请求消息前，收集对应的回复消息。</p>
-<p>发射回复消息的代理需要保证它们接收的操作是一个有效的序列。例如，假设一个代理接收了两个Put，X和Y，并且都没有被确认，必须选择一定的顺序，例如说是X在Y之前。如果选择了这样的顺序，必须保证只有三个状态，X与Y前的状态，X之后且Y之前的状态和X与Y之后的状态。代理不一定要以这样的顺序发射回复消息。然而，在代理已发射了一条回复之后，例如Y，如果此时接受了新的操作Z，那么Z必须排在Y之后。</p>
-<p>这些规则确保每个代理看到的全局操作排序与主端的确认信号引导的局部排序是一致的。处理器可以等待发出的确认消息返回后再发起其他请求，来实现fence指令。这样的能力使得多处理器在TileLink的共享存储系统中，安全地同步执行操作。</p>
-<blockquote>
-<p>这里的意思是A写入的值需要广播，以此来更新所有缓存块的状态</p>
-</blockquote>
-<h2 id="TL-UL"><a href="#TL-UL" class="headerlink" title="TL-UL"></a>TL-UL</h2><p>TileLink无缓存轻量级（TL-UL）是最简单的TileLink协议兼容级别，可用于连接低性能的外设以减小总线的面积消耗。该兼容级别的代理都支持两种存储访问操作：</p>
-<ul>
-<li>读（Get）操作：从底层内存中读取一定量的数据。</li>
-<li>写（Put）操作：向底层内存中写入一定数目的数据，写操作支持基于字节t通路掩码的部分写功能。</li>
-</ul>
-<p>在TL-UL中，每条消息都必须放在一拍中，不支持簇发操作，TL-UL一共定义了与存储访问操作相关的三种请求消息和两种响应消息类型，下表列举了这些消息。</p>
-<p><img src="/2025/03/06/Tilelink/myblog\source_posts\Tilelink\image-20250306221635531.png" alt="image-20250306221635531"></p>
-<h3 id="Flows-and-Waves"><a href="#Flows-and-Waves" class="headerlink" title="Flows and Waves"></a>Flows and Waves</h3><p><img src="/2025/03/06/Tilelink/myblog\source_posts\Tilelink\image-20250306221708281.png" alt="image-20250306221708281"></p>
-<p><img src="/2025/03/06/Tilelink/myblog\source_posts\Tilelink\image-20250306221947941.png" alt="image-20250306221947941"></p>
-<p><img src="/2025/03/06/Tilelink/myblog\source_posts\Tilelink\image-20250306222005808.png" alt="image-20250306222005808"></p>
-<p><img src="/2025/03/06/Tilelink/myblog\source_posts\Tilelink\image-20250306222028232.png" alt="image-20250306222028232"></p>
-<h2 id="TL-UH"><a href="#TL-UH" class="headerlink" title="TL-UH"></a>TL-UH</h2><p>TileLink无缓冲重量级（TL-UH）用于最后一级缓存之外的总线，这种应用中不需要使用权限转换的操作。TL-UH建立在TL-UL的基础上，并提供一部分额外的操作，包括：</p>
-<ul>
-<li>原子（Atomic）操作：在原子性地读取现存的数据值的同时，同步地写入一个新的值，此新值为某些逻辑和算法操作的结果。</li>
-<li>预处理（Hint）操作：提供了与某些性能优化相关的可选的提示性消息。</li>
-<li>簇发（Burst）消息：允许带有比数据总线宽度更大的数据的消息在多个周期内作为数据包传输，应用于在Get、Put和原子操作中多种包含数据的消息。</li>
-</ul>
-<p><img src="/2025/03/06/Tilelink/myblog\source_posts\Tilelink\image-20250306222211086.png" alt="image-20250306222211086"></p>
-<h3 id="Flows-and-Waves-1"><a href="#Flows-and-Waves-1" class="headerlink" title="Flows and Waves"></a>Flows and Waves</h3><p><img src="/2025/03/06/Tilelink/myblog\source_posts\Tilelink\image-20250306222236442.png" alt="image-20250306222236442"></p>
-<p><img src="/2025/03/06/Tilelink/myblog\source_posts\Tilelink\image-20250306222547617.png" alt="image-20250306222547617"></p>
-<p><img src="/2025/03/06/Tilelink/myblog\source_posts\Tilelink\image-20250306222555978.png" alt="image-20250306222555978"></p>
-<h3 id="ArithmeticData"><a href="#ArithmeticData" class="headerlink" title="ArithmeticData"></a>ArithmeticData</h3><p><img src="/2025/03/06/Tilelink/myblog\source_posts\Tilelink\image-20250306222657857.png" alt="image-20250306222657857"></p>
-<h3 id="LogicalData"><a href="#LogicalData" class="headerlink" title="LogicalData"></a>LogicalData</h3><p><img src="/2025/03/06/Tilelink/myblog\source_posts\Tilelink\image-20250306222737816.png" alt="image-20250306222737816"></p>
-<h3 id="Intent"><a href="#Intent" class="headerlink" title="Intent"></a>Intent</h3><p><img src="/2025/03/06/Tilelink/myblog\source_posts\Tilelink\image-20250306222754968.png" alt="image-20250306222754968"></p>
-<h3 id="HintAck"><a href="#HintAck" class="headerlink" title="HintAck"></a>HintAck</h3><p><img src="/2025/03/06/Tilelink/myblog\source_posts\Tilelink\image-20250306222842419.png" alt="image-20250306222842419"></p>
-<h2 id="TL-C"><a href="#TL-C" class="headerlink" title="TL-C"></a>TL-C</h2><p>TileLink缓存支持级（TL-C）给主端代理提供缓存共享数据块副本的能力，保证缓存一致性。本章描述TL-C中缓存的数据副本上允许进行哪些访存操作，以及用来传输数据块的缓存的消息类型，实现中所定义的一致性协议描述了副本和权限如何通过具体的TileLink代理网络传输以回复所接收的存储访问操作，但具体的一致性协议描述不在TileLink协议内容范围内。</p>
-<p>TL-C新添加了三种操作、三个通道、一个五步的消息序列模板以及十种消息类型。</p>
-<p>新的操作transfer可以创建或者清除数据块的缓存副本。转换操作不会修改数据块的值，但是会改变他们的读写权限。转换操作可以与之前定义的TL-UL、TL-UH访存操作无缝协作，保证操作进行序列化的正确性。</p>
-<p>可缓存性是存储地址范围的一个属性，一个TileLink的实现需保证避免无法缓存地址范围的副本出现。</p>
-<h3 id="Implementing-Cache-Coherence-Using-TileLink"><a href="#Implementing-Cache-Coherence-Using-TileLink" class="headerlink" title="Implementing Cache Coherence Using TileLink"></a>Implementing Cache Coherence Using TileLink</h3><p>所有基于Tilelink的一致性协议都由一系列操作组成，通过这些操作，可以完成读写数据块权限的在转变。在代理对已缓存的副本执行响应的操作之前，必须获得正确的权限。当代理希望在本地处理一个访问操作时，它必须首先使用转换操作来获得必要的权限。转换操作在网络上创建或删除副本，从而修改每个副本可以提供的权限。</p>
-<p>代理中数据块副本的基本权限可以包括：None、Read或Read+Write。缓存架构中副本 可用的权限取决于缓存层次结构中副本的当前存在情况，如下所述。</p>
-<p>对于任何给定的地址，在给定主端和拥有该地址范围的从端之间都只会存在一个具体的路径。在TileLink网络DAG中，所有这些路径都覆盖会形成一个树，根节点上仅有一个从端节点。对于每个地址，此树包含所有针对该地址的操作执行的路径。如果我们省略了所有不能缓存数据的代理，那么就会留下一个描述所有可能缓存该地址数据的缓存代理位置的树。</p>
-<p>在逻辑时间的任意时刻，这些代理的某些子集真正包含缓存数据的副本。这些代理形成 了一致性树 。包容性（Inclusive）的TileLink一致性协议要求树在响应内存访问操作时进行提权（Grow）和降权（Shrink）操作。图中的每个节点都属于树中的位置，分为以下四类：</p>
-<ul>
-<li>Nothing：当前没有缓存数据副本的节点，没有读写权限。</li>
-<li>主干（Trunk）：在顶点（Tip）和根（Root）之间的路径上拥有缓存副本的节点，具有其副本的读权限，该副本可能包含脏数据。</li>
-<li>无分支的顶点（Tip with no Branches）：具有缓存副本的节点，且可以用作内存访问序列化，对其拥有的可能包含脏数据的副本具有读写权限。</li>
-<li>有分支的顶点（Tip with Branches）：具有缓存副本的节点，且可以用作内存写入序列化，对其拥有的可能包含过去写入的脏数据的副本具有读写权限。</li>
-<li>分支（Branch）：该节点由Trunk结点分出，具有只读数据缓存副本。</li>
-</ul>
-<p><img src="/2025/03/06/Tilelink/myblog\source_posts\Tilelink\image-20250306223229723.png" alt="image-20250306223229723"></p>
-<p>上图例举了几个覆盖在单个TileLink网络上的一致性树。在A中，树的根节点有唯一的 副本，这使得它既是树的根节点，也是树的顶端节点。在B中，主端通过提升主干的特权 (Grow)，获得读写权限，直到其位于顶点处。在C中，另一个主端通过扩展一个分支获得了读权限，这意味着之前的顶点现在也是一个只读分支，且公共的父节点是主干节点。在D中，其他主端也升级为分支，进一步将尖端向根部移动，而最初的请求者已经主动修剪了其分支。</p>
-<h3 id="Operations"><a href="#Operations" class="headerlink" title="Operations"></a>Operations</h3><p>三个新操作统称为transfer操作，原因是这些操作将数据块的副本传输到内存层次结构中的新位置，包括：</p>
-<ul>
-<li>Acquire：在请求主端中创建块（或其特定权限）的新副本。</li>
-<li>Release：从请求的主端将块的副本（或其特定权限）释放回从端。</li>
-<li>Probe：强制将块的副本（或其特定权限）从主端移到发起请求的从端。</li>
-</ul>
-<p>Acquire操作要么以扩展树干的形式，要么以从现存的分支或者尖端添加新的分支的形式来拓展树。在新的分支生成前，旧的主干或分支可能需要递归的Probe方法进行修剪。为了响应缓存容量冲突，可通过Release操作主动裁剪分支。</p>
-<h3 id="Channels"><a href="#Channels" class="headerlink" title="Channels"></a>Channels</h3><p>为了支持转换操作，TL-C在执行内存访问操作所需的两个基本通道上添加了三个新通道。A和D通道也被重新用于发送额外的消息，以实现转换操作。转换操作使用的五个通道</p>
-<p>分别是：</p>
-<p>通道A. 主端为了读取或写入缓存块副本而发起对<strong>权限的请求</strong>。</p>
-<p>通道B. 从端查询或修改主端对缓存数据块的权限，或将<strong>内存访问前递(forward)给主端</strong>。</p>
-<p>通道C. 主端响应通道B传输的消息，<strong>可能会释放带有任脏数据块的权限。也用于主动回写脏的缓存数据</strong>。</p>
-<p>通道D. 从端向原始请求者提供数据或权限，授予对缓存块的访问权。也用于<strong>确认脏数据的主动写回</strong>。</p>
-<p>通道E. 主端提供此次事务完成的<strong>最终确认消息</strong>，从端可用来事务序列化</p>
-<p>这五个通道可分为11种消息</p>
-<p><img src="/2025/03/06/Tilelink/myblog\source_posts\Tilelink\image-20250306224348821.png" alt="image-20250306224348821"></p>
-<h3 id="Permissions-Transitions"><a href="#Permissions-Transitions" class="headerlink" title="Permissions Transitions"></a>Permissions Transitions</h3><p><img src="/2025/03/06/Tilelink/myblog\source_posts\Tilelink\image-20250306224553036.png" alt="image-20250306224553036"></p>
-<p>Prune: 权限降级，缩小一致性树。相比过去，完成操作之后具有较低的权限。</p>
-<p>Grow: 权限升级，增大一致性树。相比过去，完成操作之后具有较高的权限。</p>
-<p>Report: 包含权限保持不变，但报告当前权限状态。</p>
-<p>Cap: 包含权限更改，但不指定原始权限是什么，而只指定它们应该成为什么。</p>
-<h3 id="Flows-and-Waves-2"><a href="#Flows-and-Waves-2" class="headerlink" title="Flows and Waves"></a>Flows and Waves</h3><p>Transfer操作引入新的事务流，这些事务流可以组成完整的缓存一致性协议事务。下图描述了三个新消息流。</p>
-<p><img src="/2025/03/06/Tilelink/myblog\source_posts\Tilelink\image-20250306225034736.png" alt="image-20250306225034736"></p>
-<p><img src="/2025/03/06/Tilelink/myblog\source_posts\Tilelink\image-20250306225615605.png" alt="image-20250306225615605"></p>
-<p>上图的消息流涵盖了三种新操作：</p>
-<ol>
-<li>缓存主代理向从代理发送Acquire。</li>
-<li>为保证给响应消息留足够空间，主代理主动发送Release，即写回操作。（替换脏数据）</li>
-<li>从代理访问存储结构，以完成写操作。</li>
-<li>从代理通过ReleaseAck确认写回操作已完成。</li>
-<li>从代理向其他主代理发送必需的Probe。</li>
-<li>从代理等待所有被Probe的主代理返回ProbeAck。</li>
-<li>若有需要，从代理还需访问存储结构。</li>
-<li>从代理向原请求设备发送Grant。</li>
-<li>原主代理以GrantAck说明此次事务成功完成。</li>
-</ol>
-<p>虽然这三个流程构成了所有涉及缓存块传输的TileLink事务的基础，但是当它们临时地重叠或分层地组合时，会出现一些边界情况。现在我们将讨论TileLink如何管理并发性，并分散到各主从代理之间。</p>
-<p>TileLink假设消息并不完全是点到点的有序的传递，来自高优先级通道的消息必须能够在网络中先于较低优先级的消息处理，从端充当连接到它的所有主端的一个同步节点。由于每个事务都必须通过发送给从端的一条Acquire消息作为初始消息，因此从端可以轻松对事务进行排序。一个非常安全的实现方式是一次只接受一个事务，但是这种方式对性能影响巨大，而且事实证明我们可以在继续提供正确的序列化的同时增加并发性。尽管事务有着天然的分布式属性，对代理的行为施加一些限制，仍能够保证事务间的有序性。下图描述了每种操作并发的一些限制。</p>
-<p><img src="/2025/03/06/Tilelink/myblog\source_posts\Tilelink\image-20250306225754731.png" alt="image-20250306225754731"></p>
-<p>对TileLink代理上的并发限制在发射或阻塞请求消息方面最容易理解。所有请求消息都会引发响应消息，并且响应消息保证最终产生向前推进的效果，但是在某些情况下，在收到还未处理的响应消息之前，不应该发出针对同一块的递归请求消息。我们按照请求消息类型来对这些情况分类：</p>
-<ul>
-<li>Acquire：如果在块上有一个pending的Grant块，主端就不应发射一个Acquire。一旦Acquire被发出，主端不应该在该块发出进一步的Acquire，直到它收到一个Grant。</li>
-<li>Grant：在块上有一个pending的ProbeAck时，从端不应该发射Grant。一旦发出了一个Grant时，从端不应该在该块上发射Probe，直到它收到一个GrantAck。</li>
-<li>Release：在块上有一个pending的Grant时，主端不应该发射一个Release。一旦发出了一个Release后，主端不能发射ProbeAck，直到它收到来自从端确认写回操作完成的ReleaseAck。</li>
-<li>Probe：在块上有一个pending的GrantAck时，从端不应该发射一个Probe。一旦发射了一个Probe，从端不能进一步发射Probe，直到它收到一个ProbeAck。</li>
-</ul>
-<p><img src="/2025/03/06/Tilelink/myblog\source_posts\Tilelink\image-20250306231030603.png" alt="image-20250306231030603"></p>
-<p>上图展示了一个消息流，包含了Grant和Probe，具体如下：</p>
-<ol>
-<li>主代理A先发送Acquire，但由于网络延迟，后到从代理。</li>
-<li>主代理B后发送Acquire，但先到达从代理，被序列化在A的前面。</li>
-<li>从代理向A发送Probe，即使A还在等待Grant，也必须先处理Probe。</li>
-<li>从代理接收到A的ProbeAck后，向B发送Grant。</li>
-<li>从代理接收到A的Acquire，但由于正等待B的GrantAck，所以现在还不能处理这个请求。</li>
-<li>一旦接收到B的GrantAck，A的事务就可以正常处理了。</li>
-<li>从代理向B发送Probe，但这个操作被在上一个Grant之后。</li>
-<li>从代理向A发送合适类型的Grant(包括数据副本)，说明A在Acquire后被Probe过。</li>
-</ol>
-<p><img src="/2025/03/06/Tilelink/myblog\source_posts\Tilelink\image-20250306231336559.png" alt="image-20250306231336559"></p>
-<p>上图展示了一个消息流，包含了Release和Probe，具体如下：</p>
-<ol>
-<li>主代理A向从代理发送Acquire。</li>
-<li>与此同时，主代理B通过Release主动剔除相同的数据缓存块。</li>
-<li>从代理向B发送Probe。</li>
-<li>从代理等待每个发送出的Probe，但可以处理主动发起的Release。从代理发送ReleaseAck确认主动写回的操作完成。</li>
-<li>B在接收到写回确认前不处理Probe。</li>
-<li>在从代理接收到B的ProbeAck后，A的事务就可以正常执行了。</li>
-</ol>
-<h3 id="TL-C-Messages"><a href="#TL-C-Messages" class="headerlink" title="TL-C Messages"></a>TL-C Messages</h3><p>权限转换新增的三个通道有六个新消息，另外新增了一个通道A消息、三个通道D消息。新的通道是B、C和E，新的消息类型是Acquire、Probe、ProbeAck[Data]、Release[Data]、ReleaseAck、Grant[Data]和GrantAck。</p>
-<h4 id="AcquireBlock"><a href="#AcquireBlock" class="headerlink" title="AcquireBlock"></a>AcquireBlock</h4><p>AcquireBlock消息是主代理计划在本地缓存数据块的副本时，发起的请求消息类型，主代理还可以使用这种消息类型来升级他们已缓存块上的权限（例如，获得只读副本的写权限），与Get消息一样，Acquire消息本身不包含数据，下表说明了通道A内该消息的信号编码。</p>
-<p><img src="/2025/03/06/Tilelink/myblog\source_posts\Tilelink\image-20250306232112160.png" alt="image-20250306232112160"></p>
-<h4 id="AcquirePerm"><a href="#AcquirePerm" class="headerlink" title="AcquirePerm"></a>AcquirePerm</h4><p>AcquirePerm消息是主代理计划升级缓存数据块的权限，且无需提供数据副本时，发起的请求消息类型，下表说明了通道A内该消息的信号编码。</p>
-<p><img src="/2025/03/06/Tilelink/myblog\source_posts\Tilelink\image-20250306232227402.png" alt="image-20250306232227402"></p>
-<h4 id="ProbeBlock"><a href="#ProbeBlock" class="headerlink" title="ProbeBlock"></a>ProbeBlock</h4><p>ProbeBlock消息是从代理用来查询或修改由特定主代理存储的数据块的缓存副本的权限的请求消息，从代理响应另一个主代理的Acquire或主动发起，可以取消主代理对一块缓存块的权限，下表说明了通道B内该消息的信号编码。</p>
-<p><img src="/2025/03/06/Tilelink/myblog\source_posts\Tilelink\image-20250306232341927.png" alt="image-20250306232341927"></p>
-<h4 id="ProbePerm"><a href="#ProbePerm" class="headerlink" title="ProbePerm"></a>ProbePerm</h4><p>ProbePerm消息是从代理用来查询或修改由特定主代理存储的数据块的缓存副本的权限的请求消息，从代理响应另一个主代理的Acquire或主动发起，可以取消主代理对一块缓存块的权限，不过和ProbeBlock不同的是，ProbePerm要求不需要提供数据副本就可以发起请求，下表说明了通道B内该消息的信号编码。</p>
-<p><img src="/2025/03/06/Tilelink/myblog\source_posts\Tilelink\image-20250306232441339.png" alt="image-20250306232441339"></p>
-<h3 id="ProbeAck"><a href="#ProbeAck" class="headerlink" title="ProbeAck"></a>ProbeAck</h3><p>ProbeAck消息是主代理用来回复Probe的消息，下表说明了通道C内该消息的信号编码。</p>
-<p><img src="/2025/03/06/Tilelink/myblog\source_posts\Tilelink\image-20250306232604741.png" alt="image-20250306232604741"></p>
-<h3 id="ProbeAckData"><a href="#ProbeAckData" class="headerlink" title="ProbeAckData"></a>ProbeAckData</h3><p>ProbeAckData消息是主代理使用的响应消息，用于确认接收到Probe，并写回发送请求的从代理所需的脏数据，下表说明了通道C内该消息的信号编码。</p>
-<p><img src="/2025/03/06/Tilelink/myblog\source_posts\Tilelink\image-20250306232656619.png" alt="image-20250306232656619"></p>
-]]></content>
-  </entry>
-  <entry>
     <title>gem5在fs模式运行spec2006</title>
     <url>/2025/02/10/gem5%E5%9C%A8fs%E6%A8%A1%E5%BC%8F%E8%BF%90%E8%A1%8Cspec2006/</url>
     <content><![CDATA[<p>假定已经安装了gem5,并且编译了RISCV的gem5.opt</p>
@@ -1840,6 +1612,28 @@
       </categories>
   </entry>
   <entry>
+    <title>Hello World</title>
+    <url>/2025/02/03/hello-world/</url>
+    <content><![CDATA[<p>Welcome to <a href="https://hexo.io/">Hexo</a>! This is your very first post. Check <a href="https://hexo.io/docs/">documentation</a> for more info. If you get any problems when using Hexo, you can find the answer in <a href="https://hexo.io/docs/troubleshooting.html">troubleshooting</a> or you can ask me on <a href="https://github.com/hexojs/hexo/issues">GitHub</a>.</p>
+<h2 id="Quick-Start"><a href="#Quick-Start" class="headerlink" title="Quick Start"></a>Quick Start</h2><h3 id="Create-a-new-post"><a href="#Create-a-new-post" class="headerlink" title="Create a new post"></a>Create a new post</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">$ hexo new <span class="string">&quot;My New Post&quot;</span></span><br></pre></td></tr></table></figure>
+
+<p>More info: <a href="https://hexo.io/docs/writing.html">Writing</a></p>
+<h3 id="Run-server"><a href="#Run-server" class="headerlink" title="Run server"></a>Run server</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">$ hexo server</span><br></pre></td></tr></table></figure>
+
+<p>More info: <a href="https://hexo.io/docs/server.html">Server</a></p>
+<h3 id="Generate-static-files"><a href="#Generate-static-files" class="headerlink" title="Generate static files"></a>Generate static files</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">$ hexo generate</span><br></pre></td></tr></table></figure>
+
+<p>More info: <a href="https://hexo.io/docs/generating.html">Generating</a></p>
+<h3 id="Deploy-to-remote-sites"><a href="#Deploy-to-remote-sites" class="headerlink" title="Deploy to remote sites"></a>Deploy to remote sites</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">$ hexo deploy</span><br></pre></td></tr></table></figure>
+
+<p>More info: <a href="https://hexo.io/docs/one-command-deployment.html">Deployment</a></p>
+<h1 id="今日踩坑"><a href="#今日踩坑" class="headerlink" title="今日踩坑"></a>今日踩坑</h1><p>1.Champsim  最新版本2024-12即使报错也会生成bin文件,这个感觉是他的编译选项问题</p>
+<p>2.firesim 在使用au280时,应该使用BaseXilinxAlveoConfig替换PLATFORM_CONFIG&#x3D;BaseXilinxAlveoU280Config,直接加入一個BaseXilinxAlveoU280Config也可以</p>
+<h1 id="2025-2-5"><a href="#2025-2-5" class="headerlink" title="2025-2-5"></a>2025-2-5</h1><p>今日发现dcache的写dirty有问题：目前这个写逻辑有问题，只有当写数据，或者写miss才会设定dirty位，读miss读出的数据是不会设置dirty位的，但不影响功能，</p>
+<p>而且之后可能会加入mshr合并机制：mshr不合并？</p>
+]]></content>
+  </entry>
+  <entry>
     <title>nemu linux</title>
     <url>/2025/02/19/nemu-linux/</url>
     <content><![CDATA[<h1 id="Difftest-适配"><a href="#Difftest-适配" class="headerlink" title="Difftest 适配"></a>Difftest 适配</h1><p>在跑linux需要加入csr的检查,以测出特权指令执行的结果是否正确</p>
@@ -1865,28 +1659,6 @@
       <categories>
         <category>计算机体系结构</category>
       </categories>
-  </entry>
-  <entry>
-    <title>Hello World</title>
-    <url>/2025/02/03/hello-world/</url>
-    <content><![CDATA[<p>Welcome to <a href="https://hexo.io/">Hexo</a>! This is your very first post. Check <a href="https://hexo.io/docs/">documentation</a> for more info. If you get any problems when using Hexo, you can find the answer in <a href="https://hexo.io/docs/troubleshooting.html">troubleshooting</a> or you can ask me on <a href="https://github.com/hexojs/hexo/issues">GitHub</a>.</p>
-<h2 id="Quick-Start"><a href="#Quick-Start" class="headerlink" title="Quick Start"></a>Quick Start</h2><h3 id="Create-a-new-post"><a href="#Create-a-new-post" class="headerlink" title="Create a new post"></a>Create a new post</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">$ hexo new <span class="string">&quot;My New Post&quot;</span></span><br></pre></td></tr></table></figure>
-
-<p>More info: <a href="https://hexo.io/docs/writing.html">Writing</a></p>
-<h3 id="Run-server"><a href="#Run-server" class="headerlink" title="Run server"></a>Run server</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">$ hexo server</span><br></pre></td></tr></table></figure>
-
-<p>More info: <a href="https://hexo.io/docs/server.html">Server</a></p>
-<h3 id="Generate-static-files"><a href="#Generate-static-files" class="headerlink" title="Generate static files"></a>Generate static files</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">$ hexo generate</span><br></pre></td></tr></table></figure>
-
-<p>More info: <a href="https://hexo.io/docs/generating.html">Generating</a></p>
-<h3 id="Deploy-to-remote-sites"><a href="#Deploy-to-remote-sites" class="headerlink" title="Deploy to remote sites"></a>Deploy to remote sites</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">$ hexo deploy</span><br></pre></td></tr></table></figure>
-
-<p>More info: <a href="https://hexo.io/docs/one-command-deployment.html">Deployment</a></p>
-<h1 id="今日踩坑"><a href="#今日踩坑" class="headerlink" title="今日踩坑"></a>今日踩坑</h1><p>1.Champsim  最新版本2024-12即使报错也会生成bin文件,这个感觉是他的编译选项问题</p>
-<p>2.firesim 在使用au280时,应该使用BaseXilinxAlveoConfig替换PLATFORM_CONFIG&#x3D;BaseXilinxAlveoU280Config,直接加入一個BaseXilinxAlveoU280Config也可以</p>
-<h1 id="2025-2-5"><a href="#2025-2-5" class="headerlink" title="2025-2-5"></a>2025-2-5</h1><p>今日发现dcache的写dirty有问题：目前这个写逻辑有问题，只有当写数据，或者写miss才会设定dirty位，读miss读出的数据是不会设置dirty位的，但不影响功能，</p>
-<p>而且之后可能会加入mshr合并机制：mshr不合并？</p>
-]]></content>
   </entry>
   <entry>
     <title>runahead</title>
@@ -1915,50 +1687,6 @@
 <h2 id="Exiting-runahead-mode"><a href="#Exiting-runahead-mode" class="headerlink" title="Exiting runahead mode"></a>Exiting runahead mode</h2><p>退出也是可以随时退出,本文使用和分支预测失误后恢复的方法相似<br>本文使用的是当blocking的数据返回后退出runahead,</p>
 <h2 id="一些名词"><a href="#一些名词" class="headerlink" title="一些名词"></a>一些名词</h2><p>BHT,FIFO,ROB,RAT,store buffer</p>
 ]]></content>
-  </entry>
-  <entry>
-    <title>简单的缓存一致性</title>
-    <url>/2025/02/05/%E7%AE%80%E5%8D%95%E7%9A%84%E7%BC%93%E5%AD%98%E4%B8%80%E8%87%B4%E6%80%A7/</url>
-    <content><![CDATA[<p>目录式协议(directory)—-物理存储器中数据块的共享状态被保存在一个称为目录的地方。目录式协议的实现开销比监听式协议的稍微大一些,但可用于实现更大规模的多处理机。<br>监听式协议(snooping)—-当物理存储器中的数据块被调入 Cache 时，其共享状态信息与该数据块一起放在该 Cache 中。系统中没有集中的状态表。这些 Cache 通常连在共享存储器的总线上。当某个 Cache 需要访问存储器时,它会把请求放到总线上广播出去,其他各个 Cache 控制器通过监听总线(它们一直在监听)来判断它们是否有总线上请求的数据块。如果有,就进行相应的操作。</p>
-<p>无论是MSI还是MESI,MOESI,都差不多按照以下思路分析:r_hit,r_miss,w_hit,w_miss讨论状态机实现,其中每个transaction对应3,4,5个状态(MSI-&gt;MESI-&gt;MOESI),且都要考虑本地cache和其他cache,如右图所示</p>
-<p><img src="/2025/02/05/%E7%AE%80%E5%8D%95%E7%9A%84%E7%BC%93%E5%AD%98%E4%B8%80%E8%87%B4%E6%80%A7/1729944912699.png" alt="1729944912699"></p>
-<ul>
-<li>M，modified，表示该数据已修改，即上述所说的“脏”数据，需要在合适的时机写回内存；</li>
-<li>E，Exclusive，表示该数据独占，意指此时该数据只存在某个核中，其他核没有该数据，于是就不需要所谓的广播给其他的核，也就没有缓存一致性的问题；</li>
-<li>S，Shared，表示数据共享，是从<strong>数据独占</strong>状态转移过来的。意指多个核中都有该数据，这个时候就会存在缓存一致性的问题；</li>
-<li>I，Invalidated，表示数据已失效，可以丢弃掉Cache Block的数据了（高并发情况下可能出现两个CPU同时修改变量a，并同时向总线发出将各自的缓存行更改为M状态的情况， <strong>此时总线会采用相应的裁决机制进行裁决</strong> ，将其中一个置为M状态，另一个置为I状态，且I状态的缓存行修改无效）；</li>
-</ul>
-<p>MESI四种状态标志是存储在Cache Line中的</p>
-<h1 id="内存模型"><a href="#内存模型" class="headerlink" title="内存模型"></a><strong>内存模型</strong></h1><h2 id="SC"><a href="#SC" class="headerlink" title="SC"></a>SC</h2><p>所有线程访存一定能构成全局序</p>
-<p><img src="/2025/02/05/%E7%AE%80%E5%8D%95%E7%9A%84%E7%BC%93%E5%AD%98%E4%B8%80%E8%87%B4%E6%80%A7/1730373908924.png" alt="1730373908924"></p>
-<p>所有load结果都是全局序中最近的同地址store值</p>
-<p>  <img src="/2025/02/05/%E7%AE%80%E5%8D%95%E7%9A%84%E7%BC%93%E5%AD%98%E4%B8%80%E8%87%B4%E6%80%A7/1730373977856.png" alt="1730373977856"></p>
-<h2 id="TSO"><a href="#TSO" class="headerlink" title="TSO"></a>TSO</h2><p><img src="/2025/02/05/%E7%AE%80%E5%8D%95%E7%9A%84%E7%BC%93%E5%AD%98%E4%B8%80%E8%87%B4%E6%80%A7/1730374094456.png" alt="1730374094456"><img src="/2025/02/05/%E7%AE%80%E5%8D%95%E7%9A%84%E7%BC%93%E5%AD%98%E4%B8%80%E8%87%B4%E6%80%A7/1730374216003.png" alt="1730374216003"></p>
-<h2 id="RVWMO"><a href="#RVWMO" class="headerlink" title="RVWMO"></a>RVWMO</h2><p><img src="/2025/02/05/%E7%AE%80%E5%8D%95%E7%9A%84%E7%BC%93%E5%AD%98%E4%B8%80%E8%87%B4%E6%80%A7/1730374321974.png" alt="1730374321974"></p>
-<p><img src="/2025/02/05/%E7%AE%80%E5%8D%95%E7%9A%84%E7%BC%93%E5%AD%98%E4%B8%80%E8%87%B4%E6%80%A7/1730374367495.png" alt="1730374367495"></p>
-<h2 id="香山乱序访存"><a href="#香山乱序访存" class="headerlink" title="香山乱序访存"></a>香山乱序访存</h2><p>数据也会存到SQ</p>
-<p><img src="/2025/02/05/%E7%AE%80%E5%8D%95%E7%9A%84%E7%BC%93%E5%AD%98%E4%B8%80%E8%87%B4%E6%80%A7/1730380794423.png" alt="1730380794423"></p>
-<p>设置一个SQ,在派遣时将进入SQ,FIFO结构,当指令</p>
-<p><img src="/2025/02/05/%E7%AE%80%E5%8D%95%E7%9A%84%E7%BC%93%E5%AD%98%E4%B8%80%E8%87%B4%E6%80%A7/1730380916400.png" alt="1730380916400"></p>
-<p><img src="/2025/02/05/%E7%AE%80%E5%8D%95%E7%9A%84%E7%BC%93%E5%AD%98%E4%B8%80%E8%87%B4%E6%80%A7/1730381086089.png" alt="1730381086089"></p>
-<p><img src="/2025/02/05/%E7%AE%80%E5%8D%95%E7%9A%84%E7%BC%93%E5%AD%98%E4%B8%80%E8%87%B4%E6%80%A7/1730381113849.png" alt="1730381113849"></p>
-<p>当<strong>sw遇到TLBmiss</strong> 让她退出流水,然后在SQ标记重发<img src="/2025/02/05/%E7%AE%80%E5%8D%95%E7%9A%84%E7%BC%93%E5%AD%98%E4%B8%80%E8%87%B4%E6%80%A7/1730381020649.png" alt="1730381020649"></p>
-<p><strong>load流水线</strong></p>
-<p>load指令一方面数据来自DCache,另一方面来自SQ,而且SQ优先级更高,在读数据要对SQ和DCache的数据合并</p>
-<p><strong>Store&#x2F;load违例:load先于store执行</strong></p>
-<p>1.阻塞,load得等,等到之前的store指令地址计算完,算是部分乱序</p>
-<p>2.检测:检测到了违例,直接从lw之后把指令刷掉,(一种是ROB,但ROB太大)</p>
-<p>所以可以设置一个LQ,FIFO,是ROB子集只用存LW指令,dispatch入队,sw指令会检测是否有比其更年轻的load(ROB地址值作为age)已经执行完了,从lw下面指令全部刷了.重新取</p>
-<p><img src="/2025/02/05/%E7%AE%80%E5%8D%95%E7%9A%84%E7%BC%93%E5%AD%98%E4%B8%80%E8%87%B4%E6%80%A7/1730381962804.png" alt="1730381962804"></p>
-<p>load异常事件:</p>
-<p>TLBmiss</p>
-<p><img src="/2025/02/05/%E7%AE%80%E5%8D%95%E7%9A%84%E7%BC%93%E5%AD%98%E4%B8%80%E8%87%B4%E6%80%A7/1730382130178.png" alt="1730382130178"></p>
-<p><img src="/2025/02/05/%E7%AE%80%E5%8D%95%E7%9A%84%E7%BC%93%E5%AD%98%E4%B8%80%E8%87%B4%E6%80%A7/1730382342283.png" alt="1730382342283"></p>
-<p>取回数据然后对唤醒LQ的指令</p>
-]]></content>
-      <categories>
-        <category>计算机体系结构</category>
-      </categories>
   </entry>
   <entry>
     <title>spp</title>
@@ -2008,29 +1736,6 @@
 <p>SPP总是先检查PF，然后再发出预取，如果PF已经包含一个缓存行，说明这个缓存行已经被预取，预取请求会被丢弃，当缓存行被替换，会重置有效位来清除条目</p>
 <p>通过在每个过滤器条目中添加一个有用位，PF 还可以近似预取精度。SPP 有两个全局计数器，一个用于跟踪预取请求的总数 (Ctotal)，另一个用于跟踪有用预取的数量 (Cuseful)。每当 SPP 发出未被过滤器丢弃的预取时，Ctotal 计数器就会增加。有用的预取由 PF 中命中的实际 L2 缓存需求请求检测到，这会增加 Cuseful 计数器。为了避免每个有用的预取行增加 Cuseful 超过一次，我们在 PF 条目中设置了一个已用位，以防止重复计算。此过滤器跟踪的全局预取精度用于公式 3 中的 α，以限制路径置信度值。</p>
 <p><img src="/2025/02/13/spp/1739460638587.png" alt="1739460638587"></p>
-]]></content>
-  </entry>
-  <entry>
-    <title>论文移植</title>
-    <url>/2025/02/09/%E8%AE%BA%E6%96%87%E7%A7%BB%E6%A4%8D/</url>
-    <content><![CDATA[<h1 id="代码移植问题"><a href="#代码移植问题" class="headerlink" title="代码移植问题"></a>代码移植问题</h1><ol>
-<li>将1.9.1的chipyard版本移植到1.17.1的firesim</li>
-<li>直接使用1.17.1版本的chipyard</li>
-<li>是否可以得到老师代码修改记录，这样可以最小限度移植</li>
-<li>是将MEEK代码直接复制到chipyard，还是只将修改部分的代码复制到chipyard</li>
-</ol>
-<h1 id="修改1"><a href="#修改1" class="headerlink" title="修改1"></a>修改1</h1><p>修改rocket chip 的main&#x2F;scala的packge.scala</p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">package freechips</span><br><span class="line"></span><br><span class="line">package object rocketchip &#123;</span><br><span class="line">  val config = org.chipsalliance.cde.config</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<h1 id="修改2"><a href="#修改2" class="headerlink" title="修改2"></a>修改2</h1><p>value io is not a member of freechips.rocketchip.diplomacy.LazyModuleImp</p>
-<p>将</p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">lazy val module = new LazyModuleImp(this) &#123;</span><br><span class="line">  val io = IO(new Bundle &#123;</span><br><span class="line">    val finished = Bool(OUTPUT)</span><br><span class="line">  &#125;)</span><br></pre></td></tr></table></figure>
-
-<p>改为</p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">lazy val module = new Impl</span><br><span class="line">class Impl extends LazyModuleImp(this) &#123;</span><br><span class="line">  val io = IO(new Bundle &#123;</span><br><span class="line">    val finished = Bool(OUTPUT)</span><br><span class="line">  &#125;)</span><br></pre></td></tr></table></figure>
-
-<h1 id="gem5部分"><a href="#gem5部分" class="headerlink" title="gem5部分"></a>gem5部分</h1><p>编写了se跑spec2006的脚本，目前需要给输入参数加入绝对路径</p>
-<p>明天会编写fs跑spec2006的脚本，主要实现思路就是设置一个checkpoint，然后将所有benchmark打包进去，每次运行完一个benchmark就会poweoff，然后运行下一个（不知道是否可以并行）</p>
 ]]></content>
   </entry>
   <entry>
@@ -3508,6 +3213,318 @@
       <categories>
         <category>RISCV</category>
       </categories>
+  </entry>
+  <entry>
+    <title>tilelink_reading note</title>
+    <url>/2025/03/08/tilelink-reading-note/</url>
+    <content><![CDATA[<h1 id="Tilelink协议"><a href="#Tilelink协议" class="headerlink" title="Tilelink协议"></a>Tilelink协议</h1><h2 id="架构与信号描述"><a href="#架构与信号描述" class="headerlink" title="架构与信号描述"></a>架构与信号描述</h2><p>TileLink 支持多种类型的通讯代理模块，并定义了三个从简单到复杂的的协议扩展级别。每个级别定义了兼容该级别的通讯代理模块需要支持的协议扩展子集，如下图所示。最简单的是 TileLink 无缓存轻量级(Uncached Lightweight, TL-UL)，只支持简单的单个字读写(Get&#x2F;Put)的存储器操作。相对复杂的 TileLink无缓存重量级(Uncached Heavyweight,TL-UH)，添加了预处理(hints)、原子访问和突发访问支持，但不支持一致性的缓存访问。最后，缓存相关级别 TileLink Cached(TL-C)是最复杂（完整）的协议，支持使用一致性的缓存模块。</p>
+<p><img src="/2025/03/08/tilelink-reading-note/20250306151247639-1741275367112-10.png" alt="image-20250306151247639"></p>
+<p>除了 clock 和 reset 信号之外，TileLink 信号名字的组成：通道识别符（a到e）跟着一个下划线，再接一个信号名（在下面小节中一一列举）。</p>
+<p>对于拥有多个 TileLink 接口的设备，推荐在所有 TileLink 信号名字之前加上一些描述性的标示加下划线。例如，a_opcode 变成 gpio_a_opcode。</p>
+<p><img src="/2025/03/08/tilelink-reading-note/image-20250306151441976-1741275367112-11.png" alt="image-20250306151441976"></p>
+<h3 id="通道A"><a href="#通道A" class="headerlink" title="通道A"></a>通道A</h3><p>通道A从主接口流向从接口，携带发送到特定地址的请求消息。此通道由所有TileLink一致性级别使用，并且是强制性的。</p>
+<p><img src="/2025/03/08/tilelink-reading-note/image-20250306151716023-1741275367113-12.png" alt="image-20250306151716023"></p>
+<h3 id="通道B"><a href="#通道B" class="headerlink" title="通道B"></a>通道B</h3><p>通道B从从接口流到主接口，携带发送到特定主接口保存的特定缓存数据块的请求消息。该通道由TL-C一致性级别使用，在较低级别中是可选的。</p>
+<p><img src="/2025/03/08/tilelink-reading-note/image-20250306151802131-1741275367113-13.png" alt="image-20250306151802131"></p>
+<h3 id="通道C"><a href="#通道C" class="headerlink" title="通道C"></a>通道C</h3><p>通道C从主接口流向从接口。它可以携带对发送到特定缓存数据块的通道B请求的响应消息。它还用于主动写回脏缓存数据。此通道用于TL-C一致性级别，在较低级别中是可选的。</p>
+<p><img src="/2025/03/08/tilelink-reading-note/image-20250306151850411-1741275367113-14.png" alt="image-20250306151850411"></p>
+<h3 id="通道D"><a href="#通道D" class="headerlink" title="通道D"></a>通道D</h3><p>通道D从从接口流向主接口。它携带发送到特定地址的通道A请求的响应消息。它还携带通道C自愿回写的确认。此通道由所有TileLink一致性级别使用，并且是非可选的。</p>
+<p><img src="/2025/03/08/tilelink-reading-note/image-20250306151931772-1741275367113-15.png" alt="image-20250306151931772"></p>
+<h3 id="通道E"><a href="#通道E" class="headerlink" title="通道E"></a>通道E</h3><p>通道E从主接口流向从接口，携带通道D响应消息的接收确认，用于操作序列化，该通道用于TL-C一致性级别，在较低级别可选。</p>
+<p><img src="/2025/03/08/tilelink-reading-note/image-20250306152019419-1741275367113-16.png" alt="image-20250306152019419"></p>
+<h2 id="序列化、死锁"><a href="#序列化、死锁" class="headerlink" title="序列化、死锁"></a>序列化、死锁</h2><h3 id="Flow-Control-Rules"><a href="#Flow-Control-Rules" class="headerlink" title="Flow Control Rules"></a>Flow Control Rules</h3><p>为了实现正确的ready和valid信号握手，需要遵守以下规则：</p>
+<ul>
+<li>当ready信号为低时，接收者不能处理数据并且发送者认为该拍内的数据未被处理。</li>
+<li>当valid信号为低时，接收者应当认为该数据信号并不是一个正确的TileLink数据。</li>
+<li>valid必须与ready信号独立，如果一个发送者希望发送一拍数据，则必须使能一 个valid信号，同时该valid信号是与接收者的ready信号独立的。</li>
+<li>从ready到valid信号或者任何数据或控制信号之间不能存在任何组合逻辑路径。</li>
+<li>一个低优先级的有效不能组合地依赖于一个高优先级的有效。换句话说，发送一个请求的决定不能基于在同一个周期内接收到一个响应</li>
+<li>高优先级就绪可能不会组合依赖于低优先级就绪。换句话说，响应的接受可能不会取决于同一周期内接受的请求。</li>
+</ul>
+<p>对于能够携带簇发的TileLink的通道，有着额外的规则约束。一个簇发一旦第一拍数据 被接收，直到最后一拍数据传输结束都认为处于传输过程中。当一个数据包处于传输过程中 时，如果valid信号为高，发送者必须满足：</p>
+<ul>
+<li>只有同消息的簇发的一拍数据。</li>
+<li>控制信号与第一拍相同。</li>
+<li>数据为与之前拍数据的地址再加上按数据总线的字节宽度得到的地址所对应的数据。</li>
+</ul>
+<p><img src="/2025/03/08/tilelink-reading-note/image-20250306153533273-1741275367113-17.png" alt="image-20250306153533273"></p>
+<p>第一个信息为F，size为5，表示传输32个字节，需要四拍，opcode 0表示为PutFullData 4表示Get操作，第二个信息为G，大小为1字节，H被拒绝接受，并且下个周期控制信号改变，变为了传输4个字节的I，之后J虽然size含有16个字节，但GET操作不含数据，故一周期完成</p>
+<p><img src="/2025/03/08/tilelink-reading-note/image-20250306154049652-1741275367114-18.png" alt="image-20250306154049652"></p>
+<p>第一个信息为L，opcode为1 表示AccessAckData，含有数据，故需要4拍，之后和上面例子类似</p>
+<h3 id="请求响应数据排序"><a href="#请求响应数据排序" class="headerlink" title="请求响应数据排序"></a>请求响应数据排序</h3><p>我们现在定义在一个具有多拍数据包的情况下，发送响应消息时的规则。在如下情况下，响应消息的第一拍可以出现在响应通道上：</p>
+<ul>
+<li>在请求消息被接收了的同一个周期出现，但不会在这周期之前出现。</li>
+<li>在请求消息的第一拍握手成功之后的任意时间</li>
+</ul>
+<p>跟随在包的响应消息的第一拍后的多拍信号可以在任意延迟后出现，但与此同时，<strong>不能有来自其他消息的任一拍数据交错地插入此次传输中</strong>。</p>
+<h4 id="Burst-Responses"><a href="#Burst-Responses" class="headerlink" title="Burst Responses"></a>Burst Responses</h4><p><img src="/2025/03/08/tilelink-reading-note/image-20250306155350105-1741275367120-19.png" alt="image-20250306155350105"></p>
+<p>第一个请求的ack在任意延迟后出现在D通道，第二个请求在被接受的同时，d通道出现ack</p>
+<h4 id="Burst-Requests"><a href="#Burst-Requests" class="headerlink" title="Burst Requests"></a>Burst Requests</h4><p><img src="/2025/03/08/tilelink-reading-note/image-20250306155621522-1741275367120-20.png" alt="image-20250306155621522"></p>
+<p>第一个AcessAck被延迟任意长时间，但请求者会发送余下的信息</p>
+<p>第二个AcessAck在PutFullData同一拍出现，</p>
+<h4 id="Burst-Requests-and-Responses"><a href="#Burst-Requests-and-Responses" class="headerlink" title="Burst Requests and Responses"></a>Burst Requests and Responses</h4><p><img src="/2025/03/08/tilelink-reading-note/image-20250306155905329-1741275367120-21.png" alt="image-20250306155905329"></p>
+<p>对于大小为4，16字节（2拍）的操作，要么在请求和响应消息之间存在较长的延迟，要么两者的各拍信号重叠。如果每条消息的整体都能放入一拍之中(2ˆ3&#x3D;8&#x3D;1beat)，那么这些消息就能完全地重叠。</p>
+<h3 id="Byte-Lanes"><a href="#Byte-Lanes" class="headerlink" title="Byte Lanes"></a>Byte Lanes</h3><p>带有数据域的TileLink通道总是自然地以小端对齐方式运载数据载荷，一个字节通路传输的数据的地址的最低一部分总是相同的，如下图所示。</p>
+<p><img src="/2025/03/08/tilelink-reading-note/image-20250306160214144-1741275367120-22.png" alt="image-20250306160214144"></p>
+<p>一个操作要么使用所有的数据字节通道，要么使用其中一个2的幂大小的片段。操作使用的字节通道称为活动字节通道。</p>
+<p>在携带掩码字段的通道A和B上，所有非活动字节通道的掩码必须始终为LOW。此外，对于PutPartialData以外的所有消息，所有活动字节通道的掩码位必须为HIGH。PutPartialData可以降低掩码的各个位，并且这些位不必连续。</p>
+<p>掩码也用于没有数据有效载荷的消息。当操作大小小于数据总线时，掩码的生成应该与携带数据有效载荷的操作相同。对于大于数据总线的无数据操作，掩码的所有位都应该为高，尽管消息仍然是单拍。例如，参见图12。</p>
+<p><img src="/2025/03/08/tilelink-reading-note/image-20250306161231625-1741275367120-23.png" alt="image-20250306161231625"></p>
+<p>在图12中，PutFullData（0）必须将掩码的所有活动通道驱动为高。因此，第一个消息在多个节拍上具有所有节拍高。相比之下，PutPartialData（1）可以将掩码的活动通道驱动为高或低。Get（4）消息从不是多节拍的，但仍然必须将活动字节通道上的掩码驱动为高。对于小于节拍的消息，掩码的所有非活动字节通道必须被驱动为低（寻址0x62的操作中的位0和1）。</p>
+<h3 id="Deadlock-Freedom"><a href="#Deadlock-Freedom" class="headerlink" title="Deadlock Freedom"></a>Deadlock Freedom</h3><p><img src="/2025/03/08/tilelink-reading-note/image-20250306162310858-1741275367120-24.png" alt="image-20250306162310858"></p>
+<p><img src="/2025/03/08/tilelink-reading-note/image-20250306162236254-1741275367120-25.png" alt="image-20250306162236254"></p>
+<ol>
+<li>接受（accept）一拍：若发送者在某个通道上把valid信号拉高，接收者若把ready信号拉高则接受一拍。</li>
+<li>拒绝（reject）一拍：若发送者在某个通道上把valid信号拉高，接收者若把ready信号拉低则接受一拍。</li>
+<li>撤回（retract）一拍：若接收者拒绝一拍，发送者可以拉低valid或在下一拍修改控制或数据信号来撤回一拍。</li>
+<li>呈现（present）一拍：若valid拉高且所有控制和数据信号在ready也拉高之前都保持不变，称之为呈现一拍。</li>
+<li>进行中（in progress）：一个消息正在进行，表示从被接受的第一拍到最后一拍被接受之间的这段时间。</li>
+<li>传输中（in flight）：一个消息正在进行，表示从被呈现的第一拍到最后一拍被接受之间的这段时间。</li>
+<li>请求消息：需要一个对应的响应消息，所有的TileLink操作都从某个通道的请求消息开始。</li>
+<li>响应消息：跟随在请求消息之后的响应。</li>
+<li>已收到的（received）消息：从簇发传输的第一拍被接受开始，消息被收到。</li>
+<li>已回答的（answered）消息：收到的请求被响应后，消息被回答。</li>
+<li>代理（agent）：TileLink系统中的参与者，有一或多个TileLink链路。</li>
+<li>优先级：一个消息的优先级与对应通道的优先级对应，响应消息的优先级总是比对应请求的优先级高，转发消息的优先级也更高。</li>
+<li>最终事件：一个事件在任意长但并非无穷长之后最终发生。</li>
+<li>向前推进：当所有呈现的拍最终被接受，且所有收到的请求最终被回答时，系统可以向前推进。</li>
+<li>不活动的（quiescent）：当没有添加新的消息时，系统处于不活动的状态，注意尽管TileLink保证不出现死锁，但仍然可能产生活锁或饥饿状态。为了限制这种情况，代理只被允许发送<code>n+rf</code>个消息，包括<code>n</code>为该代理允许发送的新消息、<code>r</code>为该代理接收的消息以及<code>f</code>为该代理为每个收到的消息允许发送的后续消息。</li>
+</ol>
+<h4 id="Examples-of-agent-conformance"><a href="#Examples-of-agent-conformance" class="headerlink" title="Examples of agent conformance"></a>Examples of agent conformance</h4><h5 id="周期性转发的主设备（不符合）"><a href="#周期性转发的主设备（不符合）" class="headerlink" title="周期性转发的主设备（不符合）"></a>周期性转发的主设备（不符合）</h5><p>一个代理有一个主接口和一个从接口，在A通道接受请求消息，但在转发消息时只在偶数周期拉高valid信号。这个代理不符合协议要求，原因是该代理不能完整呈现转发的消息，不能保证最终回答一个收到的请求。</p>
+<h5 id="等待刷新（符合）"><a href="#等待刷新（符合）" class="headerlink" title="等待刷新（符合）"></a>等待刷新（符合）</h5><p>一个DDR控制器周期性地无法处理请求，在这段时间内无条件地拉低所有ready信号，但注意到该代理仍然最终可以接受呈现的拍，因此还是符合协议要求的。</p>
+<h5 id="等待消息被接收（不符合）"><a href="#等待消息被接收（不符合）" class="headerlink" title="等待消息被接收（不符合）"></a>等待消息被接收（不符合）</h5><p>一个代理有两个用于发送消息的链路，在链路1上发起簇发传输A，并且几拍中的第一拍被接受，表明消息已被接收，但仍在传输中，然后在链路2上发起簇发传输B，此时A的传输还未结束。在恢复A之前等待B被接受是不符合协议要求的。</p>
+<h5 id="非常慢的仲裁器（符合）"><a href="#非常慢的仲裁器（符合）" class="headerlink" title="非常慢的仲裁器（符合）"></a>非常慢的仲裁器（符合）</h5><p>考虑一个具有三个链路的TL-UH代理，仲裁来自两条链路的A通道请求，并转发到第三条链路的A通道，但该仲裁器的吞吐量非常低。</p>
+<p>代理空闲时将从任一输入的A通道中选择一个valid请求，一旦选择了一个请求，就会在另一个A通道上拉低ready信号，并在所选链路和输出链路之间连接ready和valid（通道A和D）。一旦请求的所有拍都已被输出通道接受，代理在两个输入A通道上拉低ready信号，并等待响应消息的最后一拍被所选的通道接受。</p>
+<p>该代理符合规则2，因为可以假设输入的A通道都遵守规则2，因此其输出的A通道请求将呈现接收到的请求的所有节拍，D通道也同理。</p>
+<p>假设代理正在处理输入的一个消息，在转发链路上分别有一个未回答或进行中的消息。由于该链路的优先级高于输入的链路，因此适用规则3，并且代理可以无限期地拒绝后续提交的A通道请求。</p>
+<p>假设代理空闲并且没有输入呈现消息，这种情况满足规则3i，因为没有消息可以接受，同时也满足规则3ii，因为只有在收到的请求被回答时，仲裁器才会再次空闲。</p>
+<h2 id="操作与信息"><a href="#操作与信息" class="headerlink" title="操作与信息"></a>操作与信息</h2><h3 id="操作分类"><a href="#操作分类" class="headerlink" title="操作分类"></a>操作分类</h3><p>TileLink 操作能被分为下列三组:</p>
+<ul>
+<li>Accesses (A) 在具体的地址读或写数据。</li>
+<li>Hints (H) 只是提供一些信息，没有实际的影响。</li>
+<li>Transfers (T) 在拓扑网络中改变权限或移动缓存拷贝。</li>
+</ul>
+<p>不是每个TileLink代理都需要支持所有操作。取决于其的TileLink兼容级别，一个代理需要支持的操作如下表所列。</p>
+<p><img src="/2025/03/08/tilelink-reading-note/image-20250306165146627-1741275367121-40.png" alt="image-20250306165146627"></p>
+<h3 id="消息分类"><a href="#消息分类" class="headerlink" title="消息分类"></a>消息分类</h3><p><img src="/2025/03/08/tilelink-reading-note/image-20250306165249965-1741275367120-26.png" alt="image-20250306165249965"></p>
+<p>操作为蓝色，紫色为消息</p>
+<p><img src="/2025/03/08/tilelink-reading-note/image-20250306165453357-1741275367120-27.png" alt="image-20250306165453357"></p>
+<p><img src="/2025/03/08/tilelink-reading-note/image-20250306165606275-1741275367120-28.png" alt="image-20250306165606275"></p>
+<p>在一个TileLink拓扑网络中，在任意给定时间内会有多个操作在进程中。这些操作可能以任意的顺序完成。为了确保主端能在一个操作完成后，再执行其他操作，TileLink要求从端在操作结束时及时发送一个回复消息。因此，如果处理器要确保两个写操作X和Y的顺序被其他所有代理获取时都是一致的，那么处理器发送X的<code>PutFullData</code>后，必须等待<code>AccessAck</code>回复，在此之后，才发送Y的<code>PutFullData</code>。</p>
+<p>TileLink的从端，包括缓存，不能在Put操作确认前就将数据写回。唯一的约束是，一旦确认消息发出后，整个拓扑网络不能观察到过去的状态，这是因为在确认消息发出后，所有的被缓存的数据的拷贝都必须是已更新的。例如，对于一个Put操作，其他缓存要么被<code>Probe</code>现有的数据拷贝，要么通过<code>PutFullData</code>将消息前递给其他缓存，并且在确认原始的请求消息前，收集对应的回复消息。</p>
+<p>发射回复消息的代理需要保证它们接收的操作是一个有效的序列。例如，假设一个代理接收了两个Put，X和Y，并且都没有被确认，必须选择一定的顺序，例如说是X在Y之前。如果选择了这样的顺序，必须保证只有三个状态，X与Y前的状态，X之后且Y之前的状态和X与Y之后的状态。代理不一定要以这样的顺序发射回复消息。然而，在代理已发射了一条回复之后，例如Y，如果此时接受了新的操作Z，那么Z必须排在Y之后。</p>
+<p>这些规则确保每个代理看到的全局操作排序与主端的确认信号引导的局部排序是一致的。处理器可以等待发出的确认消息返回后再发起其他请求，来实现fence指令。这样的能力使得多处理器在TileLink的共享存储系统中，安全地同步执行操作。</p>
+<blockquote>
+<p>这里的意思是A写入的值需要广播，以此来更新所有缓存块的状态</p>
+</blockquote>
+<h2 id="TL-UL"><a href="#TL-UL" class="headerlink" title="TL-UL"></a>TL-UL</h2><p>TileLink无缓存轻量级（TL-UL）是最简单的TileLink协议兼容级别，可用于连接低性能的外设以减小总线的面积消耗。该兼容级别的代理都支持两种存储访问操作：</p>
+<ul>
+<li>读（Get）操作：从底层内存中读取一定量的数据。</li>
+<li>写（Put）操作：向底层内存中写入一定数目的数据，写操作支持基于字节t通路掩码的部分写功能。</li>
+</ul>
+<p>在TL-UL中，每条消息都必须放在一拍中，不支持簇发操作，TL-UL一共定义了与存储访问操作相关的三种请求消息和两种响应消息类型，下表列举了这些消息。</p>
+<p><img src="/2025/03/08/tilelink-reading-note/image-20250306221635531-1741275367121-29.png" alt="image-20250306221635531"></p>
+<h3 id="Flows-and-Waves"><a href="#Flows-and-Waves" class="headerlink" title="Flows and Waves"></a>Flows and Waves</h3><p><img src="/2025/03/08/tilelink-reading-note/image-20250306221708281-1741275367121-30.png" alt="image-20250306221708281"></p>
+<p><img src="/2025/03/08/tilelink-reading-note/image-20250306221947941-1741275367121-31.png" alt="image-20250306221947941"></p>
+<p><img src="/2025/03/08/tilelink-reading-note/image-20250306222005808-1741275367121-32.png" alt="image-20250306222005808"></p>
+<p><img src="/2025/03/08/tilelink-reading-note/image-20250306222028232-1741275367121-33.png" alt="image-20250306222028232"></p>
+<h2 id="TL-UH"><a href="#TL-UH" class="headerlink" title="TL-UH"></a>TL-UH</h2><p>TileLink无缓冲重量级（TL-UH）用于最后一级缓存之外的总线，这种应用中不需要使用权限转换的操作。TL-UH建立在TL-UL的基础上，并提供一部分额外的操作，包括：</p>
+<ul>
+<li>原子（Atomic）操作：在原子性地读取现存的数据值的同时，同步地写入一个新的值，此新值为某些逻辑和算法操作的结果。</li>
+<li>预处理（Hint）操作：提供了与某些性能优化相关的可选的提示性消息。</li>
+<li>簇发（Burst）消息：允许带有比数据总线宽度更大的数据的消息在多个周期内作为数据包传输，应用于在Get、Put和原子操作中多种包含数据的消息。</li>
+</ul>
+<p><img src="/2025/03/08/tilelink-reading-note/image-20250306222211086-1741275367121-34.png" alt="image-20250306222211086"></p>
+<h3 id="Flows-and-Waves-1"><a href="#Flows-and-Waves-1" class="headerlink" title="Flows and Waves"></a>Flows and Waves</h3><p><img src="/2025/03/08/tilelink-reading-note/image-20250306222236442-1741275367121-35.png" alt="image-20250306222236442"></p>
+<p><img src="/2025/03/08/tilelink-reading-note/image-20250306222547617-1741275367121-36.png" alt="image-20250306222547617"></p>
+<p><img src="/2025/03/08/tilelink-reading-note/image-20250306222555978-1741275367121-37.png" alt="image-20250306222555978"></p>
+<h3 id="ArithmeticData"><a href="#ArithmeticData" class="headerlink" title="ArithmeticData"></a>ArithmeticData</h3><p><img src="/2025/03/08/tilelink-reading-note/image-20250306222657857-1741275367121-38.png" alt="image-20250306222657857"></p>
+<h3 id="LogicalData"><a href="#LogicalData" class="headerlink" title="LogicalData"></a>LogicalData</h3><p><img src="/2025/03/08/tilelink-reading-note/image-20250306222737816-1741275367121-39.png" alt="image-20250306222737816"></p>
+<h3 id="Intent"><a href="#Intent" class="headerlink" title="Intent"></a>Intent</h3><p><img src="/2025/03/08/tilelink-reading-note/image-20250306222754968-1741275367121-41.png" alt="image-20250306222754968"></p>
+<h3 id="HintAck"><a href="#HintAck" class="headerlink" title="HintAck"></a>HintAck</h3><p><img src="/2025/03/08/tilelink-reading-note/image-20250306222842419-1741275367121-42.png" alt="image-20250306222842419"></p>
+<h2 id="TL-C"><a href="#TL-C" class="headerlink" title="TL-C"></a>TL-C</h2><p>TileLink缓存支持级（TL-C）给主端代理提供缓存共享数据块副本的能力，保证缓存一致性。本章描述TL-C中缓存的数据副本上允许进行哪些访存操作，以及用来传输数据块的缓存的消息类型，实现中所定义的一致性协议描述了副本和权限如何通过具体的TileLink代理网络传输以回复所接收的存储访问操作，但具体的一致性协议描述不在TileLink协议内容范围内。</p>
+<p>TL-C新添加了三种操作、三个通道、一个五步的消息序列模板以及十种消息类型。</p>
+<p>新的操作transfer可以创建或者清除数据块的缓存副本。转换操作不会修改数据块的值，但是会改变他们的读写权限。转换操作可以与之前定义的TL-UL、TL-UH访存操作无缝协作，保证操作进行序列化的正确性。</p>
+<p>可缓存性是存储地址范围的一个属性，一个TileLink的实现需保证避免无法缓存地址范围的副本出现。</p>
+<h3 id="Implementing-Cache-Coherence-Using-TileLink"><a href="#Implementing-Cache-Coherence-Using-TileLink" class="headerlink" title="Implementing Cache Coherence Using TileLink"></a>Implementing Cache Coherence Using TileLink</h3><p>所有基于Tilelink的一致性协议都由一系列操作组成，通过这些操作，可以完成读写数据块权限的在转变。在代理对已缓存的副本执行响应的操作之前，必须获得正确的权限。当代理希望在本地处理一个访问操作时，它必须首先使用转换操作来获得必要的权限。转换操作在网络上创建或删除副本，从而修改每个副本可以提供的权限。</p>
+<p>代理中数据块副本的基本权限可以包括：None、Read或Read+Write。缓存架构中副本 可用的权限取决于缓存层次结构中副本的当前存在情况，如下所述。</p>
+<p>对于任何给定的地址，在给定主端和拥有该地址范围的从端之间都只会存在一个具体的路径。在TileLink网络DAG中，所有这些路径都覆盖会形成一个树，根节点上仅有一个从端节点。对于每个地址，此树包含所有针对该地址的操作执行的路径。如果我们省略了所有不能缓存数据的代理，那么就会留下一个描述所有可能缓存该地址数据的缓存代理位置的树。</p>
+<p>在逻辑时间的任意时刻，这些代理的某些子集真正包含缓存数据的副本。这些代理形成 了一致性树 。包容性（Inclusive）的TileLink一致性协议要求树在响应内存访问操作时进行提权（Grow）和降权（Shrink）操作。图中的每个节点都属于树中的位置，分为以下四类：</p>
+<ul>
+<li>Nothing：当前没有缓存数据副本的节点，没有读写权限。</li>
+<li>主干（Trunk）：在顶点（Tip）和根（Root）之间的路径上拥有缓存副本的节点，具有其副本的读权限，该副本可能包含脏数据。</li>
+<li>无分支的顶点（Tip with no Branches）：具有缓存副本的节点，且可以用作内存访问序列化，对其拥有的可能包含脏数据的副本具有读写权限。</li>
+<li>有分支的顶点（Tip with Branches）：具有缓存副本的节点，且可以用作内存写入序列化，对其拥有的可能包含过去写入的脏数据的副本具有读写权限。</li>
+<li>分支（Branch）：该节点由Trunk结点分出，具有只读数据缓存副本。</li>
+</ul>
+<p><img src="/2025/03/08/tilelink-reading-note/image-20250306223229723-1741275367121-43.png" alt="image-20250306223229723"></p>
+<p>上图例举了几个覆盖在单个TileLink网络上的一致性树。在A中，树的根节点有唯一的 副本，这使得它既是树的根节点，也是树的顶端节点。在B中，主端通过提升主干的特权 (Grow)，获得读写权限，直到其位于顶点处。在C中，另一个主端通过扩展一个分支获得了读权限，这意味着之前的顶点现在也是一个只读分支，且公共的父节点是主干节点。在D中，其他主端也升级为分支，进一步将尖端向根部移动，而最初的请求者已经主动修剪了其分支。</p>
+<h3 id="Operations"><a href="#Operations" class="headerlink" title="Operations"></a>Operations</h3><p>三个新操作统称为transfer操作，原因是这些操作将数据块的副本传输到内存层次结构中的新位置，包括：</p>
+<ul>
+<li>Acquire：在请求主端中创建块（或其特定权限）的新副本。</li>
+<li>Release：从请求的主端将块的副本（或其特定权限）释放回从端。</li>
+<li>Probe：强制将块的副本（或其特定权限）从主端移到发起请求的从端。</li>
+</ul>
+<p>Acquire操作要么以扩展树干的形式，要么以从现存的分支或者尖端添加新的分支的形式来拓展树。在新的分支生成前，旧的主干或分支可能需要递归的Probe方法进行修剪。为了响应缓存容量冲突，可通过Release操作主动裁剪分支。</p>
+<h3 id="Channels"><a href="#Channels" class="headerlink" title="Channels"></a>Channels</h3><p>为了支持转换操作，TL-C在执行内存访问操作所需的两个基本通道上添加了三个新通道。A和D通道也被重新用于发送额外的消息，以实现转换操作。转换操作使用的五个通道</p>
+<p>分别是：</p>
+<p>通道A. 主端为了读取或写入缓存块副本而发起对<strong>权限的请求</strong>。</p>
+<p>通道B. 从端查询或修改主端对缓存数据块的权限，或将<strong>内存访问前递(forward)给主端</strong>。</p>
+<p>通道C. 主端响应通道B传输的消息，<strong>可能会释放带有任脏数据块的权限。也用于主动回写脏的缓存数据</strong>。</p>
+<p>通道D. 从端向原始请求者提供数据或权限，授予对缓存块的访问权。也用于<strong>确认脏数据的主动写回</strong>。</p>
+<p>通道E. 主端提供此次事务完成的<strong>最终确认消息</strong>，从端可用来事务序列化</p>
+<p>这五个通道可分为11种消息</p>
+<p><img src="/2025/03/08/tilelink-reading-note/image-20250306224348821-1741275367121-44.png" alt="image-20250306224348821"></p>
+<h3 id="Permissions-Transitions"><a href="#Permissions-Transitions" class="headerlink" title="Permissions Transitions"></a>Permissions Transitions</h3><p><img src="/2025/03/08/tilelink-reading-note/image-20250306224553036-1741275367121-45.png" alt="image-20250306224553036"></p>
+<p>Prune: 权限降级，缩小一致性树。相比过去，完成操作之后具有较低的权限。</p>
+<p>Grow: 权限升级，增大一致性树。相比过去，完成操作之后具有较高的权限。</p>
+<p>Report: 包含权限保持不变，但报告当前权限状态。</p>
+<p>Cap: 包含权限更改，但不指定原始权限是什么，而只指定它们应该成为什么。</p>
+<h3 id="Flows-and-Waves-2"><a href="#Flows-and-Waves-2" class="headerlink" title="Flows and Waves"></a>Flows and Waves</h3><p>Transfer操作引入新的事务流，这些事务流可以组成完整的缓存一致性协议事务。下图描述了三个新消息流。</p>
+<p><img src="/2025/03/08/tilelink-reading-note/image-20250306225034736-1741275367121-46.png" alt="image-20250306225034736"></p>
+<p><img src="/2025/03/08/tilelink-reading-note/image-20250306225615605-1741275367121-47.png" alt="image-20250306225615605"></p>
+<p>上图的消息流涵盖了三种新操作：</p>
+<ol>
+<li>缓存主代理向从代理发送Acquire。</li>
+<li>为保证给响应消息留足够空间，主代理主动发送Release，即写回操作。（替换脏数据）</li>
+<li>从代理访问存储结构，以完成写操作。</li>
+<li>从代理通过ReleaseAck确认写回操作已完成。</li>
+<li>从代理向其他主代理发送必需的Probe。</li>
+<li>从代理等待所有被Probe的主代理返回ProbeAck。</li>
+<li>若有需要，从代理还需访问存储结构。</li>
+<li>从代理向原请求设备发送Grant。</li>
+<li>原主代理以GrantAck说明此次事务成功完成。</li>
+</ol>
+<p>虽然这三个流程构成了所有涉及缓存块传输的TileLink事务的基础，但是当它们临时地重叠或分层地组合时，会出现一些边界情况。现在我们将讨论TileLink如何管理并发性，并分散到各主从代理之间。</p>
+<p>TileLink假设消息并不完全是点到点的有序的传递，来自高优先级通道的消息必须能够在网络中先于较低优先级的消息处理，从端充当连接到它的所有主端的一个同步节点。由于每个事务都必须通过发送给从端的一条Acquire消息作为初始消息，因此从端可以轻松对事务进行排序。一个非常安全的实现方式是一次只接受一个事务，但是这种方式对性能影响巨大，而且事实证明我们可以在继续提供正确的序列化的同时增加并发性。尽管事务有着天然的分布式属性，对代理的行为施加一些限制，仍能够保证事务间的有序性。下图描述了每种操作并发的一些限制。</p>
+<p><img src="/2025/03/08/tilelink-reading-note/image-20250306225754731-1741275367121-48.png" alt="image-20250306225754731"></p>
+<p>对TileLink代理上的并发限制在发射或阻塞请求消息方面最容易理解。所有请求消息都会引发响应消息，并且响应消息保证最终产生向前推进的效果，但是在某些情况下，在收到还未处理的响应消息之前，不应该发出针对同一块的递归请求消息。我们按照请求消息类型来对这些情况分类：</p>
+<ul>
+<li>Acquire：如果在块上有一个pending的Grant块，主端就不应发射一个Acquire。一旦Acquire被发出，主端不应该在该块发出进一步的Acquire，直到它收到一个Grant。</li>
+<li>Grant：在块上有一个pending的ProbeAck时，从端不应该发射Grant。一旦发出了一个Grant时，从端不应该在该块上发射Probe，直到它收到一个GrantAck。</li>
+<li>Release：在块上有一个pending的Grant时，主端不应该发射一个Release。一旦发出了一个Release后，主端不能发射ProbeAck，直到它收到来自从端确认写回操作完成的ReleaseAck。</li>
+<li>Probe：在块上有一个pending的GrantAck时，从端不应该发射一个Probe。一旦发射了一个Probe，从端不能进一步发射Probe，直到它收到一个ProbeAck。</li>
+</ul>
+<p><img src="/2025/03/08/tilelink-reading-note/image-20250306231030603-1741275367121-49.png" alt="image-20250306231030603"></p>
+<p>上图展示了一个消息流，包含了Grant和Probe，具体如下：</p>
+<ol>
+<li>主代理A先发送Acquire，但由于网络延迟，后到从代理。</li>
+<li>主代理B后发送Acquire，但先到达从代理，被序列化在A的前面。</li>
+<li>从代理向A发送Probe，即使A还在等待Grant，也必须先处理Probe。</li>
+<li>从代理接收到A的ProbeAck后，向B发送Grant。</li>
+<li>从代理接收到A的Acquire，但由于正等待B的GrantAck，所以现在还不能处理这个请求。</li>
+<li>一旦接收到B的GrantAck，A的事务就可以正常处理了。</li>
+<li>从代理向B发送Probe，但这个操作被在上一个Grant之后。</li>
+<li>从代理向A发送合适类型的Grant(包括数据副本)，说明A在Acquire后被Probe过。</li>
+</ol>
+<p><img src="/2025/03/08/tilelink-reading-note/image-20250306231336559-1741275367121-50.png" alt="image-20250306231336559"></p>
+<p>上图展示了一个消息流，包含了Release和Probe，具体如下：</p>
+<ol>
+<li>主代理A向从代理发送Acquire。</li>
+<li>与此同时，主代理B通过Release主动剔除相同的数据缓存块。</li>
+<li>从代理向B发送Probe。</li>
+<li>从代理等待每个发送出的Probe，但可以处理主动发起的Release。从代理发送ReleaseAck确认主动写回的操作完成。</li>
+<li>B在接收到写回确认前不处理Probe。</li>
+<li>在从代理接收到B的ProbeAck后，A的事务就可以正常执行了。</li>
+</ol>
+<h3 id="TL-C-Messages"><a href="#TL-C-Messages" class="headerlink" title="TL-C Messages"></a>TL-C Messages</h3><p>权限转换新增的三个通道有六个新消息，另外新增了一个通道A消息、三个通道D消息。新的通道是B、C和E，新的消息类型是Acquire、Probe、ProbeAck[Data]、Release[Data]、ReleaseAck、Grant[Data]和GrantAck。</p>
+<h4 id="AcquireBlock"><a href="#AcquireBlock" class="headerlink" title="AcquireBlock"></a>AcquireBlock</h4><p>AcquireBlock消息是主代理计划在本地缓存数据块的副本时，发起的请求消息类型，主代理还可以使用这种消息类型来升级他们已缓存块上的权限（例如，获得只读副本的写权限），与Get消息一样，Acquire消息本身不包含数据，下表说明了通道A内该消息的信号编码。</p>
+<p><img src="/2025/03/08/tilelink-reading-note/image-20250306232112160-1741275367121-51.png" alt="image-20250306232112160"></p>
+<h4 id="AcquirePerm"><a href="#AcquirePerm" class="headerlink" title="AcquirePerm"></a>AcquirePerm</h4><p>AcquirePerm消息是主代理计划升级缓存数据块的权限，且无需提供数据副本时，发起的请求消息类型，下表说明了通道A内该消息的信号编码。</p>
+<p><img src="/2025/03/08/tilelink-reading-note/image-20250306232227402-1741275367121-52.png" alt="image-20250306232227402"></p>
+<h4 id="ProbeBlock"><a href="#ProbeBlock" class="headerlink" title="ProbeBlock"></a>ProbeBlock</h4><p>ProbeBlock消息是从代理用来查询或修改由特定主代理存储的数据块的缓存副本的权限的请求消息，从代理响应另一个主代理的Acquire或主动发起，可以取消主代理对一块缓存块的权限，下表说明了通道B内该消息的信号编码。</p>
+<p><img src="/2025/03/08/tilelink-reading-note/image-20250306232341927-1741275367121-53.png" alt="image-20250306232341927"></p>
+<h4 id="ProbePerm"><a href="#ProbePerm" class="headerlink" title="ProbePerm"></a>ProbePerm</h4><p>ProbePerm消息是从代理用来查询或修改由特定主代理存储的数据块的缓存副本的权限的请求消息，从代理响应另一个主代理的Acquire或主动发起，可以取消主代理对一块缓存块的权限，不过和ProbeBlock不同的是，ProbePerm要求不需要提供数据副本就可以发起请求，下表说明了通道B内该消息的信号编码。</p>
+<p><img src="/2025/03/08/tilelink-reading-note/image-20250306232441339-1741275367122-54.png" alt="image-20250306232441339"></p>
+<h4 id="ProbeAck"><a href="#ProbeAck" class="headerlink" title="ProbeAck"></a>ProbeAck</h4><p>ProbeAck消息是主代理用来回复Probe的消息，下表说明了通道C内该消息的信号编码。</p>
+<p><img src="/2025/03/08/tilelink-reading-note/image-20250306232604741-1741275367122-55.png" alt="image-20250306232604741"></p>
+<h4 id="ProbeAckData"><a href="#ProbeAckData" class="headerlink" title="ProbeAckData"></a>ProbeAckData</h4><p>ProbeAckData消息是主代理使用的响应消息，用于确认接收到Probe，并写回发送请求的从代理所需的脏数据，下表说明了通道C内该消息的信号编码。</p>
+<p><img src="/2025/03/08/tilelink-reading-note/image-20250306232656619-1741275367122-56.png" alt="image-20250306232656619"></p>
+<h4 id="Grant"><a href="#Grant" class="headerlink" title="Grant"></a>Grant</h4><p>Grant消息是一个响应也是一个请求消息，从代理使用它来确认接收到一个Acquire，并提供访问缓存块的权限给原始发送请求的主代理，下表说明了通道D内该消息的信号编码。</p>
+<p><img src="/2025/03/08/tilelink-reading-note/image-20250308111959008.png" alt="image-20250308111959008"></p>
+<h4 id="GrantData"><a href="#GrantData" class="headerlink" title="GrantData"></a>GrantData</h4><p>GrantData消息既是响应也是请求消息，从代理使用它向原始请求主代理提供确认消息以及数据块副本，下表说明了通道D内该消息的信号编码。</p>
+<p><img src="/2025/03/08/tilelink-reading-note/image-20250308111701640.png" alt="image-20250308111701640"></p>
+<h4 id="GrantAck"><a href="#GrantAck" class="headerlink" title="GrantAck"></a>GrantAck</h4><p>GrantAck响应消息被主代理用来提供事务完成的最终确认消息，同时也被从代理用来确 保操作的全局序列化，下表说明了通道E内该消息的信号编码。</p>
+<p><img src="/2025/03/08/tilelink-reading-note/image-20250308111741557.png" alt="image-20250308111741557"></p>
+<h4 id="Release"><a href="#Release" class="headerlink" title="Release"></a>Release</h4><p>Release消息是主代理用来主动降低其对一个缓存数据块的权限的请求消息，下表说明了通道C内该消息的信号编码。</p>
+<p><img src="/2025/03/08/tilelink-reading-note/image-20250308111839616.png" alt="image-20250308111839616"></p>
+<h4 id="ReleaseData"><a href="#ReleaseData" class="headerlink" title="ReleaseData"></a>ReleaseData</h4><p>ReleaseData消息是主代理发起的请求消息，用于主动降低对一块缓存数据块的权限，并将脏数据写回从代理，下表说明了通道C内该消息的信号编码。</p>
+<p><img src="/2025/03/08/tilelink-reading-note/image-20250308111857294.png" alt="image-20250308111857294"></p>
+<h4 id="ReleaseAck"><a href="#ReleaseAck" class="headerlink" title="ReleaseAck"></a>ReleaseAck</h4><p>ReleaseAck消息是一个从代理发起的响应消息，用来响应Release[Data]，用于确保从代理的操作的全局序列化，下表说明了通道D内该消息的信号编码。</p>
+<p><img src="/2025/03/08/tilelink-reading-note/image-20250308111940100.png" alt="image-20250308111940100"></p>
+<h3 id="TL-UL-and-TL-UH-Messages-on-Channel-A-and-Channel-D"><a href="#TL-UL-and-TL-UH-Messages-on-Channel-A-and-Channel-D" class="headerlink" title="TL-UL and TL-UH Messages on Channel A and Channel D"></a>TL-UL and TL-UH Messages on Channel A and Channel D</h3><p>TL-C规定了TL-UL和TL-UH现有消息的权限转换：</p>
+<ul>
+<li>Get操作隐式地将权限Cap为None（Invalid）。</li>
+<li>PutFullData、PutPartialData、ArthmeticData、LogicalData隐式地将权限Cap为非Read+Write（主干或顶点），即None（Invalid）或Read（分支）。</li>
+</ul>
+<h3 id="TL-UL-and-TL-UH-messages-on-B-and-C"><a href="#TL-UL-and-TL-UH-messages-on-B-and-C" class="headerlink" title="TL-UL and TL-UH messages on B and C"></a>TL-UL and TL-UH messages on B and C</h3>]]></content>
+  </entry>
+  <entry>
+    <title>简单的缓存一致性</title>
+    <url>/2025/02/05/%E7%AE%80%E5%8D%95%E7%9A%84%E7%BC%93%E5%AD%98%E4%B8%80%E8%87%B4%E6%80%A7/</url>
+    <content><![CDATA[<p>目录式协议(directory)—-物理存储器中数据块的共享状态被保存在一个称为目录的地方。目录式协议的实现开销比监听式协议的稍微大一些,但可用于实现更大规模的多处理机。<br>监听式协议(snooping)—-当物理存储器中的数据块被调入 Cache 时，其共享状态信息与该数据块一起放在该 Cache 中。系统中没有集中的状态表。这些 Cache 通常连在共享存储器的总线上。当某个 Cache 需要访问存储器时,它会把请求放到总线上广播出去,其他各个 Cache 控制器通过监听总线(它们一直在监听)来判断它们是否有总线上请求的数据块。如果有,就进行相应的操作。</p>
+<p>无论是MSI还是MESI,MOESI,都差不多按照以下思路分析:r_hit,r_miss,w_hit,w_miss讨论状态机实现,其中每个transaction对应3,4,5个状态(MSI-&gt;MESI-&gt;MOESI),且都要考虑本地cache和其他cache,如右图所示</p>
+<p><img src="/2025/02/05/%E7%AE%80%E5%8D%95%E7%9A%84%E7%BC%93%E5%AD%98%E4%B8%80%E8%87%B4%E6%80%A7/1729944912699.png" alt="1729944912699"></p>
+<ul>
+<li>M，modified，表示该数据已修改，即上述所说的“脏”数据，需要在合适的时机写回内存；</li>
+<li>E，Exclusive，表示该数据独占，意指此时该数据只存在某个核中，其他核没有该数据，于是就不需要所谓的广播给其他的核，也就没有缓存一致性的问题；</li>
+<li>S，Shared，表示数据共享，是从<strong>数据独占</strong>状态转移过来的。意指多个核中都有该数据，这个时候就会存在缓存一致性的问题；</li>
+<li>I，Invalidated，表示数据已失效，可以丢弃掉Cache Block的数据了（高并发情况下可能出现两个CPU同时修改变量a，并同时向总线发出将各自的缓存行更改为M状态的情况， <strong>此时总线会采用相应的裁决机制进行裁决</strong> ，将其中一个置为M状态，另一个置为I状态，且I状态的缓存行修改无效）；</li>
+</ul>
+<p>MESI四种状态标志是存储在Cache Line中的</p>
+<h1 id="内存模型"><a href="#内存模型" class="headerlink" title="内存模型"></a><strong>内存模型</strong></h1><h2 id="SC"><a href="#SC" class="headerlink" title="SC"></a>SC</h2><p>所有线程访存一定能构成全局序</p>
+<p><img src="/2025/02/05/%E7%AE%80%E5%8D%95%E7%9A%84%E7%BC%93%E5%AD%98%E4%B8%80%E8%87%B4%E6%80%A7/1730373908924.png" alt="1730373908924"></p>
+<p>所有load结果都是全局序中最近的同地址store值</p>
+<p>  <img src="/2025/02/05/%E7%AE%80%E5%8D%95%E7%9A%84%E7%BC%93%E5%AD%98%E4%B8%80%E8%87%B4%E6%80%A7/1730373977856.png" alt="1730373977856"></p>
+<h2 id="TSO"><a href="#TSO" class="headerlink" title="TSO"></a>TSO</h2><p><img src="/2025/02/05/%E7%AE%80%E5%8D%95%E7%9A%84%E7%BC%93%E5%AD%98%E4%B8%80%E8%87%B4%E6%80%A7/1730374094456.png" alt="1730374094456"><img src="/2025/02/05/%E7%AE%80%E5%8D%95%E7%9A%84%E7%BC%93%E5%AD%98%E4%B8%80%E8%87%B4%E6%80%A7/1730374216003.png" alt="1730374216003"></p>
+<h2 id="RVWMO"><a href="#RVWMO" class="headerlink" title="RVWMO"></a>RVWMO</h2><p><img src="/2025/02/05/%E7%AE%80%E5%8D%95%E7%9A%84%E7%BC%93%E5%AD%98%E4%B8%80%E8%87%B4%E6%80%A7/1730374321974.png" alt="1730374321974"></p>
+<p><img src="/2025/02/05/%E7%AE%80%E5%8D%95%E7%9A%84%E7%BC%93%E5%AD%98%E4%B8%80%E8%87%B4%E6%80%A7/1730374367495.png" alt="1730374367495"></p>
+<h2 id="香山乱序访存"><a href="#香山乱序访存" class="headerlink" title="香山乱序访存"></a>香山乱序访存</h2><p>数据也会存到SQ</p>
+<p><img src="/2025/02/05/%E7%AE%80%E5%8D%95%E7%9A%84%E7%BC%93%E5%AD%98%E4%B8%80%E8%87%B4%E6%80%A7/1730380794423.png" alt="1730380794423"></p>
+<p>设置一个SQ,在派遣时将进入SQ,FIFO结构,当指令</p>
+<p><img src="/2025/02/05/%E7%AE%80%E5%8D%95%E7%9A%84%E7%BC%93%E5%AD%98%E4%B8%80%E8%87%B4%E6%80%A7/1730380916400.png" alt="1730380916400"></p>
+<p><img src="/2025/02/05/%E7%AE%80%E5%8D%95%E7%9A%84%E7%BC%93%E5%AD%98%E4%B8%80%E8%87%B4%E6%80%A7/1730381086089.png" alt="1730381086089"></p>
+<p><img src="/2025/02/05/%E7%AE%80%E5%8D%95%E7%9A%84%E7%BC%93%E5%AD%98%E4%B8%80%E8%87%B4%E6%80%A7/1730381113849.png" alt="1730381113849"></p>
+<p>当<strong>sw遇到TLBmiss</strong> 让她退出流水,然后在SQ标记重发<img src="/2025/02/05/%E7%AE%80%E5%8D%95%E7%9A%84%E7%BC%93%E5%AD%98%E4%B8%80%E8%87%B4%E6%80%A7/1730381020649.png" alt="1730381020649"></p>
+<p><strong>load流水线</strong></p>
+<p>load指令一方面数据来自DCache,另一方面来自SQ,而且SQ优先级更高,在读数据要对SQ和DCache的数据合并</p>
+<p><strong>Store&#x2F;load违例:load先于store执行</strong></p>
+<p>1.阻塞,load得等,等到之前的store指令地址计算完,算是部分乱序</p>
+<p>2.检测:检测到了违例,直接从lw之后把指令刷掉,(一种是ROB,但ROB太大)</p>
+<p>所以可以设置一个LQ,FIFO,是ROB子集只用存LW指令,dispatch入队,sw指令会检测是否有比其更年轻的load(ROB地址值作为age)已经执行完了,从lw下面指令全部刷了.重新取</p>
+<p><img src="/2025/02/05/%E7%AE%80%E5%8D%95%E7%9A%84%E7%BC%93%E5%AD%98%E4%B8%80%E8%87%B4%E6%80%A7/1730381962804.png" alt="1730381962804"></p>
+<p>load异常事件:</p>
+<p>TLBmiss</p>
+<p><img src="/2025/02/05/%E7%AE%80%E5%8D%95%E7%9A%84%E7%BC%93%E5%AD%98%E4%B8%80%E8%87%B4%E6%80%A7/1730382130178.png" alt="1730382130178"></p>
+<p><img src="/2025/02/05/%E7%AE%80%E5%8D%95%E7%9A%84%E7%BC%93%E5%AD%98%E4%B8%80%E8%87%B4%E6%80%A7/1730382342283.png" alt="1730382342283"></p>
+<p>取回数据然后对唤醒LQ的指令</p>
+]]></content>
+      <categories>
+        <category>计算机体系结构</category>
+      </categories>
+  </entry>
+  <entry>
+    <title>论文移植</title>
+    <url>/2025/02/09/%E8%AE%BA%E6%96%87%E7%A7%BB%E6%A4%8D/</url>
+    <content><![CDATA[<h1 id="代码移植问题"><a href="#代码移植问题" class="headerlink" title="代码移植问题"></a>代码移植问题</h1><ol>
+<li>将1.9.1的chipyard版本移植到1.17.1的firesim</li>
+<li>直接使用1.17.1版本的chipyard</li>
+<li>是否可以得到老师代码修改记录，这样可以最小限度移植</li>
+<li>是将MEEK代码直接复制到chipyard，还是只将修改部分的代码复制到chipyard</li>
+</ol>
+<h1 id="修改1"><a href="#修改1" class="headerlink" title="修改1"></a>修改1</h1><p>修改rocket chip 的main&#x2F;scala的packge.scala</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">package freechips</span><br><span class="line"></span><br><span class="line">package object rocketchip &#123;</span><br><span class="line">  val config = org.chipsalliance.cde.config</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h1 id="修改2"><a href="#修改2" class="headerlink" title="修改2"></a>修改2</h1><p>value io is not a member of freechips.rocketchip.diplomacy.LazyModuleImp</p>
+<p>将</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">lazy val module = new LazyModuleImp(this) &#123;</span><br><span class="line">  val io = IO(new Bundle &#123;</span><br><span class="line">    val finished = Bool(OUTPUT)</span><br><span class="line">  &#125;)</span><br></pre></td></tr></table></figure>
+
+<p>改为</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">lazy val module = new Impl</span><br><span class="line">class Impl extends LazyModuleImp(this) &#123;</span><br><span class="line">  val io = IO(new Bundle &#123;</span><br><span class="line">    val finished = Bool(OUTPUT)</span><br><span class="line">  &#125;)</span><br></pre></td></tr></table></figure>
+
+<h1 id="gem5部分"><a href="#gem5部分" class="headerlink" title="gem5部分"></a>gem5部分</h1><p>编写了se跑spec2006的脚本，目前需要给输入参数加入绝对路径</p>
+<p>明天会编写fs跑spec2006的脚本，主要实现思路就是设置一个checkpoint，然后将所有benchmark打包进去，每次运行完一个benchmark就会poweoff，然后运行下一个（不知道是否可以并行）</p>
+]]></content>
   </entry>
   <entry>
     <title>超标量处理器设计</title>
