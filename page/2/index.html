@@ -530,7 +530,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2025-03-09 21:10:13" itemprop="dateModified" datetime="2025-03-09T21:10:13+08:00">2025-03-09</time>
+      <time title="修改时间：2025-03-10 23:16:30" itemprop="dateModified" datetime="2025-03-10T23:16:30+08:00">2025-03-10</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -556,7 +556,7 @@
         <i class="far fa-clock"></i>
       </span>
       <span class="post-meta-item-text">阅读时长 &asymp;</span>
-      <span>1:57</span>
+      <span>1:58</span>
     </span>
 </div>
 
@@ -2059,6 +2059,27 @@
 </blockquote>
 <p>AMOALU 的MUX最低优先级为minmax，而min，和max如果不是AMO指令总是为0，故总是选择io.rhs，也就是store的数据</p>
 <figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">val minmax = Mux(Mux(less, min, max), io.lhs, io.rhs)</span><br></pre></td></tr></table></figure>
+
+<h3 id="MSHR"><a href="#MSHR" class="headerlink" title="MSHR"></a>MSHR</h3><p>先讲解MSHR的状态机,状态很多接下来一个一个解释</p>
+<p>s_invalid:如果tag_match且首次请求(缺失或者evict),若请求为写请求,更新coh,然后进入s_drain_rpq,否则进入s_refill_req</p>
+<p>s_refill_req:发出acquare请求,如果握手成功进入s_refill_resp，这里的acquare可能是获取数据也可能是获取权限，比如cache line行变为脏行，需要通知下一级</p>
+<p>s_refill_resp:如果有数据,给出grant信号,并且写入lb,如果grant握手,给出grant是否包含数据的信号,如果refill_done,给出grantack,如果有数据,说明为读请求,进入s_drain_rpq_loads,否则进入s_drain_rpq</p>
+<p>s_drain_rpq_loads:&#x2F;&#x2F;当一个load得到结果，其他相同地址的load都可以退出了,该阶段清空load请求,然后如果rpq为空或者deq不是load,进入s_meta_read,</p>
+<blockquote>
+<p>这里需要去仿真验证，不知道该状态为了什么</p>
+</blockquote>
+<p>s_meta_read:读出meta,完成后进入s_meta_resp_1</p>
+<p>s_meta_resp_1:s_meta_resp_2</p>
+<p>s_meta_resp_2:如果此时为wr指令,且含有脏数据,此时s_meta_clear,否则为s_commit_line,注意这里有一个小的reply</p>
+<p>s_meta_clear:写入meta新的权限</p>
+<p>s_wb_req:写回脏数据,且设置voluntary为true</p>
+<p>s_wb_resp：写回完成进入s_commit_line</p>
+<p>s_commit_line：写回refill数据，转换为s_drain_rpq</p>
+<p>s_drain_rpq：重新执行请求，转为s_meta_write_req</p>
+<p>s_meta_write_req：写入新的权限，进入s_mem_finish_1</p>
+<p>s_mem_finish_1：送出grantack，转为s_mem_finish_2</p>
+<p>s_mem_finish_2：如果不是prefetch转为s_invalid</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">s_invalid :: s_refill_req :: s_refill_resp :: s_drain_rpq_loads :: s_meta_read :: s_meta_resp_1 :: s_meta_resp_2 :: s_meta_clear :: s_wb_meta_read :: s_wb_req :: s_wb_resp :: s_commit_line :: s_drain_rpq :: s_meta_write_req :: s_mem_finish_1 :: s_mem_finish_2 :: s_prefetched :: s_prefetch :: Nil = Enum(18)</span><br></pre></td></tr></table></figure>
 
 
 
@@ -4202,7 +4223,7 @@
     <span class="post-meta-item-icon">
       <i class="fa fa-coffee"></i>
     </span>
-    <span title="站点阅读时长">7:41</span>
+    <span title="站点阅读时长">7:42</span>
   </span>
 </div>
   <div class="powered-by">由 <a href="https://hexo.io/" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.js.org/" rel="noopener" target="_blank">NexT.Gemini</a> 强力驱动
