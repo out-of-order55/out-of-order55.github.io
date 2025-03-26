@@ -1,0 +1,420 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width">
+<meta name="theme-color" content="#222"><meta name="generator" content="Hexo 7.3.0">
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css" integrity="sha256-dABdfBfUoC8vJUBOwGVdm8L9qlMWaHTIfXt+7GnZCIo=" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/3.1.1/animate.min.css" integrity="sha256-PR7ttpcvz8qrF57fur/yAx1qXMFJeJFiA6pSzWi0OIE=" crossorigin="anonymous">
+
+<script class="next-config" data-name="main" type="application/json">{"hostname":"example.com","root":"/","images":"/images","scheme":"Gemini","darkmode":false,"version":"8.22.0","exturl":false,"sidebar":{"position":"left","width_expanded":320,"width_dual_column":240,"display":"post","padding":18,"offset":12},"hljswrap":true,"copycode":{"enable":true,"style":"flat"},"fold":{"enable":true,"height":500},"bookmark":{"enable":false,"color":"#222","save":"auto"},"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"stickytabs":false,"motion":{"enable":true,"async":false,"duration":200,"transition":{"menu_item":"fadeInDown","post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"i18n":{"placeholder":"搜索...","empty":"没有找到任何搜索结果：${query}","hits_time":"找到 ${hits} 个搜索结果（用时 ${time} 毫秒）","hits":"找到 ${hits} 个搜索结果"}}</script><script src="/js/config.js"></script>
+
+    <meta name="description" content="A Top-Down Method for Performance Analysis and Counters Architecture为什么要提出这个方法学？传统的性能评估方法：  其限制如下：  Stalls overlap：OoO处理器许多模块都是并行计算，可能dcache miss惩罚会被overlap（即使miss也可以执行其他没有依赖的指令） Speculative execution">
+<meta property="og:type" content="article">
+<meta property="og:title" content="topdown analysis">
+<meta property="og:url" content="http://example.com/2025/03/19/topdown-analysis/index.html">
+<meta property="og:site_name" content="GB&#39;s Blog">
+<meta property="og:description" content="A Top-Down Method for Performance Analysis and Counters Architecture为什么要提出这个方法学？传统的性能评估方法：  其限制如下：  Stalls overlap：OoO处理器许多模块都是并行计算，可能dcache miss惩罚会被overlap（即使miss也可以执行其他没有依赖的指令） Speculative execution">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="http://example.com/2025/03/19/topdown-analysis/image-20250319103349042.png">
+<meta property="og:image" content="http://example.com/2025/03/19/topdown-analysis/image-20250326171600522.png">
+<meta property="og:image" content="http://example.com/2025/03/19/topdown-analysis/image-20250326171657191.png">
+<meta property="og:image" content="http://example.com/2025/03/19/topdown-analysis/image-20250326173425211.png">
+<meta property="og:image" content="http://example.com/2025/03/19/topdown-analysis/image-20250326173528480.png">
+<meta property="og:image" content="http://example.com/2025/03/19/topdown-analysis/image-20250326173651209.png">
+<meta property="og:image" content="http://example.com/2025/03/19/topdown-analysis/image-20250326173659628.png">
+<meta property="og:image" content="http://example.com/2025/03/19/topdown-analysis/image-20250324161603855.png">
+<meta property="article:published_time" content="2025-03-19T02:31:03.000Z">
+<meta property="article:modified_time" content="2025-03-26T10:32:52.997Z">
+<meta property="article:author" content="GB">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://example.com/2025/03/19/topdown-analysis/image-20250319103349042.png">
+
+
+<link rel="canonical" href="http://example.com/2025/03/19/topdown-analysis/">
+
+
+<script class="next-config" data-name="page" type="application/json">{"sidebar":"","isHome":false,"isPost":true,"lang":"zh-CN","comments":true,"permalink":"http://example.com/2025/03/19/topdown-analysis/","path":"2025/03/19/topdown-analysis/","title":"topdown analysis"}</script>
+
+<script class="next-config" data-name="calendar" type="application/json">""</script>
+<title>topdown analysis | GB's Blog</title>
+  
+
+
+
+
+
+
+
+
+  <noscript>
+    <link rel="stylesheet" href="/css/noscript.css">
+  </noscript>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" class="use-motion">
+  <div class="headband"></div>
+
+  <main class="main">
+    <div class="column">
+      <header class="header" itemscope itemtype="http://schema.org/WPHeader"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏" role="button">
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <i class="logo-line"></i>
+      <p class="site-title">GB's Blog</p>
+      <i class="logo-line"></i>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger" aria-label="搜索" role="button">
+    </div>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  <ul class="main-menu menu"><li class="menu-item menu-item-home"><a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a></li><li class="menu-item menu-item-archives"><a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a></li><li class="menu-item menu-item-categories"><a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类</a></li><li class="menu-item menu-item-tags"><a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签</a></li><li class="menu-item menu-item-about"><a href="/about/" rel="section"><i class="fa fa-user fa-fw"></i>关于</a></li>
+  </ul>
+</nav>
+
+
+
+
+</header>
+        
+  
+  <aside class="sidebar">
+
+    <div class="sidebar-inner sidebar-nav-active sidebar-toc-active">
+      <ul class="sidebar-nav">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <div class="sidebar-panel-container">
+        <!--noindex-->
+        <div class="post-toc-wrap sidebar-panel">
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#A-Top-Down-Method-for-Performance-Analysis-and-Counters-Architecture"><span class="nav-number">1.</span> <span class="nav-text">A Top-Down Method for Performance Analysis and Counters Architecture</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%B8%BA%E4%BB%80%E4%B9%88%E8%A6%81%E6%8F%90%E5%87%BA%E8%BF%99%E4%B8%AA%E6%96%B9%E6%B3%95%E5%AD%A6%EF%BC%9F"><span class="nav-number">1.1.</span> <span class="nav-text">为什么要提出这个方法学？</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%89%8D%E7%AB%AF-bound"><span class="nav-number">1.2.</span> <span class="nav-text">前端 bound</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Bad-Speculation-category"><span class="nav-number">1.3.</span> <span class="nav-text">Bad Speculation category</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Backend-Bound-category"><span class="nav-number">1.4.</span> <span class="nav-text">Backend Bound category</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E8%AE%A1%E6%95%B0%E5%99%A8%E7%BB%93%E6%9E%84"><span class="nav-number">1.5.</span> <span class="nav-text">计数器结构</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Rocket-chip-%E6%80%A7%E8%83%BD%E8%AE%A1%E6%95%B0%E5%99%A8"><span class="nav-number">1.6.</span> <span class="nav-text">Rocket  chip 性能计数器</span></a></li></ol></li></ol></div>
+        </div>
+        <!--/noindex-->
+
+        <div class="site-overview-wrap sidebar-panel">
+          <div class="site-author animated" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="GB"
+      src="/images/my.jpg">
+  <p class="site-author-name" itemprop="name">GB</p>
+  <div class="site-description" itemprop="description"></div>
+</div>
+<div class="site-state-wrap animated">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+        <a href="/archives/">
+          <span class="site-state-item-count">23</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+          <a href="/categories/">
+        <span class="site-state-item-count">5</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+  </nav>
+</div>
+
+        </div>
+      </div>
+    </div>
+
+    
+  </aside>
+
+
+    </div>
+
+    <div class="main-inner post posts-expand">
+
+
+  
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://example.com/2025/03/19/topdown-analysis/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/my.jpg">
+      <meta itemprop="name" content="GB">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="GB's Blog">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
+      <meta itemprop="name" content="topdown analysis | GB's Blog">
+      <meta itemprop="description" content="">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          topdown analysis
+        </h1>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">发表于</span>
+
+      <time title="创建时间：2025-03-19 10:31:03" itemprop="dateCreated datePublished" datetime="2025-03-19T10:31:03+08:00">2025-03-19</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar-check"></i>
+      </span>
+      <span class="post-meta-item-text">更新于</span>
+      <time title="修改时间：2025-03-26 18:32:52" itemprop="dateModified" datetime="2025-03-26T18:32:52+08:00">2025-03-26</time>
+    </span>
+
+  
+    <span class="post-meta-break"></span>
+    <span class="post-meta-item" title="本文字数">
+      <span class="post-meta-item-icon">
+        <i class="far fa-file-word"></i>
+      </span>
+      <span class="post-meta-item-text">本文字数：</span>
+      <span>1.2k</span>
+    </span>
+    <span class="post-meta-item" title="阅读时长">
+      <span class="post-meta-item-icon">
+        <i class="far fa-clock"></i>
+      </span>
+      <span class="post-meta-item-text">阅读时长 &asymp;</span>
+      <span>4 分钟</span>
+    </span>
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody"><h1 id="A-Top-Down-Method-for-Performance-Analysis-and-Counters-Architecture"><a href="#A-Top-Down-Method-for-Performance-Analysis-and-Counters-Architecture" class="headerlink" title="A Top-Down Method for Performance Analysis and Counters Architecture"></a>A Top-Down Method for Performance Analysis and Counters Architecture</h1><h2 id="为什么要提出这个方法学？"><a href="#为什么要提出这个方法学？" class="headerlink" title="为什么要提出这个方法学？"></a>为什么要提出这个方法学？</h2><p>传统的性能评估方法：</p>
+<p><img src="/2025/03/19/topdown-analysis/image-20250319103349042.png" alt="image-20250319103349042"></p>
+<p>其限制如下：</p>
+<ol>
+<li>Stalls overlap：OoO处理器许多模块都是并行计算，可能dcache miss惩罚会被overlap（即使miss也可以执行其他没有依赖的指令）</li>
+<li>Speculative execution：推测执行产生的错误结果不会影响提交，他们对性能实际影响较小（相对正确路径）</li>
+<li>Penalties are workloaddependent：性能惩罚的周期不定，而是和具体的工作负载相关，传统的性能评估方法认为所有惩罚周期一致</li>
+<li>Restriction to a pre-defined set of  miss-events：只有一些比较常见的会被评估，但比较细节的就可能被忽视（前端供指不足）</li>
+<li>Superscalar inaccuracy：超标量处理器可以一个周期执行退休多条指令，issue带宽可能会出现问题（其中一个例子）</li>
+</ol>
+<p>于是，intel提出了top-down的性能分析方法，该方法不仅可以应用于微结构探索，也可以去应用于软件分析</p>
+<p>他的分析方法就相当一个树，从跟节点到叶子节点一点点分析（选择占比大的事件分析），特点如下：</p>
+<ol>
+<li><p>引入错误预测的性能事件，并放在性能事件顶部</p>
+</li>
+<li><p>引入专门的计数器（12个）</p>
+</li>
+<li><p>确定关键的流水线阶段（issue）和计数时机</p>
+<blockquote>
+<p>比如，与其统计内存访问总时间，不如去观察由于mem access hang导致的执行单元利用率低的持续时间</p>
+</blockquote>
+</li>
+<li><p>使用通用的事件</p>
+</li>
+</ol>
+<p>其分析层次如下：</p>
+<p><img src="/2025/03/19/topdown-analysis/image-20250326171600522.png" alt="image-20250326171600522"></p>
+<p>我们选择issue阶段来进行事件分解</p>
+<p>将性能事件分为4类： Frontend Bound, Backend Bound, Bad Speculation and Retiring</p>
+<p><img src="/2025/03/19/topdown-analysis/image-20250326171657191.png" alt="image-20250326171657191"></p>
+<h2 id="前端-bound"><a href="#前端-bound" class="headerlink" title="前端 bound"></a>前端 bound</h2><p>前端分为Latency和Bandwidth，</p>
+<p>Latency：icache未命中等导致前端无法产生有效指令</p>
+<p>Frontend Bandwidth Bound：decoder效率低，其次就是取指令宽度不够（后端执行太快）</p>
+<blockquote>
+<p>boom很难产生Latency bound，后端执行单元少，无法利用OoO的并行</p>
+</blockquote>
+<h2 id="Bad-Speculation-category"><a href="#Bad-Speculation-category" class="headerlink" title="Bad Speculation category"></a>Bad Speculation category</h2><p>细分为br mispred和mechine clear</p>
+<h2 id="Backend-Bound-category"><a href="#Backend-Bound-category" class="headerlink" title="Backend Bound category"></a>Backend Bound category</h2><p>这里可能会有dcache miss divider执行等情况</p>
+<p>其进一步细分为Memory Bound 和Core Bound</p>
+<blockquote>
+<p>为了维持最大IPC，需要去在4-wide的机器上尽量让exu跑满</p>
+</blockquote>
+<p>Memory Bound：显而易见，就是lsu所造成的性能损失</p>
+<p>Core Bound ：执行端口利用率低，除法指令</p>
+<p>下面还展示了将Mem Bound细分</p>
+<p><img src="/2025/03/19/topdown-analysis/image-20250326173425211.png" alt="image-20250326173425211"></p>
+<h2 id="计数器结构"><a href="#计数器结构" class="headerlink" title="计数器结构"></a>计数器结构</h2><p><img src="/2025/03/19/topdown-analysis/image-20250326173528480.png" alt="image-20250326173528480"></p>
+<p>有*号代表现代的PMU含有该计数器，可以看到只需8个新的perf计数器就可以实现一级level的TMA，其计算公式如下：</p>
+<p><img src="/2025/03/19/topdown-analysis/image-20250326173651209.png" alt="image-20250326173651209"></p>
+<p><img src="/2025/03/19/topdown-analysis/image-20250326173659628.png" alt="image-20250326173659628"></p>
+<h2 id="Rocket-chip-性能计数器"><a href="#Rocket-chip-性能计数器" class="headerlink" title="Rocket  chip 性能计数器"></a>Rocket  chip 性能计数器</h2><p>RISCV只给出了性能计数器的标准，但并未给出性能计数器的具体实现，rocket chip 的实现方法如下：</p>
+<p>这里的EventSets，给出了三个EventSet，每个EventSets通过event选择</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br></pre></td><td class="code"><pre><span class="line">val perfEvents = new EventSets(Seq(</span><br><span class="line">  new EventSet((mask, hits) =&gt; Mux(wb_xcpt, mask(0), wb_valid &amp;&amp; pipelineIDToWB((mask &amp; hits).orR)), Seq(</span><br><span class="line">    (&quot;exception&quot;, () =&gt; false.B),</span><br><span class="line">    (&quot;load&quot;, () =&gt; id_ctrl.mem &amp;&amp; id_ctrl.mem_cmd === M_XRD &amp;&amp; !id_ctrl.fp),</span><br><span class="line">    (&quot;store&quot;, () =&gt; id_ctrl.mem &amp;&amp; id_ctrl.mem_cmd === M_XWR &amp;&amp; !id_ctrl.fp),</span><br><span class="line">    (&quot;amo&quot;, () =&gt; usingAtomics.B &amp;&amp; id_ctrl.mem &amp;&amp; (isAMO(id_ctrl.mem_cmd) || id_ctrl.mem_cmd.isOneOf(M_XLR, M_XSC))),</span><br><span class="line">    (&quot;system&quot;, () =&gt; id_ctrl.csr =/= CSR.N),</span><br><span class="line">    (&quot;arith&quot;, () =&gt; id_ctrl.wxd &amp;&amp; !(id_ctrl.jal || id_ctrl.jalr || id_ctrl.mem || id_ctrl.fp || id_ctrl.mul || id_ctrl.div || id_ctrl.csr =/= CSR.N)),</span><br><span class="line">    (&quot;branch&quot;, () =&gt; id_ctrl.branch),</span><br><span class="line">    (&quot;jal&quot;, () =&gt; id_ctrl.jal),</span><br><span class="line">    (&quot;jalr&quot;, () =&gt; id_ctrl.jalr))</span><br><span class="line">    ++ (if (!usingMulDiv) Seq() else Seq(</span><br><span class="line">      (&quot;mul&quot;, () =&gt; if (pipelinedMul) id_ctrl.mul else id_ctrl.div &amp;&amp; (id_ctrl.alu_fn &amp; aluFn.FN_DIV) =/= aluFn.FN_DIV),</span><br><span class="line">      (&quot;div&quot;, () =&gt; if (pipelinedMul) id_ctrl.div else id_ctrl.div &amp;&amp; (id_ctrl.alu_fn &amp; aluFn.FN_DIV) === aluFn.FN_DIV)))</span><br><span class="line">    ++ (if (!usingFPU) Seq() else Seq(</span><br><span class="line">      (&quot;fp load&quot;, () =&gt; id_ctrl.fp &amp;&amp; io.fpu.dec.ldst &amp;&amp; io.fpu.dec.wen),</span><br><span class="line">      (&quot;fp store&quot;, () =&gt; id_ctrl.fp &amp;&amp; io.fpu.dec.ldst &amp;&amp; !io.fpu.dec.wen),</span><br><span class="line">      (&quot;fp add&quot;, () =&gt; id_ctrl.fp &amp;&amp; io.fpu.dec.fma &amp;&amp; io.fpu.dec.swap23),</span><br><span class="line">      (&quot;fp mul&quot;, () =&gt; id_ctrl.fp &amp;&amp; io.fpu.dec.fma &amp;&amp; !io.fpu.dec.swap23 &amp;&amp; !io.fpu.dec.ren3),</span><br><span class="line">      (&quot;fp mul-add&quot;, () =&gt; id_ctrl.fp &amp;&amp; io.fpu.dec.fma &amp;&amp; io.fpu.dec.ren3),</span><br><span class="line">      (&quot;fp div/sqrt&quot;, () =&gt; id_ctrl.fp &amp;&amp; (io.fpu.dec.div || io.fpu.dec.sqrt)),</span><br><span class="line">      (&quot;fp other&quot;, () =&gt; id_ctrl.fp &amp;&amp; !(io.fpu.dec.ldst || io.fpu.dec.fma || io.fpu.dec.div || io.fpu.dec.sqrt))))),</span><br><span class="line">  new EventSet((mask, hits) =&gt; (mask &amp; hits).orR, Seq(</span><br><span class="line">    (&quot;load-use interlock&quot;, () =&gt; id_ex_hazard &amp;&amp; ex_ctrl.mem || id_mem_hazard &amp;&amp; mem_ctrl.mem || id_wb_hazard &amp;&amp; wb_ctrl.mem),</span><br><span class="line">    (&quot;long-latency interlock&quot;, () =&gt; id_sboard_hazard),</span><br><span class="line">    (&quot;csr interlock&quot;, () =&gt; id_ex_hazard &amp;&amp; ex_ctrl.csr =/= CSR.N || id_mem_hazard &amp;&amp; mem_ctrl.csr =/= CSR.N || id_wb_hazard &amp;&amp; wb_ctrl.csr =/= CSR.N),</span><br><span class="line">    (&quot;I$ blocked&quot;, () =&gt; icache_blocked),</span><br><span class="line">    (&quot;D$ blocked&quot;, () =&gt; id_ctrl.mem &amp;&amp; dcache_blocked),</span><br><span class="line">    (&quot;branch misprediction&quot;, () =&gt; take_pc_mem &amp;&amp; mem_direction_misprediction),</span><br><span class="line">    (&quot;control-flow target misprediction&quot;, () =&gt; take_pc_mem &amp;&amp; mem_misprediction &amp;&amp; mem_cfi &amp;&amp; !mem_direction_misprediction &amp;&amp; !icache_blocked),</span><br><span class="line">    (&quot;flush&quot;, () =&gt; wb_reg_flush_pipe),</span><br><span class="line">    (&quot;replay&quot;, () =&gt; replay_wb))</span><br><span class="line">    ++ (if (!usingMulDiv) Seq() else Seq(</span><br><span class="line">      (&quot;mul/div interlock&quot;, () =&gt; id_ex_hazard &amp;&amp; (ex_ctrl.mul || ex_ctrl.div) || id_mem_hazard &amp;&amp; (mem_ctrl.mul || mem_ctrl.div) || id_wb_hazard &amp;&amp; wb_ctrl.div)))</span><br><span class="line">    ++ (if (!usingFPU) Seq() else Seq(</span><br><span class="line">      (&quot;fp interlock&quot;, () =&gt; id_ex_hazard &amp;&amp; ex_ctrl.fp || id_mem_hazard &amp;&amp; mem_ctrl.fp || id_wb_hazard &amp;&amp; wb_ctrl.fp || id_ctrl.fp &amp;&amp; id_stall_fpu)))),</span><br><span class="line">  new EventSet((mask, hits) =&gt; (mask &amp; hits).orR, Seq(</span><br><span class="line">    (&quot;I$ miss&quot;, () =&gt; io.imem.perf.acquire),</span><br><span class="line">    (&quot;D$ miss&quot;, () =&gt; io.dmem.perf.acquire),</span><br><span class="line">    (&quot;D$ release&quot;, () =&gt; io.dmem.perf.release),</span><br><span class="line">    (&quot;ITLB miss&quot;, () =&gt; io.imem.perf.tlbMiss),</span><br><span class="line">    (&quot;DTLB miss&quot;, () =&gt; io.dmem.perf.tlbMiss),</span><br><span class="line">    (&quot;L2 TLB miss&quot;, () =&gt; io.ptw.perf.l2miss)))))</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<p>rocketchip的性能计数器需要写入hpmevent来给出对应的操作：</p>
+<p>具体的，hpmevent低8位选择不同的EventSet，其他位去选择具体的性能事件，比如向mhpmevent3写入0x4200，那么mhpmcounter在发生int load commit或 cond branch inst commit均会递增</p>
+<p><img src="/2025/03/19/topdown-analysis/image-20250324161603855.png" alt="image-20250324161603855"></p>
+<p>下面介绍一些函数的用法：该片段节选自CSR，这里主要就是去写入计数器（用于初始化）和event，注意在写入event时需要执行maskEventSelector，防止写入非法的区域</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">for (((e, c), i) &lt;- (reg_hpmevent zip reg_hpmcounter).zipWithIndex) &#123;</span><br><span class="line">  writeCounter(i + CSR.firstMHPC, c, wdata)//写入计数器</span><br><span class="line">  when (decoded_addr(i + CSR.firstHPE)) &#123; e := perfEventSets.maskEventSelector(wdata) &#125;//写入计数器使能</span><br><span class="line">&#125;</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<p>具体的,eventSetIdBits为8，set Mask是去mask不同的EventSet，maskMask是去mask一个EventSet不同的性能事件，然后执行eventSel &amp; (setMask | maskMask).U保证写入一定是合法的值</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">//这里低8位是用来选择模式的（也就是不同的性能计数器），setMask的意思就是给出此次选择哪个eventSet的Mask</span><br><span class="line">def maskEventSelector(eventSel: UInt): UInt = &#123;</span><br><span class="line">  // allow full associativity between counters and event sets (for now?)</span><br><span class="line">  val setMask = (BigInt(1) &lt;&lt; eventSetIdBits) - 1</span><br><span class="line">  val maskMask = ((BigInt(1) &lt;&lt; eventSets.map(_.size).max) - 1) &lt;&lt; maxEventSetIdBits</span><br><span class="line">  eventSel &amp; (setMask | maskMask).U</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>如何去触发性能事件并且使得相应的计数器增加呢？</p>
+<p>首先通过写入reg_hpmevent，配置好性能事件</p>
+<p>然后在rocketchip的核心中有</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">csr.io.counters foreach &#123; c =&gt; c.inc := RegNext(perfEvents.evaluate(c.eventSel)) &#125;</span><br></pre></td></tr></table></figure>
+
+<p>也就是遍历每个event是否触发了性能事件，并且给出增量，该增量会传入CSR，代码如下：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">val reg_hpmcounter = io.counters.zipWithIndex.map &#123; case (c, i) =&gt;</span><br><span class="line">  WideCounter(CSR.hpmWidth, c.inc, reset = false, inhibit = reg_mcountinhibit(CSR.firstHPM+i)) &#125;</span><br></pre></td></tr></table></figure>
+
+<p>reg_mcountinhibit控制对应的计数器是否递增，为1禁止，（这里计数器最大为40位，因为64位会浪费bit）</p>
+<p>接下来讲解evaluate是如何工作的，下面代码是EventSets类的函数</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line">private def decode(counter: UInt): (UInt, UInt) = &#123;</span><br><span class="line">  require(eventSets.size &lt;= (1 &lt;&lt; maxEventSetIdBits))</span><br><span class="line">  require(eventSetIdBits &gt; 0)</span><br><span class="line">  (counter(eventSetIdBits-1, 0), counter &gt;&gt; maxEventSetIdBits)</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">def evaluate(eventSel: UInt): Bool = &#123;</span><br><span class="line">  val (set, mask) = decode(eventSel)</span><br><span class="line">  val sets = for (e &lt;- eventSets) yield &#123;</span><br><span class="line">    require(e.hits.getWidth &lt;= mask.getWidth, s&quot;too many events $&#123;e.hits.getWidth&#125; wider than mask $&#123;mask.getWidth&#125;&quot;)</span><br><span class="line">    e check mask</span><br><span class="line">  &#125;</span><br><span class="line">  sets(set)</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>decode给出的是set（选择了哪个EventSet），mask（具体性能事件的选择），然后遍历了eventSets，对每个元素执行check函数</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">def size = events.size</span><br><span class="line">val hits = WireDefault(VecInit(Seq.fill(size)(false.B)))</span><br><span class="line">def check(mask: UInt) = &#123;</span><br><span class="line">  hits := events.map(_._2())</span><br><span class="line">  gate(mask, hits.asUInt)</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>check函数主要就是根据EventSet传入的函数，给出是否命中的信息，最后sets(set)就是选择对应的set，</p>
+<blockquote>
+<p>rocket chip的性能计数器设置每个周期只能+1，这样就无法去将该逻辑应用到BOOM中</p>
+</blockquote>
+<ul>
+<li><input checked disabled type="checkbox"> 兼容boom</li>
+</ul>
+<p>现在已经兼容boom，并添加了一级level的TMA</p>
+
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-item">
+                <a href="/2025/03/14/grvcore-debug/" rel="prev" title="grvcore_debug">
+                  <i class="fa fa-angle-left"></i> grvcore_debug
+                </a>
+            </div>
+            <div class="post-nav-item">
+                <a href="/2025/03/25/vec-runahead/" rel="next" title="vec runahead">
+                  vec runahead <i class="fa fa-angle-right"></i>
+                </a>
+            </div>
+          </div>
+    </footer>
+  </article>
+</div>
+
+
+
+
+
+
+</div>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+
+  <div class="copyright">
+    &copy; 2025-02 – 
+    <span itemprop="copyrightYear">2025</span>
+    <span class="with-love">
+      <i class="fa fa-heart"></i>
+    </span>
+    <span class="author" itemprop="copyrightHolder">GB</span>
+  </div>
+<div class="wordcount">
+  <span class="post-meta-item">
+    <span class="post-meta-item-icon">
+      <i class="fa fa-chart-line"></i>
+    </span>
+    <span title="站点总字数">133k</span>
+  </span>
+  <span class="post-meta-item">
+    <span class="post-meta-item-icon">
+      <i class="fa fa-coffee"></i>
+    </span>
+    <span title="站点阅读时长">8:02</span>
+  </span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io/" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.js.org/" rel="noopener" target="_blank">NexT.Gemini</a> 强力驱动
+  </div>
+
+    </div>
+  </footer>
+
+  
+  <div class="toggle sidebar-toggle" role="button">
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+  </div>
+  <div class="sidebar-dimmer"></div>
+  <div class="back-to-top" role="button" aria-label="返回顶部">
+    <i class="fa fa-arrow-up fa-lg"></i>
+    <span>0%</span>
+  </div>
+
+<noscript>
+  <div class="noscript-warning">Theme NexT works best with JavaScript enabled</div>
+</noscript>
+
+
+  
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js" integrity="sha256-XL2inqUJaslATFnHdJOi9GfQ60on8Wx1C2H8DYiN1xY=" crossorigin="anonymous"></script>
+<script src="/js/comments.js"></script><script src="/js/utils.js"></script><script src="/js/motion.js"></script><script src="/js/sidebar.js"></script><script src="/js/next-boot.js"></script>
+
+  
+
+
+
+
+
+
+  
+
+
+
+
+
+</body>
+</html>
