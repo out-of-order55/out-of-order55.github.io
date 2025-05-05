@@ -31,8 +31,11 @@
 <meta property="og:image" content="http://example.com/2025/02/05/gem5/1730215799144.png">
 <meta property="og:image" content="https://i-blog.csdnimg.cn/blog_migrate/831fed02c2728151044cb76835a8a2ad.png">
 <meta property="og:image" content="https://i-blog.csdnimg.cn/blog_migrate/3b51c4b732d0eaf031e5228b3185b2d5.png">
+<meta property="og:image" content="http://example.com/2025/02/05/gem5/image-20250407221755426.png">
+<meta property="og:image" content="http://example.com/2025/02/05/gem5/image-20250407222246787.png">
+<meta property="og:image" content="http://example.com/2025/02/05/gem5/image-20250424153234926.png">
 <meta property="article:published_time" content="2025-02-05T12:48:31.000Z">
-<meta property="article:modified_time" content="2025-02-05T14:27:24.305Z">
+<meta property="article:modified_time" content="2025-04-24T09:56:45.037Z">
 <meta property="article:author" content="GB">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:image" content="http://example.com/2025/02/05/gem5/1730213552828.png">
@@ -116,7 +119,7 @@
       <div class="sidebar-panel-container">
         <!--noindex-->
         <div class="post-toc-wrap sidebar-panel">
-            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#NUMA"><span class="nav-number">1.</span> <span class="nav-text">NUMA</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#SMT"><span class="nav-number">2.</span> <span class="nav-text">SMT</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#1%E3%80%81SMT%E4%B8%BA%E4%BB%80%E4%B9%88%E8%83%BD%E6%8F%90%E5%8D%87%E5%B9%B6%E8%A1%8C%E6%80%A7%E8%83%BD%EF%BC%88%E5%A4%9A%E7%BA%BF%E7%A8%8B%E6%80%A7%E8%83%BD%EF%BC%89%EF%BC%9F"><span class="nav-number">2.1.</span> <span class="nav-text">1、SMT为什么能提升并行性能（多线程性能）？</span></a></li></ol></li></ol></div>
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#NUMA"><span class="nav-number">1.</span> <span class="nav-text">NUMA</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#SMT"><span class="nav-number">2.</span> <span class="nav-text">SMT</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#1%E3%80%81SMT%E4%B8%BA%E4%BB%80%E4%B9%88%E8%83%BD%E6%8F%90%E5%8D%87%E5%B9%B6%E8%A1%8C%E6%80%A7%E8%83%BD%EF%BC%88%E5%A4%9A%E7%BA%BF%E7%A8%8B%E6%80%A7%E8%83%BD%EF%BC%89%EF%BC%9F"><span class="nav-number">2.1.</span> <span class="nav-text">1、SMT为什么能提升并行性能（多线程性能）？</span></a></li></ol></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E5%90%AF%E5%8A%A8%E6%B5%81%E7%A8%8B"><span class="nav-number"></span> <span class="nav-text">启动流程</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#Event"><span class="nav-number">1.</span> <span class="nav-text">Event</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#fetch"><span class="nav-number"></span> <span class="nav-text">fetch</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#rename"><span class="nav-number"></span> <span class="nav-text">rename</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#IEW"><span class="nav-number"></span> <span class="nav-text">IEW</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E8%AE%A1%E7%AE%97%E6%8C%87%E4%BB%A4%E6%89%A7%E8%A1%8C"><span class="nav-number">1.</span> <span class="nav-text">计算指令执行</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#MEM%E6%8C%87%E4%BB%A4%E6%89%A7%E8%A1%8C"><span class="nav-number">2.</span> <span class="nav-text">MEM指令执行</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%80%BB%E7%BB%93"><span class="nav-number">2.1.</span> <span class="nav-text">总结</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#1-%E5%87%BD%E6%95%B0%E7%AD%BE%E5%90%8D"><span class="nav-number">2.2.</span> <span class="nav-text">1. 函数签名</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#2-%E7%A1%AE%E4%BF%9D%E5%AD%98%E5%82%A8%E9%98%9F%E5%88%97%E6%9D%A1%E7%9B%AE%E6%9C%89%E6%95%88"><span class="nav-number">2.3.</span> <span class="nav-text">2. 确保存储队列条目有效</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#3-%E6%89%93%E5%8D%B0%E8%B0%83%E8%AF%95%E4%BF%A1%E6%81%AF"><span class="nav-number">2.4.</span> <span class="nav-text">3. 打印调试信息</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#4-%E8%AE%BE%E7%BD%AE%E5%AD%98%E5%82%A8%E8%AF%B7%E6%B1%82"><span class="nav-number">2.5.</span> <span class="nav-text">4. 设置存储请求</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#5-%E8%AE%BE%E7%BD%AE%E5%AD%98%E5%82%A8%E5%A4%A7%E5%B0%8F"><span class="nav-number">2.6.</span> <span class="nav-text">5. 设置存储大小</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#6-%E6%A3%80%E6%9F%A5%E6%98%AF%E5%90%A6%E4%B8%BA%E2%80%9C%E6%97%A0%E6%95%B0%E6%8D%AE%E5%AD%98%E5%82%A8%E2%80%9D"><span class="nav-number">2.7.</span> <span class="nav-text">6. 检查是否为“无数据存储”</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#7-%E5%B0%86%E6%95%B0%E6%8D%AE%E5%A4%8D%E5%88%B6%E5%88%B0%E5%AD%98%E5%82%A8%E9%98%9F%E5%88%97"><span class="nav-number">2.8.</span> <span class="nav-text">7. 将数据复制到存储队列</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#8-%E8%BF%94%E5%9B%9E%E7%BB%93%E6%9E%9C"><span class="nav-number">2.9.</span> <span class="nav-text">8. 返回结果</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%80%BB%E7%BB%93-1"><span class="nav-number">2.10.</span> <span class="nav-text">总结</span></a></li></ol></li></ol></div>
         </div>
         <!--/noindex-->
 
@@ -131,7 +134,7 @@
   <nav class="site-state">
       <div class="site-state-item site-state-posts">
         <a href="/archives/">
-          <span class="site-state-item-count">23</span>
+          <span class="site-state-item-count">29</span>
           <span class="site-state-item-name">日志</span>
         </a>
       </div>
@@ -192,9 +195,15 @@
         <i class="far fa-calendar"></i>
       </span>
       <span class="post-meta-item-text">发表于</span>
-      
 
-      <time title="创建时间：2025-02-05 20:48:31 / 修改时间：22:27:24" itemprop="dateCreated datePublished" datetime="2025-02-05T20:48:31+08:00">2025-02-05</time>
+      <time title="创建时间：2025-02-05 20:48:31" itemprop="dateCreated datePublished" datetime="2025-02-05T20:48:31+08:00">2025-02-05</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar-check"></i>
+      </span>
+      <span class="post-meta-item-text">更新于</span>
+      <time title="修改时间：2025-04-24 17:56:45" itemprop="dateModified" datetime="2025-04-24T17:56:45+08:00">2025-04-24</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -213,14 +222,14 @@
         <i class="far fa-file-word"></i>
       </span>
       <span class="post-meta-item-text">本文字数：</span>
-      <span>1.5k</span>
+      <span>6.6k</span>
     </span>
     <span class="post-meta-item" title="阅读时长">
       <span class="post-meta-item-icon">
         <i class="far fa-clock"></i>
       </span>
       <span class="post-meta-item-text">阅读时长 &asymp;</span>
-      <span>5 分钟</span>
+      <span>24 分钟</span>
     </span>
 </div>
 
@@ -278,6 +287,288 @@
 
 <p>那么这时候整个执行时间就变成了6N，比起之前的7N又提升16.7%的速度。</p>
 <p>前端有两组维护不同任务上下文的单元就可以</p>
+<h1 id="启动流程"><a href="#启动流程" class="headerlink" title="启动流程"></a>启动流程</h1><p><strong>gem5 是一个事件驱动（Event-driven）的模拟器。在事件驱动模型中，每个事件（Event）都有一个回调函数用于处理事件。</strong></p>
+<p><strong>Gem5 是一个事件驱动的模拟器。因此，事件（Event）是模拟器的基本调度、执行单位，是一个非常重要的核心概念。事件可以理解为一系列改变系统状态的行为，包括但不限于对内存的读写、数据包的发送和到达等。模拟器整个的模拟过程就是对所有事件创建、调度、执行和终止的过程。从技术上讲，事件是由特殊的回调函数和一组状态信息位域实现的。对该事件的执行本质就是执行事件内的回调函数。</strong></p>
+<p>每个事件都会包含一个EventFunctionWrapper 用来注册回调函数， 每次执行回调函数都会去执行schedule，用来调度事件</p>
+<p>实际上CPU开始仿真时，先通过python设置参数，然后启动simluate，该函数会去进入doSimLoop，然后一个一个事件的执行，实际上目前看到就一个事件：CPU的process，他会去调用回调函数tick，而CPU的回调函数会去调用每个阶段的tick函数，从而推动事件进行</p>
+<p>所有的event都是继承于eventbase，其静态变量遵循事件调度的优先级：</p>
+<p><img src="/2025/02/05/gem5/image-20250407221755426.png" alt="image-20250407221755426"></p>
+<p>其还定义了很多flag来揭示权限和状态</p>
+<h2 id="Event"><a href="#Event" class="headerlink" title="Event"></a>Event</h2><p>事件类 Event 是 Gem5 中的核心类，是所有事件的父类。该类继承自 Serializable 类（这今后再详聊）和 EventBase 类。此外，Event 类为抽象类，内含有一个纯虚函数 <code>process()</code>，通常程序员需要通过 Event 的派生类来创建事件对象。但在此之前，我们必须深入了解该类的运行机制。下面列出 Event 类中一些重要的成员。</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br></pre></td><td class="code"><pre><span class="line">class Event : public EventBase, public Serializable &#123;</span><br><span class="line">  Event *nextBin;  // Bin defined as when+priority</span><br><span class="line">  Event *nextInBin;</span><br><span class="line">  Tick _when;    // timestamp when event should be processed</span><br><span class="line">  Priority _priority; //!&lt; event priority</span><br><span class="line">  Flags flags;</span><br><span class="line">  Counter instance;  // event unique ID</span><br><span class="line">  EventQueue *queue;</span><br><span class="line"></span><br><span class="line">  static Event *insertBefore(Event *event, Event *curr);</span><br><span class="line">  static Event *removeItem(Event *event, Event *last);</span><br><span class="line"></span><br><span class="line">  virtual void process() = 0;</span><br><span class="line">  bool scheduled() const &#123; return flags.isSet(Scheduled); &#125;</span><br><span class="line">  </span><br><span class="line">  // Managed event scheduled and being held in the event queue.</span><br><span class="line">  void acquire() &#123; if (flags.isSet(Event::Managed))  acquireImpl(); &#125;</span><br><span class="line"></span><br><span class="line">  // Managed event removed from the event queue.</span><br><span class="line">  void release() &#123; if (flags.isSet(Event::Managed))  releaseImpl(); &#125;</span><br><span class="line">  </span><br><span class="line">  void setWhen(Tick when, EventQueue *q)</span><br><span class="line">&#125;</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<p><img src="/2025/02/05/gem5/image-20250407222246787.png" alt="image-20250407222246787"></p>
+<p>抽象类 Event 描述了事件这一核心概念，因而它也是整个底层机制的核心实现类。上节提到事件本质是由特殊的回调函数和一组状态标志位组成的，这体现在实现中便是类 Event 内部预留的虚函数 <code>process()</code>，以及存有运行时刻 <code>_when</code>，优先级 <code>_priority</code>，标记位 <code>flags</code> 和用于维护二维链表的两个指针变量 <code>nextBin</code> 和 <code>nextInBin</code> 等，其中 <code>nextBin</code> 指向链表中下一项，而 <code>nextInBin</code> 指向 Bin 相同的下一项事件。</p>
+<p><strong>为降低用户使用难度，使用 EventManager 类来包装 EventQueue 类，包括常用的许多事件调度函数，而这些包装函数是 SimObject 类内经常调用的：</strong></p>
+<h1 id="fetch"><a href="#fetch" class="headerlink" title="fetch"></a>fetch</h1><p>o3 cpu的所有阶段都在cpu.cc现在讲解fetch阶段</p>
+<p>fetch首先初始化构造函数，初始化的参数容易理解，故不作讲解</p>
+<blockquote>
+<p>注意这里会初始化线程，和smt有关</p>
+</blockquote>
+<p>初始化阶段会去设置decoder（架构相关）</p>
+<p>注意目前o3不支持fs的smt模式</p>
+<p>CPU初始化阶段会去设置每个阶段，且设置每个阶段的queue的指针，这些函数只在初始化阶段使用</p>
+<p>fetch阶段通过processCacheCompletion函数解释是否取指令成功，该过程会把取到的指令写入fetchbuffer，并且设置相应的valid为true（也会去设置fetch状态为IcacheAccessComplete），之后会发出probe1请求</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">memcpy(fetchBuffer[tid], pkt-&gt;getConstPtr&lt;uint8_t&gt;(), fetchBufferSize);</span><br><span class="line">fetchBufferValid[tid] = true;</span><br><span class="line">。。。</span><br><span class="line">if (checkStall(tid)) &#123;</span><br><span class="line">    fetchStatus[tid] = Blocked;</span><br><span class="line">&#125; else &#123;</span><br><span class="line">    fetchStatus[tid] = IcacheAccessComplete;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">pkt-&gt;req-&gt;setAccessLatency();</span><br><span class="line">cpu-&gt;ppInstAccessComplete-&gt;notify(pkt);</span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p>注意，gem5将tick函数置为每个阶段event的回调函数</p>
+</blockquote>
+<p><strong>fetch阶段会去解码，而decode阶段算是一个伪阶段</strong>，具体的：</p>
+<p>当执行fetch的tick函数时，会去执行fetch函数，该函数会取出指令，然后去解码，首先会去判断是否这个是一个完整的指令包（比如rv的c扩展，可能有些指令被截断），然后去在指令buffer再取出一些，凑成一条指令，注意，这段代码前面有判断是否fetchBuffer有数据，否则去icache取</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">memcpy(dec_ptr-&gt;moreBytesPtr(),</span><br><span class="line">        fetchBuffer[tid] + blkOffset * instSize, instSize);</span><br><span class="line">decoder[tid]-&gt;moreBytes(this_pc, fetchAddr);</span><br><span class="line"></span><br><span class="line">if (dec_ptr-&gt;needMoreBytes()) &#123;</span><br><span class="line">    blkOffset++;</span><br><span class="line">    fetchAddr += instSize;</span><br><span class="line">    pcOffset += instSize;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>之后进入一个do while循环，这个循环会去解码指令</p>
+<p>下面给出对整个 fetch() 函数的详细解释，该函数实现了 O3 处理器中取指阶段的主要操作，其核心逻辑如下：</p>
+<ol>
+<li><p><strong>获取当前取指线程</strong>  </p>
+<ul>
+<li>调用 getFetchingThread() 获取一个能够取指的线程 ID（tid）。如果返回值为 InvalidThreadID，则说明当前没有可用线程，此时直接更新 threadFetched 并可能记录停顿统计后返回，结束本次取指。</li>
+</ul>
+</li>
+<li><p><strong>准备和状态检查</strong>  </p>
+<ul>
+<li>取得当前线程的 PC（程序计数器）状态（this_pc）以及对应的 pcOffset（即当前在缓存行内的偏移）。  </li>
+<li>根据当前 PC 与偏移，计算出实际取指地址 fetchAddr，并用掩码对齐（pc_mask）确保地址合法。  </li>
+<li>使用 isRomMicroPC() 判断当前是否处于微操作 ROM 内（用于处理那些内建的微操作）。</li>
+</ul>
+</li>
+<li><p><strong>处理缓存访问和中断请求</strong>  </p>
+<ul>
+<li>如果上一次因 icache 访问延迟而导致 fetchStatus 处于 IcacheAccessComplete 状态，那么将其恢复为 Running，并通知状态发生变化。  </li>
+<li>如果当前状态为 Running，则检查取指数据是否已经在 fetchBuffer 中。如果缓存数据无效或当前 fetchAddr 跨入了另一个缓存块（fetchBufferBlockPC 与原来的 fetchBufferPC 不一致），则发起新的 icache 访问请求（调用 fetchCacheLine）并返回，等待数据返回。  </li>
+<li>同时，还检查是否有中断等待，如果中断已挂起而当前指令又不允许延迟提交，则也会阻塞本次取指。</li>
+</ul>
+</li>
+<li><p><strong>进入取指循环前的准备</strong>  </p>
+<ul>
+<li>增加 fetch 阶段的周期计数（fetchStats.cycles++）。  </li>
+<li>复制当前 PC 状态生成一个 next_pc，用于记录下一条指令的 PC。  </li>
+<li>定义用于存放解码得到的静态指令（StaticInstPtr staticInst）和当前正在处理的宏操作（curMacroop），前者将用于构造动态指令。</li>
+</ul>
+</li>
+<li><p><strong>循环取指与译码</strong><br>进入一个外部 while 循环，条件为：已经取指的指令数未达到 fetchWidth、取指队列未满，并且未遇到预测跳转或 quiesce 指令。</p>
+<p>5.1 <strong>从存储器中补充更多字节（needMem 部分）</strong><br>- 根据状态判断是否需要向解码器补充更多字节：如果不在 ROM 内、没有正在处理的宏操作，并且解码器还没有足够字节（!dec_ptr-&gt;instReady()），则设置 needMem 为 true。<br>    - 刷新 fetchAddr 和计算所在缓存块（fetchBufferBlockPC）。<br>    - 如果缓存数据失效或 fetchAddr 已经超出当前缓存块（比较 fetchBufferBlockPC 与 fetchBufferPC），则退出循环，从 icache 再度获取数据。<br>    - 如果当前缓存块中剩余字节不足（blkOffset &gt;&#x3D; numInsts），同样退出该循环。<br>    - 否则，用 memcpy 将取指缓存（比如数组 c[tid]，实际可能为 fetchBuffer[tid]）中对应位置的一个指令字节复制到解码器的缓冲区（通过 dec_ptr-&gt;moreBytesPtr() 得到地址），之后调用 decoder-&gt;moreBytes(this_pc, fetchAddr) 告知新字节已加入到解码器内部。<br>    - 如果解码器仍觉得不足，则将 blkOffset、fetchAddr 和 pcOffset 依次增加一条指令的大小（instSize），为下一次读取做准备。<br>5.2 <strong>在解码器中提取指令（do … while 循环）</strong><br>- 进入 do while 循环，该循环不断从解码器缓冲区或当前宏操作中提取指令，直到满足下列条件之一：<br>  • 已取指数达到 fetchWidth；<br>  • 取指队列达到其上限；<br>  • 碰到预测分支；<br>  • 或当前没有足够数据继续解码。<br>    - 在循环中，如果当前不处于宏操作（curMacroop）且不在 ROM 内，则检查解码器是否已有足够字节（instReady()）。<br>        - 如果准备就绪，调用 dec_ptr-&gt;decode(this_pc) 得到一条静态指令（staticInst），同时增加取指统计。<br>  - 若解码出来的是宏操作（staticInst-&gt;isMacroop()），则将 curMacroop 设置为该宏操作；否则重置 pcOffset 为 0。<br>    - 如果正处于宏操作或在 ROM 内，则从当前宏操作中调用 fetchMicroop() 或从解码器中调用 fetchRomMicroop()，以获得其中的一个微操作。<br>    - 接着调用 buildInst() 生成动态指令（DynInstPtr instruction）：该函数为取出的静态指令与当前宏操作状态、当前 PC 及下一 PC 生成一个完整的动态指令对象，同时将该指令加入到取指队列中。<br>    - 通知相应的 probe（ppFetch），并更新统计信息（numInst++）。<br>    - 调用 lookupAndUpdateNextPC() 对分支进行预测，更新下一条指令的 PC，并设置 predictedBranch 标志（如果预测分支被认为已取走，则退出本次循环）。<br>    - 更新当前 PC 状态（set(next_pc, this_pc)）和 inRom 状态，判断是否进入新宏操作（如果新指令的 PC 与上一条不一致或者遇到了宏操作结束标志，则清除 curMacroop 并重置偏移）。<br>    - 如果遇到 quiesce 指令，则设置 fetchStatus 为 QuiescePending 并退出循环。</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line">if (!(curMacroop || inRom)) &#123;</span><br><span class="line">    if (dec_ptr-&gt;instReady()) &#123;</span><br><span class="line">        staticInst = dec_ptr-&gt;decode(this_pc);</span><br><span class="line">   </span><br><span class="line">        // Increment stat of fetched instructions.</span><br><span class="line">        cpu-&gt;fetchStats[tid]-&gt;numInsts++;</span><br><span class="line">   </span><br><span class="line">        if (staticInst-&gt;isMacroop()) &#123;</span><br><span class="line">            curMacroop = staticInst;</span><br><span class="line">        &#125; else &#123;</span><br><span class="line">            pcOffset = 0;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125; else &#123;</span><br><span class="line">        // We need more bytes for this instruction so blkOffset and</span><br><span class="line">        // pcOffset will be updated</span><br><span class="line">        break;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+
+</li>
+<li><p><strong>循环退出后的状态更新</strong>  </p>
+<ul>
+<li>循环结束后，更新当前线程的 macroop（保存可能未取完的宏操作）和 fetchOffset（留待下次取指时继续使用）。  </li>
+<li>如果本次 fetch 循环内至少提取了一条指令（numInst &gt; 0），则标记 wroteToTimeBuffer 为 true，后续将把这些指令写入时间缓冲区传递到 decode 阶段。</li>
+<li>此外，还会设置 flag issuePipelinedIfetch：如果取指地址已经跨过当前缓存边界，并且没有遇到延迟响应等状态，则触发新的流水线化 I-cache 请求。</li>
+</ul>
+</li>
+<li><p><strong>总结</strong><br>整个 fetch() 函数完成了以下任务：  </p>
+<ul>
+<li>选择一个可用的线程以提取指令。  </li>
+<li>判断当前是否需要从 I-cache 中获取新数据或者从已有的 fetch buffer 中补充数据到解码器。  </li>
+<li>利用解码器逐条解码并构造动态指令，同时处理可能的宏操作拆分、分支预测以及异常指令（如 quiesce）。  </li>
+<li>将生成的动态指令放入取指队列，供后续 decode 阶段处理；同时更新各项统计并维护取指状态（例如 fetchStatus、fetchOffset 和 macroop 状态）。</li>
+</ul>
+</li>
+</ol>
+<p>整个函数是 O3 处理器中非常关键的一环，它负责从内存层缓存、解码器和微操作 ROM 中连续地提取、解码以及封装指令，为后续流水线各阶段提供指令流，并处理系统中因分支、异常或缺失数据而产生的各种边界情况。</p>
+<p>在打印pc时可以使用inst.pcState()：注意需要dync ptr类型，不过还是建议使用dump()，可以直接打印出反汇编</p>
+<h1 id="rename"><a href="#rename" class="headerlink" title="rename"></a>rename</h1><p>rename阶段主要就是去对源寄存器和目的寄存器去重命名，然后查询scoreboard，送入发射队列（此时也会去分配ROB或者SQ LQ表项），这里源寄存器会去查rat，然后记录到inst</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">renamed_reg = map-&gt;lookup(flat_reg);</span><br><span class="line">。。。</span><br><span class="line">inst-&gt;renameSrcReg(src_idx, renamed_reg);</span><br></pre></td></tr></table></figure>
+
+<p>目的寄存器会去分配一个新的，然后将新旧的全部记录到inst</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">rename_result = map-&gt;rename(flat_dest_regid);</span><br><span class="line">        inst-&gt;renameDestReg(dest_idx,</span><br><span class="line">                            rename_result.first,</span><br><span class="line">                            rename_result.second);</span><br></pre></td></tr></table></figure>
+
+
+
+<h1 id="IEW"><a href="#IEW" class="headerlink" title="IEW"></a>IEW</h1><p>此阶段 (IEW) 负责将指令分派到指令队列、通知指令队列发出指令以及执行和写回指令。</p>
+<p>后端计算执行函数链</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">Rename::tick()-&gt;Rename::RenameInsts()</span><br><span class="line">IEW::tick()-&gt;IEW::dispatchInsts()</span><br><span class="line">IEW::tick()-&gt;InstructionQueue::scheduleReadyInsts()</span><br><span class="line">IEW::tick()-&gt;IEW::executeInsts()</span><br><span class="line">IEW::tick()-&gt;IEW::writebackInsts()</span><br><span class="line">Commit::tick()-&gt;Commit::commitInsts()-&gt;Commit::commitHead()</span><br></pre></td></tr></table></figure>
+
+<p>后端load执行函数链</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line">IEW::tick()-&gt;IEW::executeInsts()</span><br><span class="line">  -&gt;LSQUnit::executeLoad()</span><br><span class="line">    -&gt;StaticInst::initiateAcc()</span><br><span class="line">      -&gt;LSQ::pushRequest()</span><br><span class="line">        -&gt;LSQUnit::read()</span><br><span class="line">          -&gt;LSQRequest::buildPackets()</span><br><span class="line">          -&gt;LSQRequest::sendPacketToCache()</span><br><span class="line">    -&gt;LSQUnit::checkViolation()</span><br><span class="line">DcachePort::recvTimingResp()-&gt;LSQRequest::recvTimingResp()</span><br><span class="line">  -&gt;LSQUnit::completeDataAccess()</span><br><span class="line">    -&gt;LSQUnit::writeback()</span><br><span class="line">      -&gt;StaticInst::completeAcc()</span><br><span class="line">      -&gt;IEW::instToCommit()</span><br><span class="line">IEW::tick()-&gt;IEW::writebackInsts()</span><br></pre></td></tr></table></figure>
+
+<p>后端store执行函数链</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line">IEW::tick()-&gt;IEW::executeInsts()</span><br><span class="line">  -&gt;LSQUnit::executeStore()</span><br><span class="line">    -&gt;StaticInst::initiateAcc()</span><br><span class="line">      -&gt;LSQ::pushRequest()</span><br><span class="line">        -&gt;LSQUnit::write()</span><br><span class="line">    -&gt;LSQUnit::checkViolation()</span><br><span class="line">Commit::tick()-&gt;Commit::commitInsts()-&gt;Commit::commitHead()</span><br><span class="line">IEW::tick()-&gt;LSQUnit::commitStores()</span><br><span class="line">IEW::tick()-&gt;LSQUnit::writebackStores()</span><br><span class="line">  -&gt;LSQRequest::buildPackets()</span><br><span class="line">  -&gt;LSQRequest::sendPacketToCache()</span><br><span class="line">  -&gt;LSQUnit::storePostSend()</span><br><span class="line">DcachePort::recvTimingResp()-&gt;LSQRequest::recvTimingResp()</span><br><span class="line">  -&gt;LSQUnit::completeDataAccess()</span><br><span class="line">    -&gt;LSQUnit::completeStore()</span><br></pre></td></tr></table></figure>
+
+<p>首先讲dispatchInsts</p>
+<p>该函数会将对应的指令送入IQ，注意，ld st指令会额外送入LSQ，然后将insts_to_dispatch数据取出</p>
+<blockquote>
+<p>gem5使用集中式的发射队列</p>
+</blockquote>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">if (add_to_iq) &#123;</span><br><span class="line">    instQueue.insert(inst);</span><br><span class="line">&#125;</span><br><span class="line">insts_to_dispatch.pop();</span><br></pre></td></tr></table></figure>
+
+<p>dispatch阶段较为简单，接下来看计算指令的执行</p>
+<h2 id="计算指令执行"><a href="#计算指令执行" class="headerlink" title="计算指令执行"></a>计算指令执行</h2><p>其调用executeInsts函数</p>
+<p>，该函数首先在inst q去取出指令，然后判断该指令是否是isSquashed，这里可以理解为无效指令（因为异常等情况）。如果是，就会把该指令设置为可提交，</p>
+<p>之后会进入inst-&gt;execute();函数，该函数架构相关，主要为每个指令生成了单独的执行函数，riscv好像是这样，然后setRegOperand函数会把计算结果写入instResult队列，</p>
+<p><strong>源寄存器的数从哪个函数读出？</strong></p>
+<p>执行阶段获取（getRegOperand函数）</p>
+<p><strong>什么时候写入目的寄存器？</strong></p>
+<p>执行完就写回了，写回阶段只是去唤醒其他指令（setRegOperand函数）</p>
+<p><strong>写回阶段干了什么？</strong></p>
+<p>首先搜索依赖链，然后根据该指令去让依赖链的指令ready，指令一般最多有三个寄存器（RISCV），markSrcRegReady里面就是将准备好的寄存器++，等到准备好的寄存器等于源寄存器总数，addIfReady函数检查是否指令准备发射（存入一个专门放准备好的指令的队列，该函数会对指令进行排序，然后更新最老指令的编号，listOrder存储最老的指令），然后设置scoreboard，将依赖指令从依赖链取出</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line">DynInstPtr dep_inst = dependGraph.pop(dest_reg-&gt;flatIndex());</span><br><span class="line"></span><br><span class="line">while (dep_inst) &#123;</span><br><span class="line">    DPRINTF(IQ, &quot;Waking up a dependent instruction, [sn:%llu] &quot;</span><br><span class="line">            &quot;PC %s.\n&quot;, dep_inst-&gt;seqNum, dep_inst-&gt;pcState());</span><br><span class="line"></span><br><span class="line">    // Might want to give more information to the instruction</span><br><span class="line">    // so that it knows which of its source registers is</span><br><span class="line">    // ready.  However that would mean that the dependency</span><br><span class="line">    // graph entries would need to hold the src_reg_idx.</span><br><span class="line">    dep_inst-&gt;markSrcRegReady();</span><br><span class="line"></span><br><span class="line">    addIfReady(dep_inst);</span><br><span class="line"></span><br><span class="line">    dep_inst = dependGraph.pop(dest_reg-&gt;flatIndex());</span><br><span class="line"></span><br><span class="line">    ++dependents;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h2 id="MEM指令执行"><a href="#MEM指令执行" class="headerlink" title="MEM指令执行"></a>MEM指令执行</h2><p>mem执行有专门的exec指令，现在以load举例，initiateAcc架构相关，该函数会去计算地址，调用initiateMemRead发出请求，返回数据</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">load_fault = inst-&gt;initiateAcc();</span><br></pre></td></tr></table></figure>
+
+<p>然后一步步调用，最后执行</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">iew.ldstQueue.pushRequest</span><br><span class="line">Fault</span><br><span class="line">LSQ::pushRequest(const DynInstPtr&amp; inst, bool isLoad, uint8_t *data,</span><br><span class="line">        unsigned int size, Addr addr, Request::Flags flags, uint64_t *res,</span><br><span class="line">        AtomicOpFunctorPtr amo_op, const std::vector&lt;bool&gt;&amp; byte_enable)</span><br></pre></td></tr></table></figure>
+
+<p>如果不是突发传输，就会去执行，该函数就是去吧请求设置为一个SingleDataRequest,然后访问TLB进行地址转换</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">request = new SingleDataRequest(&amp;thread[tid], inst, isLoad, addr,</span><br><span class="line">        size, flags, data, res, std::move(amo_op));</span><br><span class="line">        request-&gt;initiateTranslation();</span><br></pre></td></tr></table></figure>
+
+<p>之后如果指令完成地址转换，就会进入</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">Fault</span><br><span class="line">LSQ::read(LSQRequest* request, ssize_t load_idx)</span><br><span class="line">&#123;</span><br><span class="line">    assert(request-&gt;req()-&gt;contextId() == request-&gt;contextId());</span><br><span class="line">    ThreadID tid = cpu-&gt;contextToThread(request-&gt;req()-&gt;contextId());</span><br><span class="line"></span><br><span class="line">    return thread.at(tid).read(request, load_idx);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>下面对 LSQUnit::read(LSQRequest *request, ssize_t load_idx) 进行详细解释，该函数主要负责对 load 指令进行内存读取（或转发）操作，其总体流程如下：（GPT总结）</p>
+<hr>
+<ol>
+<li><p><strong>获取 Load 队列条目和对应指令</strong><br>首先，根据给定的 load 队列索引 load_idx，在 loadQueue 中获得对应的条目（LQEntry）并获取其中绑定的动态指令（load_inst）。</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">LQEntry&amp; load_entry = loadQueue[load_idx];</span><br><span class="line"><span class="type">const</span> DynInstPtr&amp; load_inst = load_entry.<span class="built_in">instruction</span>();</span><br></pre></td></tr></table></figure>
+</li>
+<li><p><strong>绑定请求并基本检查</strong><br>将传入的 request 与该 load 队列条目关联，并确保加载指令存在且还未执行（isExecuted() 为 false），防止重复读取。</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">load_entry.<span class="built_in">setRequest</span>(request);</span><br><span class="line"><span class="built_in">assert</span>(load_inst);</span><br><span class="line"><span class="built_in">assert</span>(!load_inst-&gt;<span class="built_in">isExecuted</span>());</span><br></pre></td></tr></table></figure>
+</li>
+<li><p><strong>严格有序 load 检查</strong><br>如果当前请求标记为严格有序（isStrictlyOrdered() 为 true），但当前 load 不是位于 loadQueue 的头部或者指令还未处于 commit 阶段，则：</p>
+<ul>
+<li>通知上游（IEW&#x2F;mem dep unit）需要将该指令重新调度；</li>
+<li>清除指令的“发射”标记和有效地址标志；</li>
+<li>记录并统计该 reschedule 事件；</li>
+<li>丢弃此 request（调用 request-&gt;discard()），并返回一个 fault（通常为 panic fault），表示此 load 还不能访问内存。</li>
+</ul>
+<p>这样做确保严格有序 load 必须等到它处于队列头部且就绪时才真正执行内存操作。</p>
+</li>
+<li><p><strong>打印调试信息</strong><br>输出调试信息，显示 load 的索引、与 store 队列相关的位置以及请求的地址信息。</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">DPRINTF</span>(LSQUnit, <span class="string">&quot;Read called, load idx: %i, store idx: %i, storeHead: %i addr: %#x%s\n&quot;</span>,</span><br><span class="line">        load_idx - <span class="number">1</span>, load_inst-&gt;sqIt._idx, storeQueue.<span class="built_in">head</span>() - <span class="number">1</span>,</span><br><span class="line">        request-&gt;<span class="built_in">mainReq</span>()-&gt;<span class="built_in">getPaddr</span>(), request-&gt;<span class="built_in">isSplit</span>() ? <span class="string">&quot; split&quot;</span> : <span class="string">&quot;&quot;</span>);</span><br></pre></td></tr></table></figure>
+</li>
+<li><p><strong>处理特殊指令：LLSC（读-链接）</strong><br>如果请求属于 LLSC 类型：</p>
+<ul>
+<li>临时禁用结果记录（recordResult(false)），使得写入 misc 寄存器时不更新结果；</li>
+<li>调用 ISA 的 handleLockedRead() 处理锁定读取的操作；</li>
+<li>恢复结果记录设置（recordResult(true)）。</li>
+</ul>
+</li>
+<li><p><strong>处理 Local Access（本地访问）</strong><br>如果请求标记为本地访问，则：</p>
+<ul>
+<li>为 load 分配存储数据的缓冲区（memData）；</li>
+<li>从当前线程上下文中调用 localAccessor() 直接进行读操作并计算延迟；</li>
+<li>创建一个 WritebackEvent，并调度该事件在延迟后完成 writeback；</li>
+<li>返回 NoFault。</li>
+</ul>
+</li>
+<li><p><strong>Store-to-Load 转发检查</strong><br>如果前面几项都不适用，则函数检查 load 指令是否可以从之前的 store 中直接转发数据，而不必去访问内存：</p>
+<ul>
+<li>从 load 指令关联的 store 队列迭代器（sqIt）处开始向“更老”（storeWBIt 之前）的 store 条目遍历；</li>
+<li>对于每个候选 store，先确保 store 有数据（store_size !&#x3D; 0）、不严格有序且不属于 cache maintenance 操作，同时该 store 的有效地址已经设置；</li>
+<li>根据 load 请求的地址范围与 store 有效数据范围计算“coverage”；<ul>
+<li>如果 store 包含 load 请求地址的全部数据（Full Coverage），则计算偏移后直接将 store 中的数据复制到 load 的 memData 中；</li>
+<li>随后创建一个新的 Packet 并包装为 WritebackEvent，再调度该事件进行延迟 writeback，统计转发成功的次数，并返回 NoFault；</li>
+</ul>
+</li>
+<li>如果只满足“部分覆盖”（Partial Coverage）：<ul>
+<li>说明 store 尚未完全写入 load 所需的数据，此时将 stall load（设置 stalled 标志、记录 stallingStoreIsn 和 stallingLoadIdx）并通知上游重新调度（rescheduleMemInst）；</li>
+<li>丢弃当前 request，返回 NoFault，等待下一个周期重新尝试。</li>
+</ul>
+</li>
+</ul>
+</li>
+<li><p><strong>无转发则发起内存访问</strong><br>如果没有找到适合转发的 store，则证明必须访问真正的内存：</p>
+<ul>
+<li>分配 load 的 memData（如果尚未分配）；</li>
+<li>针对 hardware transactional memory（HTM）相关情况检查（例如设置 memData 特殊值）；</li>
+<li>调用 request-&gt;buildPackets() 构造 Memory Packets；</li>
+<li>调用 request-&gt;sendPacketToCache() 将读取请求发送给缓存；</li>
+<li>如果请求未成功发送，则调用 blockMemInst() 阻塞此 load 的发射；</li>
+<li>最后返回 NoFault。</li>
+</ul>
+</li>
+</ol>
+<hr>
+<h3 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h3><p>LSQUnit::read() 的主要工作是判断当前 load 指令：</p>
+<ul>
+<li>是否满足严格有序条件，否则需要 reschedule；</li>
+<li>是否属于特殊访问（LLSC或本地访问）；</li>
+<li>是否可以通过 store-to-load forwarding 直接获得数据（完全或部分转发）；</li>
+<li>如果都不适用，则构造真实的内存读取请求并发送到缓存。</li>
+</ul>
+<p>函数通过一系列检查和分支处理，确保 load 指令在乱序执行器中的数据依赖、顺序性和各类特殊情况（如转发、严格有序、HTM）的正确处理，并返回相应的 fault 状态（一般为 NoFault）或触发 fault 以供上层处理。</p>
+<p><strong>什么时候读出数据？</strong></p>
+<p>数据通过回调函数返回</p>
+<p><strong>调用什么函数执行内存操作？</strong></p>
+<p>一般为store_inst-&gt;initiateAcc();</p>
+<p>其函数调用堆栈如下</p>
+<p><img src="/2025/02/05/gem5/image-20250424153234926.png" alt="image-20250424153234926"></p>
+<p>然后到最后会调用pushRequest函数，该函数层层调用会调用write函数</p>
+<p><code>LSQUnit::write</code> 函数的主要作用是将存储（store）指令的数据写入存储队列（Store Queue, SQ），并对存储请求进行必要的初始化和处理。以下是对该函数的详细解释：</p>
+<hr>
+<h3 id="1-函数签名"><a href="#1-函数签名" class="headerlink" title="1. 函数签名"></a><strong>1. 函数签名</strong></h3><figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="function">Fault</span></span><br><span class="line"><span class="function"><span class="title">LSQUnit::write</span><span class="params">(LSQRequest *request, <span class="type">uint8_t</span> *data, <span class="type">ssize_t</span> store_idx)</span></span></span><br></pre></td></tr></table></figure>
+<ul>
+<li><strong><code>request</code></strong>：指向当前存储请求的指针，包含存储操作的详细信息（如地址、大小、标志等）。</li>
+<li><strong><code>data</code></strong>：指向要写入的数据的指针。</li>
+<li><strong><code>store_idx</code></strong>：存储队列中当前存储指令的索引。</li>
+</ul>
+<p>返回值是一个 <code>Fault</code> 对象，表示存储操作的结果。如果没有错误，返回 <code>NoFault</code>。</p>
+<hr>
+<h3 id="2-确保存储队列条目有效"><a href="#2-确保存储队列条目有效" class="headerlink" title="2. 确保存储队列条目有效"></a><strong>2. 确保存储队列条目有效</strong></h3><figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">assert</span>(storeQueue[store_idx].<span class="built_in">valid</span>());</span><br></pre></td></tr></table></figure>
+<ul>
+<li>确保存储队列中对应索引的条目是有效的。如果无效，则触发断言失败。</li>
+</ul>
+<hr>
+<h3 id="3-打印调试信息"><a href="#3-打印调试信息" class="headerlink" title="3. 打印调试信息"></a><strong>3. 打印调试信息</strong></h3><figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">DPRINTF</span>(LSQUnit, <span class="string">&quot;Doing write to store idx %i, addr %#x | storeHead:%i &quot;</span></span><br><span class="line">        <span class="string">&quot;[sn:%llu]\n&quot;</span>,</span><br><span class="line">        store_idx - <span class="number">1</span>, request-&gt;<span class="built_in">req</span>()-&gt;<span class="built_in">getPaddr</span>(), storeQueue.<span class="built_in">head</span>() - <span class="number">1</span>,</span><br><span class="line">        storeQueue[store_idx].<span class="built_in">instruction</span>()-&gt;seqNum);</span><br></pre></td></tr></table></figure>
+<ul>
+<li>打印当前存储操作的详细信息，包括：<ul>
+<li>存储队列索引（<code>store_idx</code>）。</li>
+<li>存储地址（<code>request-&gt;req()-&gt;getPaddr()</code>）。</li>
+<li>存储队列头部索引（<code>storeQueue.head()</code>）。</li>
+<li>存储指令的序列号（<code>seqNum</code>）。</li>
+</ul>
+</li>
+</ul>
+<hr>
+<h3 id="4-设置存储请求"><a href="#4-设置存储请求" class="headerlink" title="4. 设置存储请求"></a><strong>4. 设置存储请求</strong></h3><figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">storeQueue[store_idx].<span class="built_in">setRequest</span>(request);</span><br></pre></td></tr></table></figure>
+<ul>
+<li>将当前存储请求与存储队列中的条目关联起来。</li>
+</ul>
+<hr>
+<h3 id="5-设置存储大小"><a href="#5-设置存储大小" class="headerlink" title="5. 设置存储大小"></a><strong>5. 设置存储大小</strong></h3><figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">unsigned</span> size = request-&gt;_size;</span><br><span class="line">storeQueue[store_idx].<span class="built_in">size</span>() = size;</span><br></pre></td></tr></table></figure>
+<ul>
+<li>从请求中获取存储操作的大小，并将其设置到存储队列条目中。</li>
+</ul>
+<hr>
+<h3 id="6-检查是否为“无数据存储”"><a href="#6-检查是否为“无数据存储”" class="headerlink" title="6. 检查是否为“无数据存储”"></a><strong>6. 检查是否为“无数据存储”</strong></h3><figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">bool</span> store_no_data =</span><br><span class="line">    request-&gt;<span class="built_in">mainReq</span>()-&gt;<span class="built_in">getFlags</span>() &amp; Request::STORE_NO_DATA;</span><br><span class="line">storeQueue[store_idx].<span class="built_in">isAllZeros</span>() = store_no_data;</span><br><span class="line"><span class="built_in">assert</span>(size &lt;= SQEntry::DataSize || store_no_data);</span><br></pre></td></tr></table></figure>
+<ul>
+<li>检查存储请求是否为“无数据存储”（<code>STORE_NO_DATA</code> 标志）。<ul>
+<li>如果是，则将 <code>isAllZeros</code> 标志设置为 <code>true</code>。</li>
+<li>确保存储大小不超过存储队列条目的最大数据大小（<code>SQEntry::DataSize</code>），或者存储请求是“无数据存储”。</li>
+</ul>
+</li>
+</ul>
+<hr>
+<h3 id="7-将数据复制到存储队列"><a href="#7-将数据复制到存储队列" class="headerlink" title="7. 将数据复制到存储队列"></a><strong>7. 将数据复制到存储队列</strong></h3><figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">if</span> (!(request-&gt;<span class="built_in">req</span>()-&gt;<span class="built_in">getFlags</span>() &amp; Request::CACHE_BLOCK_ZERO) &amp;&amp;</span><br><span class="line">    !request-&gt;<span class="built_in">req</span>()-&gt;<span class="built_in">isCacheMaintenance</span>() &amp;&amp;</span><br><span class="line">    !request-&gt;<span class="built_in">req</span>()-&gt;<span class="built_in">isAtomic</span>())</span><br><span class="line">    <span class="built_in">memcpy</span>(storeQueue[store_idx].<span class="built_in">data</span>(), data, size);</span><br></pre></td></tr></table></figure>
+<ul>
+<li>如果存储请求不是以下情况：<ul>
+<li><code>CACHE_BLOCK_ZERO</code>：表示将整个缓存块置零。</li>
+<li><code>Cache Maintenance</code>：缓存维护操作（如清除或刷新缓存）。</li>
+<li><code>Atomic</code>：原子操作。</li>
+</ul>
+</li>
+<li>则将数据从 <code>data</code> 指针复制到存储队列条目的数据缓冲区中。</li>
+</ul>
+<hr>
+<h3 id="8-返回结果"><a href="#8-返回结果" class="headerlink" title="8. 返回结果"></a><strong>8. 返回结果</strong></h3><figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">return</span> NoFault;</span><br></pre></td></tr></table></figure>
+<ul>
+<li>该函数只负责将数据写入存储队列，不涉及实际的内存访问，因此不会产生故障，直接返回 <code>NoFault</code>。</li>
+</ul>
+<hr>
+<h3 id="总结-1"><a href="#总结-1" class="headerlink" title="总结"></a><strong>总结</strong></h3><p><code>LSQUnit::write</code> 函数的主要功能是：</p>
+<ol>
+<li>将存储请求与存储队列条目关联。</li>
+<li>设置存储操作的大小和标志（如是否为“无数据存储”）。</li>
+<li>将存储数据复制到存储队列（如果需要）。</li>
+<li>返回存储操作的结果（通常为 <code>NoFault</code>）。</li>
+</ol>
+<p>这是存储指令执行过程中将数据写入存储队列的关键步骤，后续的写回阶段会根据存储队列中的数据将其写入内存或缓存。</p>
+<p><strong>write函数将数据写入STQ，等待提交时写入Cache</strong></p>
 
     </div>
 
@@ -329,13 +620,13 @@
     <span class="post-meta-item-icon">
       <i class="fa fa-chart-line"></i>
     </span>
-    <span title="站点总字数">133k</span>
+    <span title="站点总字数">149k</span>
   </span>
   <span class="post-meta-item">
     <span class="post-meta-item-icon">
       <i class="fa fa-coffee"></i>
     </span>
-    <span title="站点阅读时长">8:02</span>
+    <span title="站点阅读时长">9:01</span>
   </span>
 </div>
   <div class="powered-by">由 <a href="https://hexo.io/" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.js.org/" rel="noopener" target="_blank">NexT.Gemini</a> 强力驱动

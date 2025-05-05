@@ -27,8 +27,23 @@
 <meta property="og:description" content="NOC部分参数定义NOC部分的参数定义在&#x2F;Hardware&#x2F;little&#x2F;subsystem&#x2F;Configs.scala,然后NOC的全局参数定义在MEEK&#x2F;Hardware&#x2F;little&#x2F;guardiancouncil&#x2F;GH_GlobalParams.scala 1234567object GH_GlobalPara">
 <meta property="og:locale" content="zh_CN">
 <meta property="og:image" content="http://example.com/2025/02/21/MEEK-%E4%BB%A3%E7%A0%81%E9%98%85%E8%AF%BB/1741077543605.jpg">
+<meta property="og:image" content="http://example.com/2025/02/21/MEEK-%E4%BB%A3%E7%A0%81%E9%98%85%E8%AF%BB/image-20250423222322653.png">
+<meta property="og:image" content="http://example.com/2025/02/21/MEEK-%E4%BB%A3%E7%A0%81%E9%98%85%E8%AF%BB/image-20250424112451976.png">
+<meta property="og:image" content="http://example.com/2025/02/21/MEEK-%E4%BB%A3%E7%A0%81%E9%98%85%E8%AF%BB/image-20250424112554926.png">
+<meta property="og:image" content="http://example.com/2025/02/21/MEEK-%E4%BB%A3%E7%A0%81%E9%98%85%E8%AF%BB/image-20250424112201371.png">
+<meta property="og:image" content="http://example.com/2025/02/21/MEEK-%E4%BB%A3%E7%A0%81%E9%98%85%E8%AF%BB/image-20250424150833900.png">
+<meta property="og:image" content="http://example.com/2025/02/21/MEEK-%E4%BB%A3%E7%A0%81%E9%98%85%E8%AF%BB/image-20250424224311413.png">
+<meta property="og:image" content="http://example.com/2025/02/21/MEEK-%E4%BB%A3%E7%A0%81%E9%98%85%E8%AF%BB/image-20250425190856486.png">
+<meta property="og:image" content="http://example.com/2025/02/21/MEEK-%E4%BB%A3%E7%A0%81%E9%98%85%E8%AF%BB/image-20250426093129777.png">
+<meta property="og:image" content="http://example.com/2025/02/21/MEEK-%E4%BB%A3%E7%A0%81%E9%98%85%E8%AF%BB/image-20250426100932381.png">
+<meta property="og:image" content="http://example.com/2025/02/21/MEEK-%E4%BB%A3%E7%A0%81%E9%98%85%E8%AF%BB/image-20250426101834874.png">
+<meta property="og:image" content="http://example.com/2025/02/21/MEEK-%E4%BB%A3%E7%A0%81%E9%98%85%E8%AF%BB/image-20250427151942262.png">
+<meta property="og:image" content="http://example.com/2025/02/21/MEEK-%E4%BB%A3%E7%A0%81%E9%98%85%E8%AF%BB/image-20250427153647499.png">
+<meta property="og:image" content="http://example.com/2025/02/21/MEEK-%E4%BB%A3%E7%A0%81%E9%98%85%E8%AF%BB/image-20250504142241078.png">
+<meta property="og:image" content="http://example.com/2025/02/21/MEEK-%E4%BB%A3%E7%A0%81%E9%98%85%E8%AF%BB/image-20250504184946961.png">
+<meta property="og:image" content="http://example.com/2025/02/21/MEEK-%E4%BB%A3%E7%A0%81%E9%98%85%E8%AF%BB/image-20250504142305431.png">
 <meta property="article:published_time" content="2025-02-21T01:20:48.000Z">
-<meta property="article:modified_time" content="2025-03-26T07:31:54.030Z">
+<meta property="article:modified_time" content="2025-05-04T10:59:43.664Z">
 <meta property="article:author" content="GB">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:image" content="http://example.com/2025/02/21/MEEK-%E4%BB%A3%E7%A0%81%E9%98%85%E8%AF%BB/1741077543605.jpg">
@@ -112,7 +127,7 @@
       <div class="sidebar-panel-container">
         <!--noindex-->
         <div class="post-toc-wrap sidebar-panel">
-            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#NOC%E9%83%A8%E5%88%86"><span class="nav-number">1.</span> <span class="nav-text">NOC部分</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%8F%82%E6%95%B0%E5%AE%9A%E4%B9%89"><span class="nav-number">1.1.</span> <span class="nav-text">参数定义</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#GHT-FILTER-PRFS%E8%A7%A3%E8%AF%BB"><span class="nav-number">1.2.</span> <span class="nav-text">GHT_FILTER_PRFS解读</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#GH-FIFO"><span class="nav-number">1.3.</span> <span class="nav-text">GH_FIFO</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#GHT-FILTERS-PRFS"><span class="nav-number">1.4.</span> <span class="nav-text">GHT_FILTERS_PRFS</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#GHT%E8%A7%A3%E8%AF%BB"><span class="nav-number">1.5.</span> <span class="nav-text">GHT解读</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#GHT%E5%9C%A8%E5%A4%A7%E6%A0%B8%E7%9A%84%E4%BD%9C%E7%94%A8"><span class="nav-number">1.5.1.</span> <span class="nav-text">GHT在大核的作用</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#GHE"><span class="nav-number">1.6.</span> <span class="nav-text">GHE</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#rocc%E6%8C%87%E4%BB%A4"><span class="nav-number">1.6.1.</span> <span class="nav-text">rocc指令</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#rd%E5%86%99%E5%85%A5"><span class="nav-number">1.6.2.</span> <span class="nav-text">rd写入</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E8%BE%93%E5%87%BA%E4%BF%A1%E5%8F%B7"><span class="nav-number">1.6.3.</span> <span class="nav-text">输出信号</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#GHM"><span class="nav-number">1.7.</span> <span class="nav-text">GHM</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#NOC%E8%8A%82%E7%82%B9%E5%AE%9A%E4%B9%89%E4%B8%8E%E8%BF%9E%E6%8E%A5"><span class="nav-number">1.8.</span> <span class="nav-text">NOC节点定义与连接</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%A4%A7%E6%A0%B8%E6%B5%81%E7%A8%8B"><span class="nav-number">1.8.1.</span> <span class="nav-text">大核流程</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#GHE%E4%B8%8EGHT%E4%BA%A4%E4%BA%92%E4%BF%A1%E5%8F%B7"><span class="nav-number">1.8.1.1.</span> <span class="nav-text">GHE与GHT交互信号</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%A4%A7%E6%A0%B8%E4%B8%8EGHT%E4%BA%A4%E4%BA%92%E4%BF%A1%E5%8F%B7"><span class="nav-number">1.8.1.2.</span> <span class="nav-text">大核与GHT交互信号</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%A4%A7%E6%A0%B8%E4%B8%8EGHE%E4%BA%A4%E4%BA%92"><span class="nav-number">1.8.1.3.</span> <span class="nav-text">大核与GHE交互</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%A4%A7%E6%A0%B8%E4%B8%8EGHM%E4%BA%A4%E4%BA%92"><span class="nav-number">1.8.1.4.</span> <span class="nav-text">大核与GHM交互</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#GHM%E4%B8%8EGHE%E4%BA%A4%E4%BA%92"><span class="nav-number">1.8.1.5.</span> <span class="nav-text">GHM与GHE交互</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#GHT%E4%B8%8EGHM%EF%BC%8CGAGG%E4%BA%A4%E4%BA%92"><span class="nav-number">1.8.1.6.</span> <span class="nav-text">GHT与GHM，GAGG交互</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E6%80%BB%E7%BB%93"><span class="nav-number">1.8.1.7.</span> <span class="nav-text">总结</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%B0%8F%E6%A0%B8%E5%BF%83%E6%B5%81%E7%A8%8B"><span class="nav-number">1.8.2.</span> <span class="nav-text">小核心流程</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%B0%8F%E6%A0%B8%E5%BF%83%E4%B8%8EGHE%E4%BA%A4%E4%BA%92"><span class="nav-number">1.8.2.1.</span> <span class="nav-text">小核心与GHE交互</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%B0%8F%E6%A0%B8%E5%BF%83%E4%B8%8EGHM-GAGG%E4%BA%A4%E4%BA%92"><span class="nav-number">1.8.2.2.</span> <span class="nav-text">小核心与GHM,GAGG交互</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#GHE%E4%B8%8EGHM-GAGG%E4%BA%A4%E4%BA%92"><span class="nav-number">1.8.2.3.</span> <span class="nav-text">GHE与GHM,GAGG交互</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E6%80%BB%E7%BB%93-1"><span class="nav-number">1.8.2.4.</span> <span class="nav-text">总结</span></a></li></ol></li></ol></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E8%BD%AF%E4%BB%B6%E6%89%A7%E8%A1%8C%E6%B5%81%E7%A8%8B"><span class="nav-number">2.</span> <span class="nav-text">软件执行流程</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E5%A4%A7%E6%A0%B8%E9%83%A8%E5%88%86"><span class="nav-number">3.</span> <span class="nav-text">大核部分</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#LSU%E9%83%A8%E5%88%86"><span class="nav-number">3.1.</span> <span class="nav-text">LSU部分</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#FTQ%E9%83%A8%E5%88%86"><span class="nav-number">3.2.</span> <span class="nav-text">FTQ部分</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#ROB%E9%83%A8%E5%88%86"><span class="nav-number">3.3.</span> <span class="nav-text">ROB部分</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#core%E9%83%A8%E5%88%86"><span class="nav-number">3.4.</span> <span class="nav-text">core部分</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#R-IC%E6%A8%A1%E5%9D%97%E8%A7%A3%E8%AF%BB"><span class="nav-number">3.4.1.</span> <span class="nav-text">R_IC模块解读</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#a-fsm-reset"><span class="nav-number">3.4.1.1.</span> <span class="nav-text">a. fsm_reset</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#b-fsm-presch"><span class="nav-number">3.4.1.2.</span> <span class="nav-text">b. fsm_presch</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#c-fsm-sch"><span class="nav-number">3.4.1.3.</span> <span class="nav-text">c. fsm_sch</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#d-fsm-cooling"><span class="nav-number">3.4.1.4.</span> <span class="nav-text">d. fsm_cooling</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#e-fsm-snap"><span class="nav-number">3.4.1.5.</span> <span class="nav-text">e. fsm_snap</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#f-fsm-trans"><span class="nav-number">3.4.1.6.</span> <span class="nav-text">f. fsm_trans</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#g-fsm-check"><span class="nav-number">3.4.1.7.</span> <span class="nav-text">g. fsm_check</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#h-fsm-postcheck"><span class="nav-number">3.4.1.8.</span> <span class="nav-text">h. fsm_postcheck</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E8%BE%93%E5%87%BA%E4%BF%A1%E5%8F%B7-1"><span class="nav-number">3.4.1.9.</span> <span class="nav-text">输出信号</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#R-RSU%E8%A7%A3%E8%AF%BB"><span class="nav-number">3.4.2.</span> <span class="nav-text">R_RSU解读</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#core%E4%B8%8Ersu%EF%BC%8Cic%E4%BA%A4%E4%BA%92"><span class="nav-number">3.4.3.</span> <span class="nav-text">core与rsu，ic交互</span></a></li></ol></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E5%B0%8F%E6%A0%B8%E9%83%A8%E5%88%86"><span class="nav-number">4.</span> <span class="nav-text">小核部分</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#R-RSUSL%E8%A7%A3%E8%AF%BB"><span class="nav-number">4.0.1.</span> <span class="nav-text">R_RSUSL解读</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#packet%E5%85%A5%E9%98%9F%E9%80%BB%E8%BE%91"><span class="nav-number">4.0.1.1.</span> <span class="nav-text">packet入队逻辑</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E4%BF%9D%E5%AD%98checker%E7%8A%B6%E6%80%81"><span class="nav-number">4.0.1.2.</span> <span class="nav-text">保存checker状态</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%BA%94%E7%94%A8snapshot%E7%8A%B6%E6%80%81"><span class="nav-number">4.0.1.3.</span> <span class="nav-text">应用snapshot状态</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E8%BE%93%E5%87%BA%E6%A3%80%E6%9F%A5%E4%BF%A1%E5%8F%B7"><span class="nav-number">4.0.1.4.</span> <span class="nav-text">输出检查信号</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#R-ICSL%E8%A7%A3%E8%AF%BB"><span class="nav-number">4.0.2.</span> <span class="nav-text">R_ICSL解读</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#R-LSL%E8%A7%A3%E8%AF%BB"><span class="nav-number">4.0.3.</span> <span class="nav-text">R_LSL解读</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#ldst%E5%85%A5%E9%98%9F"><span class="nav-number">4.0.3.1.</span> <span class="nav-text">ldst入队</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#ldst%E5%87%BA%E9%98%9F"><span class="nav-number">4.0.3.2.</span> <span class="nav-text">ldst出队</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#R-ELU%E8%A7%A3%E8%AF%BB"><span class="nav-number">4.0.4.</span> <span class="nav-text">R_ELU解读</span></a></li></ol></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E6%95%B0%E6%8D%AE%E4%BC%A0%E8%BE%93%E6%BA%90%E7%A0%81%E4%BF%AE%E6%94%B9%E9%83%A8%E5%88%86"><span class="nav-number">5.</span> <span class="nav-text">数据传输源码修改部分</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E9%9A%8F%E7%AC%94"><span class="nav-number">6.</span> <span class="nav-text">随笔</span></a></li></ol></div>
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#NOC%E9%83%A8%E5%88%86"><span class="nav-number">1.</span> <span class="nav-text">NOC部分</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%8F%82%E6%95%B0%E5%AE%9A%E4%B9%89"><span class="nav-number">1.1.</span> <span class="nav-text">参数定义</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#GHT-FILTER-PRFS%E8%A7%A3%E8%AF%BB"><span class="nav-number">1.2.</span> <span class="nav-text">GHT_FILTER_PRFS解读</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#GH-FIFO"><span class="nav-number">1.3.</span> <span class="nav-text">GH_FIFO</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#GHT-FILTERS-PRFS"><span class="nav-number">1.4.</span> <span class="nav-text">GHT_FILTERS_PRFS</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#GHT%E8%A7%A3%E8%AF%BB"><span class="nav-number">1.5.</span> <span class="nav-text">GHT解读</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#GHT%E5%9C%A8%E5%A4%A7%E6%A0%B8%E7%9A%84%E4%BD%9C%E7%94%A8"><span class="nav-number">1.5.1.</span> <span class="nav-text">GHT在大核的作用</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#GHE"><span class="nav-number">1.6.</span> <span class="nav-text">GHE</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#rocc%E6%8C%87%E4%BB%A4"><span class="nav-number">1.6.1.</span> <span class="nav-text">rocc指令</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#rd%E5%86%99%E5%85%A5"><span class="nav-number">1.6.2.</span> <span class="nav-text">rd写入</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E8%BE%93%E5%87%BA%E4%BF%A1%E5%8F%B7"><span class="nav-number">1.6.3.</span> <span class="nav-text">输出信号</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#GHM"><span class="nav-number">1.7.</span> <span class="nav-text">GHM</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#NOC%E8%8A%82%E7%82%B9%E5%AE%9A%E4%B9%89%E4%B8%8E%E8%BF%9E%E6%8E%A5"><span class="nav-number">1.8.</span> <span class="nav-text">NOC节点定义与连接</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%A4%A7%E6%A0%B8%E6%B5%81%E7%A8%8B"><span class="nav-number">1.8.1.</span> <span class="nav-text">大核流程</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#GHE%E4%B8%8EGHT%E4%BA%A4%E4%BA%92%E4%BF%A1%E5%8F%B7"><span class="nav-number">1.8.1.1.</span> <span class="nav-text">GHE与GHT交互信号</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%A4%A7%E6%A0%B8%E4%B8%8EGHT%E4%BA%A4%E4%BA%92%E4%BF%A1%E5%8F%B7"><span class="nav-number">1.8.1.2.</span> <span class="nav-text">大核与GHT交互信号</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%A4%A7%E6%A0%B8%E4%B8%8EGHE%E4%BA%A4%E4%BA%92"><span class="nav-number">1.8.1.3.</span> <span class="nav-text">大核与GHE交互</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%A4%A7%E6%A0%B8%E4%B8%8EGHM%E4%BA%A4%E4%BA%92"><span class="nav-number">1.8.1.4.</span> <span class="nav-text">大核与GHM交互</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#GHM%E4%B8%8EGHE%E4%BA%A4%E4%BA%92"><span class="nav-number">1.8.1.5.</span> <span class="nav-text">GHM与GHE交互</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#GHT%E4%B8%8EGHM%EF%BC%8CGAGG%E4%BA%A4%E4%BA%92"><span class="nav-number">1.8.1.6.</span> <span class="nav-text">GHT与GHM，GAGG交互</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E6%80%BB%E7%BB%93"><span class="nav-number">1.8.1.7.</span> <span class="nav-text">总结</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%B0%8F%E6%A0%B8%E5%BF%83%E6%B5%81%E7%A8%8B"><span class="nav-number">1.8.2.</span> <span class="nav-text">小核心流程</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%B0%8F%E6%A0%B8%E5%BF%83%E4%B8%8EGHE%E4%BA%A4%E4%BA%92"><span class="nav-number">1.8.2.1.</span> <span class="nav-text">小核心与GHE交互</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%B0%8F%E6%A0%B8%E5%BF%83%E4%B8%8EGHM-GAGG%E4%BA%A4%E4%BA%92"><span class="nav-number">1.8.2.2.</span> <span class="nav-text">小核心与GHM,GAGG交互</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#GHE%E4%B8%8EGHM-GAGG%E4%BA%A4%E4%BA%92"><span class="nav-number">1.8.2.3.</span> <span class="nav-text">GHE与GHM,GAGG交互</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E6%80%BB%E7%BB%93-1"><span class="nav-number">1.8.2.4.</span> <span class="nav-text">总结</span></a></li></ol></li></ol></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E8%BD%AF%E4%BB%B6%E6%89%A7%E8%A1%8C%E6%B5%81%E7%A8%8B"><span class="nav-number">2.</span> <span class="nav-text">软件执行流程</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E5%A4%A7%E6%A0%B8%E9%83%A8%E5%88%86"><span class="nav-number">3.</span> <span class="nav-text">大核部分</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#LSU%E9%83%A8%E5%88%86"><span class="nav-number">3.1.</span> <span class="nav-text">LSU部分</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#FTQ%E9%83%A8%E5%88%86"><span class="nav-number">3.2.</span> <span class="nav-text">FTQ部分</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#ROB%E9%83%A8%E5%88%86"><span class="nav-number">3.3.</span> <span class="nav-text">ROB部分</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#core%E9%83%A8%E5%88%86"><span class="nav-number">3.4.</span> <span class="nav-text">core部分</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#R-IC%E6%A8%A1%E5%9D%97%E8%A7%A3%E8%AF%BB"><span class="nav-number">3.4.1.</span> <span class="nav-text">R_IC模块解读</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#a-fsm-reset"><span class="nav-number">3.4.1.1.</span> <span class="nav-text">a. fsm_reset</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#b-fsm-presch"><span class="nav-number">3.4.1.2.</span> <span class="nav-text">b. fsm_presch</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#c-fsm-sch"><span class="nav-number">3.4.1.3.</span> <span class="nav-text">c. fsm_sch</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#d-fsm-cooling"><span class="nav-number">3.4.1.4.</span> <span class="nav-text">d. fsm_cooling</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#e-fsm-snap"><span class="nav-number">3.4.1.5.</span> <span class="nav-text">e. fsm_snap</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#f-fsm-trans"><span class="nav-number">3.4.1.6.</span> <span class="nav-text">f. fsm_trans</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#g-fsm-check"><span class="nav-number">3.4.1.7.</span> <span class="nav-text">g. fsm_check</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#h-fsm-postcheck"><span class="nav-number">3.4.1.8.</span> <span class="nav-text">h. fsm_postcheck</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E8%BE%93%E5%87%BA%E4%BF%A1%E5%8F%B7-1"><span class="nav-number">3.4.1.9.</span> <span class="nav-text">输出信号</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#R-RSU%E8%A7%A3%E8%AF%BB"><span class="nav-number">3.4.2.</span> <span class="nav-text">R_RSU解读</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#core%E4%B8%8Ersu%EF%BC%8Cic%E4%BA%A4%E4%BA%92"><span class="nav-number">3.4.3.</span> <span class="nav-text">core与rsu，ic交互</span></a></li></ol></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E5%B0%8F%E6%A0%B8%E9%83%A8%E5%88%86"><span class="nav-number">4.</span> <span class="nav-text">小核部分</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#R-RSUSL%E8%A7%A3%E8%AF%BB"><span class="nav-number">4.0.1.</span> <span class="nav-text">R_RSUSL解读</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#packet%E5%85%A5%E9%98%9F%E9%80%BB%E8%BE%91"><span class="nav-number">4.0.1.1.</span> <span class="nav-text">packet入队逻辑</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E4%BF%9D%E5%AD%98checker%E7%8A%B6%E6%80%81"><span class="nav-number">4.0.1.2.</span> <span class="nav-text">保存checker状态</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%BA%94%E7%94%A8snapshot%E7%8A%B6%E6%80%81"><span class="nav-number">4.0.1.3.</span> <span class="nav-text">应用snapshot状态</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E8%BE%93%E5%87%BA%E6%A3%80%E6%9F%A5%E4%BF%A1%E5%8F%B7"><span class="nav-number">4.0.1.4.</span> <span class="nav-text">输出检查信号</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#R-ICSL%E8%A7%A3%E8%AF%BB"><span class="nav-number">4.0.2.</span> <span class="nav-text">R_ICSL解读</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#R-LSL%E8%A7%A3%E8%AF%BB"><span class="nav-number">4.0.3.</span> <span class="nav-text">R_LSL解读</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#ldst%E5%85%A5%E9%98%9F"><span class="nav-number">4.0.3.1.</span> <span class="nav-text">ldst入队</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#ldst%E5%87%BA%E9%98%9F"><span class="nav-number">4.0.3.2.</span> <span class="nav-text">ldst出队</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#R-ELU%E8%A7%A3%E8%AF%BB"><span class="nav-number">4.0.4.</span> <span class="nav-text">R_ELU解读</span></a></li></ol></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E6%95%B0%E6%8D%AE%E4%BC%A0%E8%BE%93%E6%BA%90%E7%A0%81%E4%BF%AE%E6%94%B9%E9%83%A8%E5%88%86"><span class="nav-number">5.</span> <span class="nav-text">数据传输源码修改部分</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E9%9A%8F%E7%AC%94"><span class="nav-number">6.</span> <span class="nav-text">随笔</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#CDC%E9%9C%80%E8%A6%81%E8%80%83%E8%99%91%E7%9A%84%E6%83%85%E5%86%B5"><span class="nav-number">6.1.</span> <span class="nav-text">CDC需要考虑的情况</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E7%AE%80%E5%8C%96%E9%80%BB%E8%BE%91"><span class="nav-number">6.2.</span> <span class="nav-text">简化逻辑</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link"><span class="nav-number">6.2.0.1.</span> <span class="nav-text"></span></a></li></ol></li></ol></li></ol></li></ol></div>
         </div>
         <!--/noindex-->
 
@@ -127,7 +142,7 @@
   <nav class="site-state">
       <div class="site-state-item site-state-posts">
         <a href="/archives/">
-          <span class="site-state-item-count">23</span>
+          <span class="site-state-item-count">29</span>
           <span class="site-state-item-name">日志</span>
         </a>
       </div>
@@ -196,7 +211,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2025-03-26 15:31:54" itemprop="dateModified" datetime="2025-03-26T15:31:54+08:00">2025-03-26</time>
+      <time title="修改时间：2025-05-04 18:59:43" itemprop="dateModified" datetime="2025-05-04T18:59:43+08:00">2025-05-04</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -215,14 +230,14 @@
         <i class="far fa-file-word"></i>
       </span>
       <span class="post-meta-item-text">本文字数：</span>
-      <span>6.2k</span>
+      <span>9.5k</span>
     </span>
     <span class="post-meta-item" title="阅读时长">
       <span class="post-meta-item-icon">
         <i class="far fa-clock"></i>
       </span>
       <span class="post-meta-item-text">阅读时长 &asymp;</span>
-      <span>22 分钟</span>
+      <span>34 分钟</span>
     </span>
 </div>
 
@@ -848,6 +863,342 @@ CDC入队条件比较弱,考虑更改</p>
 <p>从哪个时间开始测试：</p>
 <p>这些性能事件可以通过csr直接读取</p>
 </blockquote>
+<ul>
+<li><input checked disabled type="checkbox"> CDC跨时钟域的复位如何解决？</li>
+<li><input checked disabled type="checkbox"> 各个tile的复位是一起复位的吗？，需要去协调每个tile的reset和clock（如果四个rocket是同步时钟，那么不需要去协调？）</li>
+</ul>
+<p>一种设计思路：根据此次调度来存入不同的CDC FIFO</p>
+<p>假设4个CDC FIFO：每个CDC入队时钟域为boom的时钟域，出队时钟域为各个rocket的时钟域，入队时根据不同的调度信息写入不同的FIFO</p>
+<p>如果这样做：</p>
+<ul>
+<li><input disabled type="checkbox"> if_no_inflight_packets依据CDC FIFO是否为空设置，这个如何去解决？</li>
+<li><input disabled type="checkbox"> CDC FIFO并未直接引入 empty和full，且异步fifo的空满信号和同步的判断不太一致</li>
+<li><input disabled type="checkbox"> CDC 后端的ready信号如何设置</li>
+</ul>
+<p>CDC路线：</p>
+<p>1.先对数据信号CDC</p>
+<p>2.在对控制信号CDC</p>
+<p>3.重新整理入队出队信号</p>
+<ul>
+<li><input disabled type="checkbox"> 目前dest信号从GHT中取得，实际可以直接从RIC取出，节省了逻辑</li>
+</ul>
+<p>LSL的high——water会导致大核调度下一个核心，也是小核心无法接受数据的信号</p>
+<p>下游何时可以接受数据：</p>
+<p>1.调度信号为该核心，</p>
+<p>下游如何去打断上游？</p>
+<ul>
+<li><p><input disabled type="checkbox"> 
+下游送入high water时，已经是两个周期后，此事CDC模块可能被写入了数据，这个如何解决？</p>
+</li>
+<li><p><input disabled type="checkbox"> 
+小核心送入的控制信号必须为单周期信号</p>
+</li>
+</ul>
+<h2 id="CDC需要考虑的情况"><a href="#CDC需要考虑的情况" class="headerlink" title="CDC需要考虑的情况"></a>CDC需要考虑的情况</h2><p><strong>数据传输：</strong></p>
+<p>全部得反压，且目前设置的不可配置</p>
+<p><strong>小核心切换：</strong></p>
+<p><strong><del>情况1：</del></strong></p>
+<p>1.小核心lsl将近满</p>
+<p>2.此时小核心通过该CDC将控制信号传入大核心，（这里会延迟几个周期（CDC必须消耗的周期），所以可能导致这个真空期会有大核数据存入CDC  FIFO）</p>
+<p>3.大核接收到high water信号，准备切换checker和状态，切换完成向小核心发出ack（为了将<strong>真空期</strong>写入的数据读出）</p>
+<ul>
+<li><input checked disabled type="checkbox"> 这里有一个问题是：大核发出的icsl_na_ack可能会因为FIFO满而导致写入失败，（反压？）</li>
+</ul>
+<p>4.ack信号经过CDC传入小核心，此时小核心会去检查CDC FIFO是否有数据（也即是真空期大核是否写入数据），如果有数据，需要读完这些数据，没数据可以直接进入postcheck，然后清空ic_status,向大核发出clear_ic_status请求</p>
+<blockquote>
+<p>这种做法会导致小核心状态延迟被消除，这个是因为CDC引入了真空期</p>
+<p>需要注意的是，小核心的cdc_ready需要和high water区分，至少留出余量，防止真空期写满导致数据丢失，（好像这里不用做出区分，如果满了，CDC FIFO会暂存），还有一个可能不常见的情况：CDC也满了，这样会导致数据丢失？</p>
+</blockquote>
+<ul>
+<li><input checked disabled type="checkbox"> 如果CDC的写入端valid但并未ready，说明FIFO满，此时会发生错误，这时候好像只需要不让大核的R IC模块状态停止转换就可以？（必须要考虑的情况）</li>
+</ul>
+<p><strong><del>小核心检查cdc是否空时，有没有可能出现假空？</del></strong></p>
+<p>不大可能：大核心的ack传入小核心需要CDC，此时如果之前有数据写入，数据CDC FIFO已经读到正确的idx了（写指针已经同步到读端口），所以不会出现问题</p>
+<p><strong>最新做法：</strong></p>
+<p>小核心lsl满可以向大核心发出反压信号，大核心收到信号后会去停止执行，然后直接发送ic_cnt回来，小核心只需要执行到这个ic cnt就可以退出这个模式了</p>
+<p><strong>情况2：</strong></p>
+<p>1.小核心执行到目的的指令数目，和来自大核的ic_cnt对比，此时也会有真空期（大核的ic_cnt仍然在计数）</p>
+<p>2.然后对比完成，转换状态，给出大核清除信号，大核此时去清除ic_status,注意此时大核可能执行的指令已经超过指令阈值，所以可能发生状态切换，导致错误</p>
+<p><del><strong>解决办法</strong></del></p>
+<p>1.所以小核心不应该去做ic_cnt对比，需要当大核心指令超过阈值，向小核心发出信号，小核心读取到信号后，需要对大核心的信号做出回应，执行完所有指令（cdc fifo空，lsl空，且pipeline无指令），然后大核心接到回应后切换状态，这样就可以去除CDC造成的真空期</p>
+<ul>
+<li><input disabled type="checkbox"> 但是这样做的话：如果小核心执行超过大核心，大核心无法感知到</li>
+</ul>
+<p>2.继续原来的做法，也就是向小核心送入大核的cnt，然后根据这个cnt来得到stall（由于cdc存在延迟，所以不会出现问题），当大核心达到阈值的时候，向小核心发出done，此时小核心得到done（延迟几个周期，但不会出现问题），执行完成后，向大核发出clear</p>
+<p>此时大核可能已经开始执行指令，但是不会出问题：</p>
+<p>因为每个ic_status和cnt是独立的</p>
+<ul>
+<li><input checked disabled type="checkbox"> ic counter done的信号需要去维持，（不需要）</li>
+</ul>
+<blockquote>
+<p>同理，大核心发生ecall，执行退出命令，也是这样的做法</p>
+</blockquote>
+<p>也就是checker切换分为<strong>两种情况</strong>：</p>
+<p>1.小核心lsl满，此时的CDC造成的真空期不可忽视，必须为小核心的LSL留出一定余量(其实也可以不用,反正都存在CDC FIFO),小核心执行完成后才会向大核心发出clear_status请求</p>
+<p>2.其他情况,均和大核的执行状态有关,大核需要去向小核发出终止信号,小核心读取到信号必须向大核心信号做出回应,大核接受到回应才会去切换状态,改情况无真空期，但如果采用做法2，其实可以和1归为1类，和情况1的区别就是没有真空期</p>
+<p><strong>为什么需要对控制信号留出余量(depth&gt;3)?</strong></p>
+<p><del>大核心写的太快,此时小核心读的慢,导致控制信号丢失,所以必须去暂存控制信号</del></p>
+<p>必须反压或者采样</p>
+<p><strong>为什么控制信号不连续(主要出现在l2b)?</strong></p>
+<p>小核心写入太慢,大核心读取太快,导致FIFO经常空</p>
+<ul>
+<li><input checked disabled type="checkbox"> <del>需要增加FIFO深度,具体需要根据时钟频率考虑</del></li>
+</ul>
+<p><strong>这里也导致一个问题,控制信号不连续,需要做出对应处理?</strong></p>
+<p>1.为控制信号加入valid,只有fire的信号才是真正的控制信号</p>
+<p>2.传输的控制信号必须要是单周期的信号,这样读出的信号才会是单周期的,否则可能出现不连续的情况，但是某些信号本来就不是单周期的，比如lsl high water</p>
+<p><strong>小核心的icsl状态转换处理？</strong></p>
+<p>当lsl满的时候，小核心需要去进入一个新的状态，也就是cdc_clear状态，当收到ack转换到该状态，然后如果cdc空了，且流水线执行完成，进入下一个状态）</p>
+<p>其他情况时，（大核发生的事件导致小核心去切换），此时也要进入cdc_clear,cdc空后，且流水线执行完成，进入下一个状态</p>
+<blockquote>
+<p>cdc_clear,也算是check状态,他的作用就是把CDC转化的真空期数据清空</p>
+</blockquote>
+<p><strong>为什么csr lsl满的很快？</strong></p>
+<ul>
+<li><input checked disabled type="checkbox"> 必须对快时钟域的信号采样,否则fifo必满,但是如果采样的话,大核心的ic_cnt就不再准确,所以必须反压</li>
+</ul>
+<p><strong>解决方法：</strong></p>
+<p>当小核心执行到最后一条指令时，停止执行，看大核心是否已经完成这个的执行，如果完成执行，向小核心发出信号，然后小核心完成执行</p>
+<p><strong>目前需要解决的问题：</strong></p>
+<ul>
+<li><input disabled type="checkbox"> 大核控制信号反压（高优先级），目前暂时不用。控制信号很零散</li>
+<li><input disabled type="checkbox"> 小核心控制信号反压（高优先级）。目前暂时不用。控制信号不会反压</li>
+<li><input checked disabled type="checkbox"> 大核arfs反压（高优先级）</li>
+<li><input checked disabled type="checkbox"> 小核最后一条指令停止执行（可能之后还要执行其他的指令），仍然需要小核心去维护一个cnt，只不过这个cnt仅仅去计数，等到cnt为设置的阈值-1时，这时候去停止小核心执行，然后询问大核心情况，大核如果此时执行完成，向小核心发送信号(目前只是完成coding,但是无法去验证正确)</li>
+</ul>
+<blockquote>
+<p>目前通过overtaking重新去重启取pc</p>
+</blockquote>
+<ul>
+<li><p><input checked disabled type="checkbox"> 
+<del>CDC FIFO 只采样控制信号的高电平（高电平写入）</del></p>
+</li>
+<li><p><input disabled type="checkbox"> 
+小核心的信号只在小核心计算，然后结果传到大核心，（一些debug信号）（低优先级）</p>
+</li>
+<li><p><input checked disabled type="checkbox"> 
+需要传输ic——cnt：大核提交指令不定，可能超过阈值，所以当收到请求后，需要传入大核的cnt</p>
+</li>
+<li><p><input checked disabled type="checkbox"> 
+单bit的控制信号必须触发为单周期</p>
+</li>
+<li><p><input checked disabled type="checkbox"> 
+目前的做法先对传输的信号采样，之后会加入反压机制</p>
+</li>
+<li><p><input checked disabled type="checkbox"> 
+为什么stall小核心，但指令仍然提交</p>
+<blockquote>
+<p>目前stall只stall id之前，所以需要提前4条指令开始就发出检查speed，然后stall信号需要去sl——cnt+num——pipe&lt;&#x3D; inst_num+2,防止提交大于cnt</p>
+</blockquote>
+</li>
+</ul>
+<p>需要去精确的停止在最后一个指令，此时需要去kill其他指令，且不能取指令</p>
+<ul>
+<li><p><input checked disabled type="checkbox"> 
+目前未暂停取指令（低优先级）（否则可能导致检查点出错）</p>
+</li>
+<li><p><input disabled type="checkbox"> 
+去除GHT多余的arf pdst信号（低优先级）</p>
+</li>
+<li><p><input checked disabled type="checkbox"> 
+加入检查机制</p>
+</li>
+<li><p><input checked disabled type="checkbox"> 
+修复指令阈值很少时大核发出的检查点时间点问题：大核执行完这个程序片段，然后小核心还没执行（低优先级）</p>
+</li>
+</ul>
+<p><strong>2025&#x2F;4&#x2F;10</strong></p>
+<p><strong>为什么检查指令很短的时候会出错？</strong></p>
+<p><strong>check speed在最后会出现问题</strong></p>
+<p>因为最后可能没有那么多指令，且大核可能执行没有小核心快，所以ic_cnt还是要传输，只不过需要三周期传一次，</p>
+<p>解决办法：</p>
+<ul>
+<li><input checked disabled type="checkbox"> ic_cnt三周期采样一次，需要保证小核心不能超过大核心，如果小核心的sl_cnt+num_pipe&gt;ic——cnt,停止掉小核心（也就是之前方法+采样）</li>
+</ul>
+<p><strong>为什么最后全部程序片段执行完成大核没有停止？</strong></p>
+<p>大核需要咨询小核心是否完成，最后信号传入大核为bigComp_reg，之前为wire变量，但由于目前基于采样，只能使用寄存器存储起来</p>
+<p><strong>如何反压检查点和数据的传输？</strong></p>
+<ul>
+<li><p><input checked disabled type="checkbox"> 
+检查点的传输会依赖大核的dest，如果反压，就直接将dest置为0，这样大核就停止传输数据</p>
+</li>
+<li><p><input checked disabled type="checkbox"> 
+反压数据可以停止大核提交</p>
+</li>
+</ul>
+<p><strong>目前性能：</strong></p>
+<p>原来：81900</p>
+<p>加入cdc，将指令改为3000：82155</p>
+<p>加入cdc，将指令改为2：610325</p>
+<p><strong>2025&#x2F;4&#x2F;17</strong></p>
+<h2 id="简化逻辑"><a href="#简化逻辑" class="headerlink" title="简化逻辑"></a><strong>简化逻辑</strong></h2><p>GHT的转发是没必要的，在commit阶段其实可以直接传输数据了</p>
+<ul>
+<li><input disabled type="checkbox"> 需要给buf加入cdc的反压</li>
+<li><input checked disabled type="checkbox"> 目前小核数目变为不可配置（RSU）</li>
+</ul>
+<p><strong>问题：</strong></p>
+<p>新的逻辑给fence也转发了，导致逻辑出错，（fence竟然也是use_stq）</p>
+<p><img src="/2025/02/21/MEEK-%E4%BB%A3%E7%A0%81%E9%98%85%E8%AF%BB/image-20250423222322653.png" alt="image-20250423222322653"></p>
+<p>这个lsu的header好像有问题？</p>
+<p>这里连续提交了三条指令，但是只有两条在header出现，ldq&#x2F;stq_head指针溢出了，导致出错</p>
+<p><strong>目前可以跑通一轮coremark</strong>：</p>
+<p>未校验：21sec</p>
+<p>校验：27sec</p>
+<p>大概下降30%</p>
+<p>不过coremark好像是计算密集型，可以很好的利用多发射的优势，导致大核早执行完成，但小核才刚开始跑，TC_Overtaking算是一直执行load&#x2F;store（程序局部性差），即使大核也无法去利用其多发射的优势</p>
+<p>小核调度情况</p>
+<p><img src="/2025/02/21/MEEK-%E4%BB%A3%E7%A0%81%E9%98%85%E8%AF%BB/image-20250424112451976.png" alt="image-20250424112451976"></p>
+<p>小核大核执行速度比较</p>
+<h4 id><a href="#" class="headerlink" title></a><img src="/2025/02/21/MEEK-%E4%BB%A3%E7%A0%81%E9%98%85%E8%AF%BB/image-20250424112554926.png" alt="image-20250424112554926"></h4><p><img src="/2025/02/21/MEEK-%E4%BB%A3%E7%A0%81%E9%98%85%E8%AF%BB/image-20250424112201371.png" alt="image-20250424112201371"></p>
+<p><strong>前一个LD的包和下一个LD的包一起发送，导致一个包送入两个地方？</strong></p>
+<p><img src="/2025/02/21/MEEK-%E4%BB%A3%E7%A0%81%E9%98%85%E8%AF%BB/image-20250424150833900.png" alt="image-20250424150833900"></p>
+<p>需要去判断两个包的目的核</p>
+<p><strong>10轮结果</strong></p>
+<p><img src="/2025/02/21/MEEK-%E4%BB%A3%E7%A0%81%E9%98%85%E8%AF%BB/image-20250424224311413.png" alt="image-20250424224311413"></p>
+<p>20轮结果</p>
+<p> <img src="/2025/02/21/MEEK-%E4%BB%A3%E7%A0%81%E9%98%85%E8%AF%BB/image-20250425190856486.png" alt="image-20250425190856486"></p>
+<p>30轮</p>
+<p><img src="/2025/02/21/MEEK-%E4%BB%A3%E7%A0%81%E9%98%85%E8%AF%BB/image-20250426093129777.png" alt="image-20250426093129777"></p>
+<p>1轮dhrystone</p>
+<p><img src="/2025/02/21/MEEK-%E4%BB%A3%E7%A0%81%E9%98%85%E8%AF%BB/image-20250426100932381.png" alt="image-20250426100932381"></p>
+<p>出现了之前跑50轮的错误，(好像是内存满了)</p>
+<p><img src="/2025/02/21/MEEK-%E4%BB%A3%E7%A0%81%E9%98%85%E8%AF%BB/image-20250426101834874.png" alt="image-20250426101834874"></p>
+<p>coremark一轮性能：</p>
+<p><img src="/2025/02/21/MEEK-%E4%BB%A3%E7%A0%81%E9%98%85%E8%AF%BB/image-20250427151942262.png" alt="image-20250427151942262"></p>
+<p>没开check</p>
+<p><img src="/2025/02/21/MEEK-%E4%BB%A3%E7%A0%81%E9%98%85%E8%AF%BB/image-20250427153647499.png" alt="image-20250427153647499"></p>
+<table>
+<thead>
+<tr>
+<th></th>
+<th>IPC</th>
+<th>total cycle</th>
+<th>cdc_bp</th>
+<th>no_core_avaliable</th>
+<th>ic_stall</th>
+<th></th>
+</tr>
+</thead>
+<tbody><tr>
+<td>未开check</td>
+<td>1.59</td>
+<td>265605</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td></td>
+</tr>
+<tr>
+<td>开check</td>
+<td>1.235</td>
+<td>342020</td>
+<td>0</td>
+<td>72858&#x2F;21.3%&#x2F;97.8%</td>
+<td>74475&#x2F;21.7%</td>
+<td></td>
+</tr>
+</tbody></table>
+<table>
+<thead>
+<tr>
+<th></th>
+<th>Load</th>
+<th>Store</th>
+<th>br</th>
+<th>jal</th>
+<th>jalr</th>
+<th>int</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>指令总数&#x2F;占比</td>
+<td>72369&#x2F;17.1%</td>
+<td>21426&#x2F;5.1%</td>
+<td>82077&#x2F;19.4%</td>
+<td>9946&#x2F;2.4%</td>
+<td>3445&#x2F;0.8%</td>
+<td>328257&#x2F;77.8%</td>
+</tr>
+</tbody></table>
+<p><strong>总体性能下降</strong>：<strong>22.3%</strong></p>
+<p><strong>slowdown:1.287</strong></p>
+<p>其中，no_core_avaliable占据了性能下降的最大部分（21%&#x2F;95.5%）</p>
+<p><strong>5.6数据</strong></p>
+<p>四个小核执行</p>
+<p><img src="/2025/02/21/MEEK-%E4%BB%A3%E7%A0%81%E9%98%85%E8%AF%BB/image-20250504142241078.png" alt="image-20250504142241078"></p>
+<p><img src="/2025/02/21/MEEK-%E4%BB%A3%E7%A0%81%E9%98%85%E8%AF%BB/image-20250504184946961.png" alt="image-20250504184946961"></p>
+<p>大核数据</p>
+<p><img src="/2025/02/21/MEEK-%E4%BB%A3%E7%A0%81%E9%98%85%E8%AF%BB/image-20250504142305431.png" alt="image-20250504142305431"></p>
+<table>
+<thead>
+<tr>
+<th></th>
+<th>Load</th>
+<th>Store</th>
+<th>br</th>
+<th>jal</th>
+<th>jalr</th>
+<th>div</th>
+<th>mul</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>指令总数&#x2F;占比</td>
+<td>72369&#x2F;17.1%</td>
+<td>21426&#x2F;5.1%</td>
+<td>82077&#x2F;19.4%</td>
+<td>9946&#x2F;2.4%</td>
+<td>3445&#x2F;0.8%</td>
+<td>82&#x2F;0.02%</td>
+<td>9499&#x2F;2.2%</td>
+</tr>
+</tbody></table>
+<p>小核IPC</p>
+<table>
+<thead>
+<tr>
+<th></th>
+<th>core1</th>
+<th>core2</th>
+<th>core3</th>
+<th>core4</th>
+<th>avag</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>IPC</td>
+<td>0.73</td>
+<td>0.745</td>
+<td>0.744</td>
+<td>0.734</td>
+<td>0.74</td>
+</tr>
+<tr>
+<td>分支误预测</td>
+<td>5.8%</td>
+<td>7.4%</td>
+<td>7.8%</td>
+<td>7.4%</td>
+<td>7.1%</td>
+</tr>
+<tr>
+<td>ICache缺失率</td>
+<td>0.1%</td>
+<td>0.1%</td>
+<td>0.1%</td>
+<td>0.1%</td>
+<td>0.1%</td>
+</tr>
+<tr>
+<td>DIV Block</td>
+<td>5.0%</td>
+<td>4.4%</td>
+<td>5.5%</td>
+<td>4.4%</td>
+<td>5.0%</td>
+</tr>
+</tbody></table>
+<p>由于小核频率是大核一半，故小核在大核频率下的IPC约为<strong>0.37</strong>，</p>
 
     </div>
 
@@ -899,13 +1250,13 @@ CDC入队条件比较弱,考虑更改</p>
     <span class="post-meta-item-icon">
       <i class="fa fa-chart-line"></i>
     </span>
-    <span title="站点总字数">133k</span>
+    <span title="站点总字数">149k</span>
   </span>
   <span class="post-meta-item">
     <span class="post-meta-item-icon">
       <i class="fa fa-coffee"></i>
     </span>
-    <span title="站点阅读时长">8:02</span>
+    <span title="站点阅读时长">9:01</span>
   </span>
 </div>
   <div class="powered-by">由 <a href="https://hexo.io/" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.js.org/" rel="noopener" target="_blank">NexT.Gemini</a> 强力驱动

@@ -1,0 +1,348 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width">
+<meta name="theme-color" content="#222"><meta name="generator" content="Hexo 7.3.0">
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css" integrity="sha256-dABdfBfUoC8vJUBOwGVdm8L9qlMWaHTIfXt+7GnZCIo=" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/3.1.1/animate.min.css" integrity="sha256-PR7ttpcvz8qrF57fur/yAx1qXMFJeJFiA6pSzWi0OIE=" crossorigin="anonymous">
+
+<script class="next-config" data-name="main" type="application/json">{"hostname":"example.com","root":"/","images":"/images","scheme":"Gemini","darkmode":false,"version":"8.22.0","exturl":false,"sidebar":{"position":"left","width_expanded":320,"width_dual_column":240,"display":"post","padding":18,"offset":12},"hljswrap":true,"copycode":{"enable":true,"style":"flat"},"fold":{"enable":true,"height":500},"bookmark":{"enable":false,"color":"#222","save":"auto"},"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"stickytabs":false,"motion":{"enable":true,"async":false,"duration":200,"transition":{"menu_item":"fadeInDown","post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"i18n":{"placeholder":"搜索...","empty":"没有找到任何搜索结果：${query}","hits_time":"找到 ${hits} 个搜索结果（用时 ${time} 毫秒）","hits":"找到 ${hits} 个搜索结果"}}</script><script src="/js/config.js"></script>
+
+    <meta name="description" content="该论文首先去给出改进那部分对性能提升最大，首要为LLC，其次就是L1-RF 3. REGISTER FILE PREFETCH (RFP)（核心技术）执行时的相应加载会检查预测地址是否与加载地址匹配，如果匹配，则预取的数据会被提供给依赖项，加载过程完全绕过缓存。否则，加载会像传统的OOO管道一样进行缓存访问  3.1 设计原则 Timeliness（及时性）： 选择在重命名阶段后触发预取（而非前">
+<meta property="og:type" content="article">
+<meta property="og:title" content="regfile_prefetch">
+<meta property="og:url" content="http://example.com/2025/04/25/regfile-prefetch/index.html">
+<meta property="og:site_name" content="GB&#39;s Blog">
+<meta property="og:description" content="该论文首先去给出改进那部分对性能提升最大，首要为LLC，其次就是L1-RF 3. REGISTER FILE PREFETCH (RFP)（核心技术）执行时的相应加载会检查预测地址是否与加载地址匹配，如果匹配，则预取的数据会被提供给依赖项，加载过程完全绕过缓存。否则，加载会像传统的OOO管道一样进行缓存访问  3.1 设计原则 Timeliness（及时性）： 选择在重命名阶段后触发预取（而非前">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="http://example.com/2025/04/25/regfile-prefetch/image-20250425144739509.png">
+<meta property="og:image" content="http://example.com/2025/04/25/regfile-prefetch/image-20250425145740214.png">
+<meta property="article:published_time" content="2025-04-25T06:44:12.000Z">
+<meta property="article:modified_time" content="2025-04-25T07:19:44.818Z">
+<meta property="article:author" content="GB">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://example.com/2025/04/25/regfile-prefetch/image-20250425144739509.png">
+
+
+<link rel="canonical" href="http://example.com/2025/04/25/regfile-prefetch/">
+
+
+<script class="next-config" data-name="page" type="application/json">{"sidebar":"","isHome":false,"isPost":true,"lang":"zh-CN","comments":true,"permalink":"http://example.com/2025/04/25/regfile-prefetch/","path":"2025/04/25/regfile-prefetch/","title":"regfile_prefetch"}</script>
+
+<script class="next-config" data-name="calendar" type="application/json">""</script>
+<title>regfile_prefetch | GB's Blog</title>
+  
+
+
+
+
+
+
+
+
+  <noscript>
+    <link rel="stylesheet" href="/css/noscript.css">
+  </noscript>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" class="use-motion">
+  <div class="headband"></div>
+
+  <main class="main">
+    <div class="column">
+      <header class="header" itemscope itemtype="http://schema.org/WPHeader"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏" role="button">
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <i class="logo-line"></i>
+      <p class="site-title">GB's Blog</p>
+      <i class="logo-line"></i>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger" aria-label="搜索" role="button">
+    </div>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  <ul class="main-menu menu"><li class="menu-item menu-item-home"><a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a></li><li class="menu-item menu-item-archives"><a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a></li><li class="menu-item menu-item-categories"><a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类</a></li><li class="menu-item menu-item-tags"><a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签</a></li><li class="menu-item menu-item-about"><a href="/about/" rel="section"><i class="fa fa-user fa-fw"></i>关于</a></li>
+  </ul>
+</nav>
+
+
+
+
+</header>
+        
+  
+  <aside class="sidebar">
+
+    <div class="sidebar-inner sidebar-nav-active sidebar-toc-active">
+      <ul class="sidebar-nav">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <div class="sidebar-panel-container">
+        <!--noindex-->
+        <div class="post-toc-wrap sidebar-panel">
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-3"><a class="nav-link" href="#3-REGISTER-FILE-PREFETCH-RFP-%EF%BC%88%E6%A0%B8%E5%BF%83%E6%8A%80%E6%9C%AF%EF%BC%89"><span class="nav-number">1.</span> <span class="nav-text">3. REGISTER FILE PREFETCH (RFP)（核心技术）</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#3-1-%E8%AE%BE%E8%AE%A1%E5%8E%9F%E5%88%99"><span class="nav-number">1.1.</span> <span class="nav-text">3.1 设计原则</span></a></li></ol></li></ol></div>
+        </div>
+        <!--/noindex-->
+
+        <div class="site-overview-wrap sidebar-panel">
+          <div class="site-author animated" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="GB"
+      src="/images/my.jpg">
+  <p class="site-author-name" itemprop="name">GB</p>
+  <div class="site-description" itemprop="description"></div>
+</div>
+<div class="site-state-wrap animated">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+        <a href="/archives/">
+          <span class="site-state-item-count">29</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+          <a href="/categories/">
+        <span class="site-state-item-count">5</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+  </nav>
+</div>
+
+        </div>
+      </div>
+    </div>
+
+    
+  </aside>
+
+
+    </div>
+
+    <div class="main-inner post posts-expand">
+
+
+  
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://example.com/2025/04/25/regfile-prefetch/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/my.jpg">
+      <meta itemprop="name" content="GB">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="GB's Blog">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
+      <meta itemprop="name" content="regfile_prefetch | GB's Blog">
+      <meta itemprop="description" content="">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          regfile_prefetch
+        </h1>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">发表于</span>
+      
+
+      <time title="创建时间：2025-04-25 14:44:12 / 修改时间：15:19:44" itemprop="dateCreated datePublished" datetime="2025-04-25T14:44:12+08:00">2025-04-25</time>
+    </span>
+
+  
+    <span class="post-meta-break"></span>
+    <span class="post-meta-item" title="本文字数">
+      <span class="post-meta-item-icon">
+        <i class="far fa-file-word"></i>
+      </span>
+      <span class="post-meta-item-text">本文字数：</span>
+      <span>796</span>
+    </span>
+    <span class="post-meta-item" title="阅读时长">
+      <span class="post-meta-item-icon">
+        <i class="far fa-clock"></i>
+      </span>
+      <span class="post-meta-item-text">阅读时长 &asymp;</span>
+      <span>3 分钟</span>
+    </span>
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody"><p><img src="/2025/04/25/regfile-prefetch/image-20250425144739509.png" alt="image-20250425144739509"></p>
+<p>该论文首先去给出改进那部分对性能提升最大，首要为LLC，其次就是L1-RF</p>
+<h3 id="3-REGISTER-FILE-PREFETCH-RFP-（核心技术）"><a href="#3-REGISTER-FILE-PREFETCH-RFP-（核心技术）" class="headerlink" title="3. REGISTER FILE PREFETCH (RFP)（核心技术）"></a><strong>3. REGISTER FILE PREFETCH (RFP)（核心技术）</strong></h3><p>执行时的相应加载会检查预测地址是否与加载地址匹配，如果匹配，则预取的数据会被提供给依赖项，加载过程完全绕过缓存。否则，加载会像传统的OOO管道一样进行缓存访问</p>
+<p><img src="/2025/04/25/regfile-prefetch/image-20250425145740214.png" alt="image-20250425145740214"></p>
+<h4 id="3-1-设计原则"><a href="#3-1-设计原则" class="headerlink" title="3.1 设计原则"></a><strong>3.1 设计原则</strong></h4><ul>
+<li><strong>Timeliness（及时性）</strong>：<ul>
+<li>选择在<strong>重命名阶段后</strong>触发预取（而非前端），因：<ul>
+<li>63%的负载在分配时操作数未就绪，提供预取时间窗口。</li>
+<li>已知物理寄存器ID（<code>prfid</code>），可直接写入数据。</li>
+</ul>
+</li>
+</ul>
+</li>
+<li><strong>Bandwidth（带宽）</strong>：<ul>
+<li>正确预取时无需二次验证，节省L1带宽；错误预取仅需重新访问L1。</li>
+</ul>
+</li>
+<li><strong>Accuracy（准确性）</strong>：<ul>
+<li>低置信度预测即可触发（错误代价低），优先服务常规负载。</li>
+</ul>
+</li>
+</ul>
+<p>我们使用负载PC查找PT，以标记符合RFP的负载。当加载被标记为RFP合格时，该加载的预取包被发送到LSQ(加载-存储-队列)和L1高速缓存以进行进一步处理。</p>
+<p>预取包包含要预取的虚拟地址和预取数据要写入的加载的物理目的寄存器id (prfid)。请注意，指令的prfid只有在寄存器重命名后才知道。因此，寄存器重命名后会立即触发预取请求。严格地说，prfid可以在RFP管道中稍后提供，因为只有写回时才需要它。<strong>PT查找可以在管线中较早发生，在重命名之前，并且我们不期望它在时序关键路径上。</strong></p>
+<p>预取包首先与其它负载&#x2F;RFP请求仲裁对L1端口的访问。当针对常规负载进行投标时，我们给予RFP预取最低的优先级。这可以防止常规负载的延迟升级。RFP队列被组织成一个FIFO，旧的RFP请求比新的获得优先权。预取将从L1获取数据，并将其写入prfid的寄存器文件。</p>
+<p><strong>如何处理store？</strong></p>
+<p>为了保证正确性，RFP考虑了所有可能修改负载数据的存储。当一个RFP被发送到L1和LSQ时，它会扫描所有较旧的商店(按照先老后小的顺序)，并将其地址与商店地址进行匹配。匹配时，它等待存储完成，并使用存储数据而不是缓存数据进行预取。如果存储的地址不可用(意味着存储还没有执行)，我们依靠内存歧义消除(MD) [14]机制来决定RFP是需要等待存储还是跳过它</p>
+<p><strong>流水线简化</strong></p>
+<p>如果一个RFP请求未命中L1，我们允许它继续处理，并从较低级别的缓存中获取数据，类似于常规的按需加载。在DTLB未命中的情况下，我们为了流水线简化而丢弃RFP，因为TLB未命中需要很长的延迟，并且在这种情况下RFP将没有足够的剩余运行时间。</p>
+
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-item">
+                <a href="/2025/04/24/Goals-in-this-year/" rel="prev" title="Goals in this year">
+                  <i class="fa fa-angle-left"></i> Goals in this year
+                </a>
+            </div>
+            <div class="post-nav-item">
+            </div>
+          </div>
+    </footer>
+  </article>
+</div>
+
+
+
+
+
+
+</div>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+
+  <div class="copyright">
+    &copy; 2025-02 – 
+    <span itemprop="copyrightYear">2025</span>
+    <span class="with-love">
+      <i class="fa fa-heart"></i>
+    </span>
+    <span class="author" itemprop="copyrightHolder">GB</span>
+  </div>
+<div class="wordcount">
+  <span class="post-meta-item">
+    <span class="post-meta-item-icon">
+      <i class="fa fa-chart-line"></i>
+    </span>
+    <span title="站点总字数">149k</span>
+  </span>
+  <span class="post-meta-item">
+    <span class="post-meta-item-icon">
+      <i class="fa fa-coffee"></i>
+    </span>
+    <span title="站点阅读时长">9:01</span>
+  </span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io/" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.js.org/" rel="noopener" target="_blank">NexT.Gemini</a> 强力驱动
+  </div>
+
+    </div>
+  </footer>
+
+  
+  <div class="toggle sidebar-toggle" role="button">
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+  </div>
+  <div class="sidebar-dimmer"></div>
+  <div class="back-to-top" role="button" aria-label="返回顶部">
+    <i class="fa fa-arrow-up fa-lg"></i>
+    <span>0%</span>
+  </div>
+
+<noscript>
+  <div class="noscript-warning">Theme NexT works best with JavaScript enabled</div>
+</noscript>
+
+
+  
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js" integrity="sha256-XL2inqUJaslATFnHdJOi9GfQ60on8Wx1C2H8DYiN1xY=" crossorigin="anonymous"></script>
+<script src="/js/comments.js"></script><script src="/js/utils.js"></script><script src="/js/motion.js"></script><script src="/js/sidebar.js"></script><script src="/js/next-boot.js"></script>
+
+  
+
+
+
+
+
+
+  
+
+
+
+
+
+</body>
+</html>

@@ -1,0 +1,443 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width">
+<meta name="theme-color" content="#222"><meta name="generator" content="Hexo 7.3.0">
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css" integrity="sha256-dABdfBfUoC8vJUBOwGVdm8L9qlMWaHTIfXt+7GnZCIo=" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/3.1.1/animate.min.css" integrity="sha256-PR7ttpcvz8qrF57fur/yAx1qXMFJeJFiA6pSzWi0OIE=" crossorigin="anonymous">
+
+<script class="next-config" data-name="main" type="application/json">{"hostname":"example.com","root":"/","images":"/images","scheme":"Gemini","darkmode":false,"version":"8.22.0","exturl":false,"sidebar":{"position":"left","width_expanded":320,"width_dual_column":240,"display":"post","padding":18,"offset":12},"hljswrap":true,"copycode":{"enable":true,"style":"flat"},"fold":{"enable":true,"height":500},"bookmark":{"enable":false,"color":"#222","save":"auto"},"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"stickytabs":false,"motion":{"enable":true,"async":false,"duration":200,"transition":{"menu_item":"fadeInDown","post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"i18n":{"placeholder":"搜索...","empty":"没有找到任何搜索结果：${query}","hits_time":"找到 ${hits} 个搜索结果（用时 ${time} 毫秒）","hits":"找到 ${hits} 个搜索结果"}}</script><script src="/js/config.js"></script>
+
+    <meta name="description" content="IPCP算是一个混合架构的预取器 为什么要做这个预取？ 每个PC都有自己独特的访存行为 举例： 例如，下面是SPEC CPU 2017基准测试中一个名为bwaves的IPA的L1-D访问模式(根据缓存线对齐地址):C0，C3，C6，C7，C9。 这个IP在大多数情况下遵循三的恒定步幅。在这种情况下，简单的IP跨距预取器可以提供高预取覆盖率。这是来自名为mcf的基准的IPB的另一个访问模式:C0、C">
+<meta property="og:type" content="article">
+<meta property="og:title" content="IPCP">
+<meta property="og:url" content="http://example.com/2025/04/11/IPCP/index.html">
+<meta property="og:site_name" content="GB&#39;s Blog">
+<meta property="og:description" content="IPCP算是一个混合架构的预取器 为什么要做这个预取？ 每个PC都有自己独特的访存行为 举例： 例如，下面是SPEC CPU 2017基准测试中一个名为bwaves的IPA的L1-D访问模式(根据缓存线对齐地址):C0，C3，C6，C7，C9。 这个IP在大多数情况下遵循三的恒定步幅。在这种情况下，简单的IP跨距预取器可以提供高预取覆盖率。这是来自名为mcf的基准的IPB的另一个访问模式:C0、C">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="http://example.com/2025/04/11/IPCP/image-20250425162533460.png">
+<meta property="og:image" content="http://example.com/2025/04/11/IPCP/image-20250425163617582.png">
+<meta property="og:image" content="http://example.com/2025/04/11/IPCP/image-20250425163655050.png">
+<meta property="og:image" content="http://example.com/2025/04/11/IPCP/image-20250425163719918.png">
+<meta property="og:image" content="http://example.com/2025/04/11/IPCP/image-20250425190101635.png">
+<meta property="article:published_time" content="2025-04-11T03:34:13.000Z">
+<meta property="article:modified_time" content="2025-05-02T03:02:28.929Z">
+<meta property="article:author" content="GB">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://example.com/2025/04/11/IPCP/image-20250425162533460.png">
+
+
+<link rel="canonical" href="http://example.com/2025/04/11/IPCP/">
+
+
+<script class="next-config" data-name="page" type="application/json">{"sidebar":"","isHome":false,"isPost":true,"lang":"zh-CN","comments":true,"permalink":"http://example.com/2025/04/11/IPCP/","path":"2025/04/11/IPCP/","title":"IPCP"}</script>
+
+<script class="next-config" data-name="calendar" type="application/json">""</script>
+<title>IPCP | GB's Blog</title>
+  
+
+
+
+
+
+
+
+
+  <noscript>
+    <link rel="stylesheet" href="/css/noscript.css">
+  </noscript>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" class="use-motion">
+  <div class="headband"></div>
+
+  <main class="main">
+    <div class="column">
+      <header class="header" itemscope itemtype="http://schema.org/WPHeader"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏" role="button">
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <i class="logo-line"></i>
+      <p class="site-title">GB's Blog</p>
+      <i class="logo-line"></i>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger" aria-label="搜索" role="button">
+    </div>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  <ul class="main-menu menu"><li class="menu-item menu-item-home"><a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a></li><li class="menu-item menu-item-archives"><a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a></li><li class="menu-item menu-item-categories"><a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类</a></li><li class="menu-item menu-item-tags"><a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签</a></li><li class="menu-item menu-item-about"><a href="/about/" rel="section"><i class="fa fa-user fa-fw"></i>关于</a></li>
+  </ul>
+</nav>
+
+
+
+
+</header>
+        
+  
+  <aside class="sidebar">
+
+    <div class="sidebar-inner sidebar-nav-active sidebar-toc-active">
+      <ul class="sidebar-nav">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <div class="sidebar-panel-container">
+        <!--noindex-->
+        <div class="post-toc-wrap sidebar-panel">
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#IPCP%E5%BE%AE%E7%BB%93%E6%9E%84"><span class="nav-number">1.</span> <span class="nav-text">IPCP微结构</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#1-%E5%B8%B8%E9%87%8F%E6%AD%A5%E5%B9%85%E9%A2%84%E5%8F%96%E5%99%A8%EF%BC%88Constant-Stride-CS%EF%BC%89"><span class="nav-number">1.1.</span> <span class="nav-text">1. 常量步幅预取器（Constant Stride, CS）</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#2-%E5%A4%8D%E6%9D%82%E6%AD%A5%E5%B9%85%E9%A2%84%E5%8F%96%E5%99%A8%EF%BC%88Complex-Stride-CPLX%EF%BC%89"><span class="nav-number">1.2.</span> <span class="nav-text">2. 复杂步幅预取器（Complex Stride, CPLX）</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#3-%E5%85%A8%E5%B1%80%E6%B5%81%E9%A2%84%E5%8F%96%E5%99%A8%EF%BC%88Global-Stream-GS%EF%BC%89"><span class="nav-number">1.3.</span> <span class="nav-text">3. 全局流预取器（Global Stream, GS）</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E6%95%B4%E4%BD%93%E7%BB%93%E6%9E%84"><span class="nav-number">2.</span> <span class="nav-text">整体结构</span></a></li></ol></div>
+        </div>
+        <!--/noindex-->
+
+        <div class="site-overview-wrap sidebar-panel">
+          <div class="site-author animated" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="GB"
+      src="/images/my.jpg">
+  <p class="site-author-name" itemprop="name">GB</p>
+  <div class="site-description" itemprop="description"></div>
+</div>
+<div class="site-state-wrap animated">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+        <a href="/archives/">
+          <span class="site-state-item-count">29</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+          <a href="/categories/">
+        <span class="site-state-item-count">5</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+  </nav>
+</div>
+
+        </div>
+      </div>
+    </div>
+
+    
+  </aside>
+
+
+    </div>
+
+    <div class="main-inner post posts-expand">
+
+
+  
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://example.com/2025/04/11/IPCP/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/my.jpg">
+      <meta itemprop="name" content="GB">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="GB's Blog">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
+      <meta itemprop="name" content="IPCP | GB's Blog">
+      <meta itemprop="description" content="">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          IPCP
+        </h1>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">发表于</span>
+
+      <time title="创建时间：2025-04-11 11:34:13" itemprop="dateCreated datePublished" datetime="2025-04-11T11:34:13+08:00">2025-04-11</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar-check"></i>
+      </span>
+      <span class="post-meta-item-text">更新于</span>
+      <time title="修改时间：2025-05-02 11:02:28" itemprop="dateModified" datetime="2025-05-02T11:02:28+08:00">2025-05-02</time>
+    </span>
+
+  
+    <span class="post-meta-break"></span>
+    <span class="post-meta-item" title="本文字数">
+      <span class="post-meta-item-icon">
+        <i class="far fa-file-word"></i>
+      </span>
+      <span class="post-meta-item-text">本文字数：</span>
+      <span>2.7k</span>
+    </span>
+    <span class="post-meta-item" title="阅读时长">
+      <span class="post-meta-item-icon">
+        <i class="far fa-clock"></i>
+      </span>
+      <span class="post-meta-item-text">阅读时长 &asymp;</span>
+      <span>10 分钟</span>
+    </span>
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody"><p>IPCP算是一个混合架构的预取器</p>
+<p><strong>为什么要做这个预取？</strong></p>
+<p>每个PC都有自己独特的访存行为</p>
+<p>举例：</p>
+<p>例如，下面是SPEC CPU 2017基准测试中一个名为bwaves的IPA的L1-D访问模式(根据缓存线对齐地址):C0，C3，C6，C7，C9。</p>
+<p>这个IP在大多数情况下遵循三的恒定步幅。在这种情况下，简单的IP跨距预取器可以提供高预取覆盖率。这是来自名为mcf的基准的IPB的另一个访问模式:C0、C1、C3、C4、C6、C7。这个IP的步幅模式是1，2，1，2，1。</p>
+<p>在这种情况下，IP-stride预取器提供零覆盖，因为预取器不能达到高置信度</p>
+<p>lbm和gcc等流基准中常见的另一种访问模式如下:IPC (C0、C2、C1)、IPD(C3、C6、C4、C5)和IPE(C9、C8、C7)。这是一个Global Stream。观察全局模式，我们可以看到所有的访问都是连续的，并且局限于一个小的内存区域。然而，基于程序顺序，它们的访问模式有点混乱。在这种情况下，许多像IPC、IPD和IPE这样的IP都跟随Global Stream。</p>
+<p>显然，IP是独特的，可以根据其访问模式分为不同的类别。请注意，特定IP可以从一种访问模式移动到另一种访问模式，并且可以在一种或多种访问模式下保持活动状态</p>
+<p><img src="/2025/04/11/IPCP/image-20250425162533460.png" alt="image-20250425162533460"></p>
+<p><strong>L1 pretch是对性能影响最大的</strong></p>
+<h1 id="IPCP微结构"><a href="#IPCP微结构" class="headerlink" title="IPCP微结构"></a>IPCP微结构</h1><p>我们提出了一种空间IPCP，将IP分为三类。我们<strong>不跨页面边界进行预取</strong>，因为IPCP是一个简单的空间预取器，它在一个小区域(2KB和4KB)2内进行预取。</p>
+<h2 id="1-常量步幅预取器（Constant-Stride-CS）"><a href="#1-常量步幅预取器（Constant-Stride-CS）" class="headerlink" title="1. 常量步幅预取器（Constant Stride, CS）"></a><strong>1. 常量步幅预取器（Constant Stride, CS）</strong></h2><p><img src="/2025/04/11/IPCP/image-20250425163617582.png" alt="image-20250425163617582"></p>
+<ul>
+<li><p><strong>目标场景</strong>：<br>处理<strong>仅由控制流驱动的规律性步幅访问</strong>。例如，循环中按固定间隔访问数组元素（如<code>stride=3</code>的访问序列<code>C0, C3, C6, C9</code>）。</p>
+</li>
+<li><p><strong>实现机制</strong>：</p>
+<ul>
+<li><p><strong>IP表（IP Table）</strong>：记录指令指针（IP）的历史步幅和置信度（2-bit计数器）。</p>
+</li>
+<li><p><strong>页地址处理</strong>：通过<code>last-vpage</code>和<code>last-line-offset</code>检测跨页访问，计算跨页步幅（如从页末尾<code>offset=63</code>到下一页<code>offset=0</code>仍视为<code>stride=1</code>）。</p>
+</li>
+<li><p><strong>触发条件</strong>：当步幅置信度足够高时，预取地址为：</p>
+<p>（<code>k</code>为预取深度，默认3）。</p>
+</li>
+</ul>
+</li>
+<li><p><strong>优势</strong>：<br>低开销（仅需记录步幅和置信度），适合简单循环或数组遍历。</p>
+</li>
+</ul>
+<p>**Training phase：**IP的置信度达到一定值</p>
+<p><strong>Trained phase:</strong>  prefetch_address&#x3D;current_address+k×learned_stride ，注意，学习的IP在低置信度的情况下停止预取，并且在获得置信度之后再次开始预取</p>
+<hr>
+<h2 id="2-复杂步幅预取器（Complex-Stride-CPLX）"><a href="#2-复杂步幅预取器（Complex-Stride-CPLX）" class="headerlink" title="2. 复杂步幅预取器（Complex Stride, CPLX）"></a><strong>2. 复杂步幅预取器（Complex Stride, CPLX）</strong></h2><p><img src="/2025/04/11/IPCP/image-20250425163655050.png" alt="image-20250425163655050"></p>
+<ul>
+<li><strong>目标场景</strong>：<br>处理<strong>控制流与数据流耦合的非固定步幅</strong>，例如：<ul>
+<li>非2的幂次内存布局（如结构体跨缓存行访问，步幅为<code>1,2,1,2</code>）。</li>
+<li>嵌套循环导致的步幅变化（外层循环步幅固定，内层步幅动态变化）。</li>
+</ul>
+</li>
+<li><strong>实现机制</strong>：<ul>
+<li><strong>复杂步幅模式表（CSPT）</strong>：记录IP的近期步幅序列（如7个历史步幅），通过签名匹配预测未来步幅。</li>
+<li><strong>置信度控制</strong>：低置信度时退化为NL（Next-Line）预取。</li>
+</ul>
+</li>
+<li><strong>优势</strong>：<br>覆盖IP-stride无法处理的非规律性但局部可预测的访问模式，如不规则数据结构的遍历。</li>
+</ul>
+<p>**Training phase: **每当IP看到相同的步幅时，置信度计数器就加1，否则就减1。此步距与现有签名进行哈希运算，并再次查找CSPT以发出预取请求。根据以下等式，将先前获得的步距添加到签名中:<strong>signature &#x3D; (signature &lt;&lt; 1) ˆ stride</strong>,请注意，我们将签名移位一位，以便能够适应高度复杂的步幅模式。因此，一个模式可以产生许多签名，但是我们在CSPT中没有观察到太多的碰撞，因为在同一时间点没有许多CPLX IPs</p>
+<p><strong>Trained phase:</strong> 每当签名指向步距时，并且如果置信度足够高(在我们的例子中≥1)，复合步距被添加到高速缓存行以产生预取地址。这种预测一直持续到达到预取程度计数(degree)。如果置信度值为零，则使用上述等式将步距添加到签名，以预测下一步距(3)，并且<strong>不进行预取</strong>。</p>
+<p><strong>其与SPP的区别：</strong></p>
+<p>我们发现，在有些情况下，IP驱动的复杂大步掌握着关键。(I)存储器访问(对于给定的IP)有时不是2的幂(跨高速缓存行的数据结构中的存储器布局)，导致非恒定的步幅模式。例如，考虑一个8字节的高速缓存行，如果每第12个字节被访问，则访问产生如下步长:字节地址:0，12，36，48，72；高速缓存行对齐地址:0，1，3，4，6；步幅:1，2，1，2。(ii)另一种情况是通过不同级别的循环进行访问。</p>
+<p>外部循环可以进行恒定步距访问(很容易被CS类捕获)。然而，内部循环可以进行不同的步幅访问(取决于外部循环的步幅)，从而导致步幅模式中的颠簸。基于IP的CPLX可以利用这种模式。</p>
+<p>此外，CPLX类侧重于复杂步幅的局部顺序(捕获控制和数据流),这与SPP看到的全局顺序(数据流)不同。请注意，SPP是为L2设计的高性能预取器，仅CPLX无法与SPP的效率相提并论(苹果与橙子)。CPLX的实现是非常轻量级的，因为它是一个L1-D预取器，并具有在L1发出预取的关键路径上减少延迟的额外好处(SPP必须通过使用逻辑或查找表来计算置信度)</p>
+<hr>
+<h2 id="3-全局流预取器（Global-Stream-GS）"><a href="#3-全局流预取器（Global-Stream-GS）" class="headerlink" title="3. 全局流预取器（Global Stream, GS）"></a><strong>3. 全局流预取器（Global Stream, GS）</strong></h2><p><img src="/2025/04/11/IPCP/image-20250425163719918.png" alt="image-20250425163719918"></p>
+<ul>
+<li><strong>目标场景</strong>：<br>处理<strong>由控制流预测的全局数据流</strong>，即多个IP访问同一密集内存区域（如流式应用的连续但乱序访问<code>C0,C2,C1,C3,C6,C4</code>）。</li>
+<li><strong>实现机制</strong>：<ul>
+<li><strong>区域流表（RST）</strong>：<ul>
+<li>跟踪2KB区域内的访问密度（32-bit位向量记录已访问缓存行）。</li>
+<li>当区域访问密度超过阈值（75%缓存行被访问），标记为“密集区域”。</li>
+</ul>
+</li>
+<li><strong>方向预测</strong>：通过饱和计数器判断访问方向（正向&#x2F;反向）。</li>
+<li><strong>跨区域预测</strong>：若前一个区域为密集区域，则新区域<strong>假设为密集</strong>（控制流预测数据流）。</li>
+<li><strong>预取策略</strong>：按预测方向连续预取<code>k</code>个缓存行（默认<code>k=6</code>）。</li>
+</ul>
+</li>
+<li><strong>优势</strong>：<br>利用空间局部性，适合流式负载（如多媒体处理、矩阵运算）。</li>
+</ul>
+<p><strong>Training phase:</strong></p>
+<ul>
+<li><p>当一个新的region被访问，在RST分配一个入口，如果第一次访问这个cacheline，设置相应的 bit位，并且增加dense-count，last-line-offset也会被存储，</p>
+</li>
+<li><p>如果dense-count大于阈值，这个区域就是一个经常被访问的区域，此时trained bit会被set，<strong>注意</strong>，如果已经设置了位向量中的位，则计数器不会递增</p>
+</li>
+<li><p>RST通过饱和计数器统计stream方向，被初始化为2^n&#x2F;2，通过找到连续两次访问cache的差异来获取方向，（(the difference between the last-cache-line-offset and current access-offset within a region)（<strong>只有tentative或者trained置高才会去更新方向</strong>）</p>
+</li>
+<li><p>当遇到GS IP遇到一个新的区域，查看前一个访问的区域，如果前一个为密集的，新区域的tentaive会被设置，如果前一个region未设置trained，可能是该IP可能不具备GS特性了（可以防止强制缺失）</p>
+</li>
+</ul>
+<p><strong>Trained phase:</strong></p>
+<p>如果trained和tentative被设置，我们认为IP为GS IP，设置IP table的stream_valid和direction，</p>
+<blockquote>
+<p>这里的方向其实是决定预取地址从后向前还是从前向后，（这里主要就是为了timeliness）</p>
+</blockquote>
+<h1 id="整体结构"><a href="#整体结构" class="headerlink" title="整体结构"></a>整体结构</h1><p><img src="/2025/04/11/IPCP/image-20250425190101635.png" alt="image-20250425190101635"></p>
+<p>由于IP表是直接映射和标记的，决定保留哪个IP用于预取是一个挑战，因为匹配相同表条目的IP之间可能会有冲突，我们添加了一个额外的字段有效位来保持滞后(图5)。当第一次遇到一个IP时，它被记录在IP表中并设置有效位。当另一个IP映射到同一个条目时，有效位被复位，但前一个条目仍然有效。如果当看到新IP时有效位被重置，则表条目被分配给新IP，并且有效位被再次设置，确保在IP表中跟踪两个竞争IP中的至少一个。</p>
+<p><strong>如何解决CSPT表满的情况？</strong></p>
+<p>CSPT的stride为7bit，正好128个表项就可以覆盖全部，而且signature为7bit，可以直接索引cspt</p>
+<p><strong>IP_Table表多个IP映射同一个如何解决？</strong></p>
+<p>IP_TABLE是一个直接映射的表，包含64个条目。每个条目都有一个有效位（Valid bit），用于标记该条目是否有效。当一个IP第一次访问某个条目时，它的信息被记录在该条目中，并且有效位置为1。如果另一个IP映射到同一个条目，有效位会被清除（置为0），但之前的条目信息仍然保留。</p>
+<p><strong>具体实现：</strong></p>
+<ul>
+<li>当一个IP访问IP_TABLE时，如果该条目有效（Valid bit为1），则直接使用该条目中的信息。</li>
+<li>如果该条目无效（Valid bit为0），则检查是否有另一个IP的信息仍然保留在该条目中。如果有，且新的IP需要使用该条目，则新的IP的信息会覆盖旧的IP信息，并将有效位置为1。</li>
+</ul>
+<p><strong>使用的预取优先级？</strong></p>
+<p>GS&gt;CS&gt;CPLX&gt;NL</p>
+<p><strong>GS中的region_id和last-vpage区别？</strong></p>
+<p>rstable[cpu][i].region_id &#x3D;&#x3D; ((trackers_l1[cpu][index].last_vpage &lt;&lt; 1) | (trackers_l1[cpu][index].last_line_offset &gt;&gt; 5))</p>
+<p><strong>GS的tentative如何设置？</strong></p>
+<p>访问前一个region，如果region为trained，设置标志位，如果下一个新的区域访问，遇到该标志位会去置高tentative</p>
+<blockquote>
+<p>GS的前瞻预取不能跨页面，否则直接退出</p>
+</blockquote>
+<blockquote>
+<p>CPST和RST应该组织为数组结构，在电路上应该为CAM结构，而不是cache的用idx索引</p>
+</blockquote>
+<p><strong>为什么CPST要去根据sig取到地址</strong></p>
+<p><strong>为什么他在遇到固定的stride时预取覆盖率不够</strong></p>
+<p>遇到这种模式，他会首先认为这个是stream模式，然后只预取前几个，而不是按照stride来预取</p>
+
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-item">
+                <a href="/2025/04/11/PGC/" rel="prev" title="PGC">
+                  <i class="fa fa-angle-left"></i> PGC
+                </a>
+            </div>
+            <div class="post-nav-item">
+                <a href="/2025/04/24/Goals-in-this-year/" rel="next" title="Goals in this year">
+                  Goals in this year <i class="fa fa-angle-right"></i>
+                </a>
+            </div>
+          </div>
+    </footer>
+  </article>
+</div>
+
+
+
+
+
+
+</div>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+
+  <div class="copyright">
+    &copy; 2025-02 – 
+    <span itemprop="copyrightYear">2025</span>
+    <span class="with-love">
+      <i class="fa fa-heart"></i>
+    </span>
+    <span class="author" itemprop="copyrightHolder">GB</span>
+  </div>
+<div class="wordcount">
+  <span class="post-meta-item">
+    <span class="post-meta-item-icon">
+      <i class="fa fa-chart-line"></i>
+    </span>
+    <span title="站点总字数">149k</span>
+  </span>
+  <span class="post-meta-item">
+    <span class="post-meta-item-icon">
+      <i class="fa fa-coffee"></i>
+    </span>
+    <span title="站点阅读时长">9:01</span>
+  </span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io/" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.js.org/" rel="noopener" target="_blank">NexT.Gemini</a> 强力驱动
+  </div>
+
+    </div>
+  </footer>
+
+  
+  <div class="toggle sidebar-toggle" role="button">
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+  </div>
+  <div class="sidebar-dimmer"></div>
+  <div class="back-to-top" role="button" aria-label="返回顶部">
+    <i class="fa fa-arrow-up fa-lg"></i>
+    <span>0%</span>
+  </div>
+
+<noscript>
+  <div class="noscript-warning">Theme NexT works best with JavaScript enabled</div>
+</noscript>
+
+
+  
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js" integrity="sha256-XL2inqUJaslATFnHdJOi9GfQ60on8Wx1C2H8DYiN1xY=" crossorigin="anonymous"></script>
+<script src="/js/comments.js"></script><script src="/js/utils.js"></script><script src="/js/motion.js"></script><script src="/js/sidebar.js"></script><script src="/js/next-boot.js"></script>
+
+  
+
+
+
+
+
+
+  
+
+
+
+
+
+</body>
+</html>
