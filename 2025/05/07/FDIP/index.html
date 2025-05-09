@@ -1,0 +1,389 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width">
+<meta name="theme-color" content="#222"><meta name="generator" content="Hexo 7.3.0">
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css" integrity="sha256-dABdfBfUoC8vJUBOwGVdm8L9qlMWaHTIfXt+7GnZCIo=" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/3.1.1/animate.min.css" integrity="sha256-PR7ttpcvz8qrF57fur/yAx1qXMFJeJFiA6pSzWi0OIE=" crossorigin="anonymous">
+
+<script class="next-config" data-name="main" type="application/json">{"hostname":"example.com","root":"/","images":"/images","scheme":"Gemini","darkmode":false,"version":"8.22.0","exturl":false,"sidebar":{"position":"left","width_expanded":320,"width_dual_column":240,"display":"post","padding":18,"offset":12},"hljswrap":true,"copycode":{"enable":true,"style":"flat"},"fold":{"enable":true,"height":500},"bookmark":{"enable":false,"color":"#222","save":"auto"},"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"stickytabs":false,"motion":{"enable":true,"async":false,"duration":200,"transition":{"menu_item":"fadeInDown","post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"i18n":{"placeholder":"搜索...","empty":"没有找到任何搜索结果：${query}","hits_time":"找到 ${hits} 个搜索结果（用时 ${time} 毫秒）","hits":"找到 ${hits} 个搜索结果"}}</script><script src="/js/config.js"></script>
+
+    <meta name="description" content="具体微结构首先先翻译一下： 在[14]中，我们研究了分支预测器与指令缓存的解耦。为了提供解耦的前端，提取目标队列(FTQ)用于桥接分支预测器和指令高速缓存之间的间隙。每个周期，分支预测器都会产生一个提取目标块预测，并将其存储在FTQ中，最终由指令缓存使用。FTQ提供允许分支预测器和指令高速缓存自主操作所需的缓冲。当分支预测器由于高速缓存未命中或指令缓冲区已满而暂停时，FTQ允许分支预测器在指令高速">
+<meta property="og:type" content="article">
+<meta property="og:title" content="FDIP">
+<meta property="og:url" content="http://example.com/2025/05/07/FDIP/index.html">
+<meta property="og:site_name" content="GB&#39;s Blog">
+<meta property="og:description" content="具体微结构首先先翻译一下： 在[14]中，我们研究了分支预测器与指令缓存的解耦。为了提供解耦的前端，提取目标队列(FTQ)用于桥接分支预测器和指令高速缓存之间的间隙。每个周期，分支预测器都会产生一个提取目标块预测，并将其存储在FTQ中，最终由指令缓存使用。FTQ提供允许分支预测器和指令高速缓存自主操作所需的缓冲。当分支预测器由于高速缓存未命中或指令缓冲区已满而暂停时，FTQ允许分支预测器在指令高速">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="http://example.com/2025/05/07/FDIP/image-20250507155259388.png">
+<meta property="article:published_time" content="2025-05-07T07:23:54.000Z">
+<meta property="article:modified_time" content="2025-05-07T09:13:13.880Z">
+<meta property="article:author" content="GB">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://example.com/2025/05/07/FDIP/image-20250507155259388.png">
+
+
+<link rel="canonical" href="http://example.com/2025/05/07/FDIP/">
+
+
+<script class="next-config" data-name="page" type="application/json">{"sidebar":"","isHome":false,"isPost":true,"lang":"zh-CN","comments":true,"permalink":"http://example.com/2025/05/07/FDIP/","path":"2025/05/07/FDIP/","title":"FDIP"}</script>
+
+<script class="next-config" data-name="calendar" type="application/json">""</script>
+<title>FDIP | GB's Blog</title>
+  
+
+
+
+
+
+
+
+
+  <noscript>
+    <link rel="stylesheet" href="/css/noscript.css">
+  </noscript>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" class="use-motion">
+  <div class="headband"></div>
+
+  <main class="main">
+    <div class="column">
+      <header class="header" itemscope itemtype="http://schema.org/WPHeader"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏" role="button">
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <i class="logo-line"></i>
+      <p class="site-title">GB's Blog</p>
+      <i class="logo-line"></i>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger" aria-label="搜索" role="button">
+    </div>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  <ul class="main-menu menu"><li class="menu-item menu-item-home"><a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a></li><li class="menu-item menu-item-archives"><a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a></li><li class="menu-item menu-item-categories"><a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类</a></li><li class="menu-item menu-item-tags"><a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签</a></li><li class="menu-item menu-item-about"><a href="/about/" rel="section"><i class="fa fa-user fa-fw"></i>关于</a></li>
+  </ul>
+</nav>
+
+
+
+
+</header>
+        
+  
+  <aside class="sidebar">
+
+    <div class="sidebar-inner sidebar-nav-active sidebar-toc-active">
+      <ul class="sidebar-nav">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <div class="sidebar-panel-container">
+        <!--noindex-->
+        <div class="post-toc-wrap sidebar-panel">
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#%E5%85%B7%E4%BD%93%E5%BE%AE%E7%BB%93%E6%9E%84"><span class="nav-number">1.</span> <span class="nav-text">具体微结构</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#Prefetch-Buffer-%E7%9A%84%E5%B7%A5%E4%BD%9C%E6%9C%BA%E5%88%B6"><span class="nav-number">1.0.1.</span> <span class="nav-text">Prefetch Buffer 的工作机制</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#1-Prefetch-Buffer-%E7%9A%84%E6%A0%B8%E5%BF%83%E4%BD%9C%E7%94%A8"><span class="nav-number">1.0.1.1.</span> <span class="nav-text">1. Prefetch Buffer 的核心作用</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#2-Prefetch-Buffer-%E7%9A%84%E7%BB%93%E6%9E%84%E8%AE%BE%E8%AE%A1"><span class="nav-number">1.0.1.2.</span> <span class="nav-text">2. Prefetch Buffer 的结构设计</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#3-%E9%A2%84%E5%8F%96%E6%B5%81%E7%A8%8B%E7%9A%84%E8%A7%A6%E5%8F%91%E4%B8%8E%E7%AE%A1%E7%90%86"><span class="nav-number">1.0.1.3.</span> <span class="nav-text">3. 预取流程的触发与管理</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#4-%E9%A2%84%E5%8F%96%E7%BC%93%E5%86%B2%E5%8C%BA%E7%9A%84%E6%93%8D%E4%BD%9C%E6%B5%81%E7%A8%8B"><span class="nav-number">1.0.1.4.</span> <span class="nav-text">4. 预取缓冲区的操作流程</span></a></li></ol></li></ol></li></ol></li></ol></div>
+        </div>
+        <!--/noindex-->
+
+        <div class="site-overview-wrap sidebar-panel">
+          <div class="site-author animated" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="GB"
+      src="/images/my.jpg">
+  <p class="site-author-name" itemprop="name">GB</p>
+  <div class="site-description" itemprop="description"></div>
+</div>
+<div class="site-state-wrap animated">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+        <a href="/archives/">
+          <span class="site-state-item-count">31</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+          <a href="/categories/">
+        <span class="site-state-item-count">5</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+  </nav>
+</div>
+
+        </div>
+      </div>
+    </div>
+
+    
+  </aside>
+
+
+    </div>
+
+    <div class="main-inner post posts-expand">
+
+
+  
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://example.com/2025/05/07/FDIP/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/my.jpg">
+      <meta itemprop="name" content="GB">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="GB's Blog">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
+      <meta itemprop="name" content="FDIP | GB's Blog">
+      <meta itemprop="description" content="">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          FDIP
+        </h1>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">发表于</span>
+      
+
+      <time title="创建时间：2025-05-07 15:23:54 / 修改时间：17:13:13" itemprop="dateCreated datePublished" datetime="2025-05-07T15:23:54+08:00">2025-05-07</time>
+    </span>
+
+  
+    <span class="post-meta-break"></span>
+    <span class="post-meta-item" title="本文字数">
+      <span class="post-meta-item-icon">
+        <i class="far fa-file-word"></i>
+      </span>
+      <span class="post-meta-item-text">本文字数：</span>
+      <span>997</span>
+    </span>
+    <span class="post-meta-item" title="阅读时长">
+      <span class="post-meta-item-icon">
+        <i class="far fa-clock"></i>
+      </span>
+      <span class="post-meta-item-text">阅读时长 &asymp;</span>
+      <span>4 分钟</span>
+    </span>
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody"><h1 id="具体微结构"><a href="#具体微结构" class="headerlink" title="具体微结构"></a><strong>具体微结构</strong></h1><p>首先先翻译一下：</p>
+<p>在[14]中，我们研究了分支预测器与指令缓存的解耦。为了提供解耦的前端，提取目标队列(FTQ)用于桥接分支预测器和指令高速缓存之间的间隙。每个周期，分支预测器都会产生一个提取目标块预测，并将其存储在FTQ中，最终由指令缓存使用。FTQ提供允许分支预测器和指令高速缓存自主操作所需的缓冲。当分支预测器由于高速缓存未命中或指令缓冲区已满而暂停时，FTQ允许分支预测器在指令高速缓存之前工作。如果指令高速缓存是多端口的，则可以在单个周期内消耗多个有效的FTQ条目，直到端口耗尽。</p>
+<p>任何分支预测器(基本块目标缓冲器[22]、提前两个块预测器[15]或提取目标缓冲器[14])都可以放在FTQ之前，并产生要由指令高速缓存消耗的提取块地址。正是FTQ允许分支预测器在指令缓存之前运行。</p>
+<p><img src="/2025/05/07/FDIP/image-20250507155259388.png" alt="image-20250507155259388"></p>
+<p>FTQ包含一个提取块，当数据缓存或者指令缓存未命中，从PIQ开始预取。</p>
+<h3 id="Prefetch-Buffer-的工作机制"><a href="#Prefetch-Buffer-的工作机制" class="headerlink" title="Prefetch Buffer 的工作机制"></a><strong>Prefetch Buffer 的工作机制</strong></h3><p>在论文提出的 <strong>Fetch Directed Prefetching (FDP)</strong> 架构中，<strong>Prefetch Buffer</strong> 是一个关键组件，用于临时存储通过分支预测器前瞻生成的指令缓存块。以下是其具体工作原理和设计细节的详细解析：</p>
+<hr>
+<h4 id="1-Prefetch-Buffer-的核心作用"><a href="#1-Prefetch-Buffer-的核心作用" class="headerlink" title="1. Prefetch Buffer 的核心作用"></a><strong>1. Prefetch Buffer 的核心作用</strong></h4><ul>
+<li><strong>目标</strong>：通过提前将未来可能需要的指令缓存块加载到缓冲区，减少指令缓存未命中带来的延迟。</li>
+<li><strong>数据来源</strong>：由 <strong>Fetch Target Queue (FTQ)</strong> 中的候选预取地址生成。</li>
+<li><strong>与指令缓存的协作</strong>：在指令缓存查询时，Prefetch Buffer 并行查找；若命中，则直接将缓存块插入指令缓存。</li>
+</ul>
+<hr>
+<h4 id="2-Prefetch-Buffer-的结构设计"><a href="#2-Prefetch-Buffer-的结构设计" class="headerlink" title="2. Prefetch Buffer 的结构设计"></a><strong>2. Prefetch Buffer 的结构设计</strong></h4><p>- </p>
+<p>  FIFO 队列结构</p>
+<p>  ：</p>
+<ul>
+<li><p>采用先进先出（FIFO）的队列结构，新预取的缓存块插入队尾，最旧的块在队首。</p>
+</li>
+<li><p><strong>容量</strong>：论文中未明确指定具体条目数，但提及使用类似流式缓冲区的设计（例如 4 条目或更多）。</p>
+</li>
+<li><p><strong>条目内容</strong>：每个条目存储一个完整的指令缓存块（如 32 字节）及其地址标签。</p>
+</li>
+<li><p><strong>替换策略</strong>：当缓冲区满时，新预取请求需等待旧条目被消费或替换。</p>
+</li>
+</ul>
+<hr>
+<h4 id="3-预取流程的触发与管理"><a href="#3-预取流程的触发与管理" class="headerlink" title="3. 预取流程的触发与管理"></a><strong>3. 预取流程的触发与管理</strong></h4><p>- </p>
+<p>  预取地址的生成</p>
+<p>  ：</p>
+<ul>
+<li><p>FTQ 中的每个条目包含多个候选预取地址（每个地址对应一个缓存块）。</p>
+</li>
+<li><p>这些地址通过分支预测器生成，并标记为“候选预取位”（Candidate Bit）。</p>
+</li>
+<li></li>
+</ul>
+<p>  Prefetch Instruction Queue (PIQ)</p>
+<p>  ：</p>
+<ul>
+<li>候选地址首先进入 PIQ 等待调度。</li>
+<li>优先级：指令缓存未命中 &gt; 数据缓存未命中 &gt; 预取请求。</li>
+<li>当 L2 总线空闲时，从 PIQ 中取出地址发起预取请求。</li>
+</ul>
+<hr>
+<h4 id="4-预取缓冲区的操作流程"><a href="#4-预取缓冲区的操作流程" class="headerlink" title="4. 预取缓冲区的操作流程"></a><strong>4. 预取缓冲区的操作流程</strong></h4><p>1. </p>
+<p>   预取填充</p>
+<p>   ：</p>
+<ul>
+<li>从 PIQ 获取地址后，向 L2 缓存发起预取请求。</li>
+<li>预取的数据块存入 Prefetch Buffer 队尾。</li>
+</ul>
+<p>2. </p>
+<p>   指令缓存查询时的并行查找</p>
+<p>   ：</p>
+<ul>
+<li>当指令缓存需要访问某个地址时，同时查询指令缓存和 Prefetch Buffer。</li>
+<li>若在 Prefetch Buffer 中找到匹配项（命中）：<ul>
+<li>命中条目（通常是最旧条目）被移出缓冲区。</li>
+<li>该缓存块直接插入指令缓存，替换原有未命中的块。</li>
+</ul>
+</li>
+</ul>
+<p>3. </p>
+<p>   分支误预测的处理</p>
+<p>   ：</p>
+<ul>
+<li>发生分支误预测时，FTQ 和 Prefetch Buffer 会被清空（Flush），确保预取路径与正确执行路径一致。</li>
+</ul>
+<p><strong>如果cache未命中，且预取缓冲区有数据，此时如何解决？</strong></p>
+<p>论文并未提出，不过如果命中可以直接从缓冲区取出数据，类似于压缩队列</p>
+
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-item">
+                <a href="/2025/05/07/PDIP/" rel="prev" title="PDIP">
+                  <i class="fa fa-angle-left"></i> PDIP
+                </a>
+            </div>
+            <div class="post-nav-item">
+            </div>
+          </div>
+    </footer>
+  </article>
+</div>
+
+
+
+
+
+
+</div>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+
+  <div class="copyright">
+    &copy; 2025-02 – 
+    <span itemprop="copyrightYear">2025</span>
+    <span class="with-love">
+      <i class="fa fa-heart"></i>
+    </span>
+    <span class="author" itemprop="copyrightHolder">GB</span>
+  </div>
+<div class="wordcount">
+  <span class="post-meta-item">
+    <span class="post-meta-item-icon">
+      <i class="fa fa-chart-line"></i>
+    </span>
+    <span title="站点总字数">150k</span>
+  </span>
+  <span class="post-meta-item">
+    <span class="post-meta-item-icon">
+      <i class="fa fa-coffee"></i>
+    </span>
+    <span title="站点阅读时长">9:06</span>
+  </span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io/" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.js.org/" rel="noopener" target="_blank">NexT.Gemini</a> 强力驱动
+  </div>
+
+    </div>
+  </footer>
+
+  
+  <div class="toggle sidebar-toggle" role="button">
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+  </div>
+  <div class="sidebar-dimmer"></div>
+  <div class="back-to-top" role="button" aria-label="返回顶部">
+    <i class="fa fa-arrow-up fa-lg"></i>
+    <span>0%</span>
+  </div>
+
+<noscript>
+  <div class="noscript-warning">Theme NexT works best with JavaScript enabled</div>
+</noscript>
+
+
+  
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js" integrity="sha256-XL2inqUJaslATFnHdJOi9GfQ60on8Wx1C2H8DYiN1xY=" crossorigin="anonymous"></script>
+<script src="/js/comments.js"></script><script src="/js/utils.js"></script><script src="/js/motion.js"></script><script src="/js/sidebar.js"></script><script src="/js/next-boot.js"></script>
+
+  
+
+
+
+
+
+
+  
+
+
+
+
+
+</body>
+</html>

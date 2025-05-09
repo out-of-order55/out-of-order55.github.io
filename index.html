@@ -120,7 +120,7 @@
   <nav class="site-state">
       <div class="site-state-item site-state-posts">
         <a href="/archives/">
-          <span class="site-state-item-count">29</span>
+          <span class="site-state-item-count">31</span>
           <span class="site-state-item-name">日志</span>
         </a>
       </div>
@@ -143,6 +143,244 @@
     </div>
 
     <div class="main-inner index posts-expand">
+
+    
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
+    <link itemprop="mainEntityOfPage" href="http://example.com/2025/05/07/FDIP/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/my.jpg">
+      <meta itemprop="name" content="GB">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="GB's Blog">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
+      <meta itemprop="name" content="undefined | GB's Blog">
+      <meta itemprop="description" content="">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          <a href="/2025/05/07/FDIP/" class="post-title-link" itemprop="url">FDIP</a>
+        </h2>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">发表于</span>
+      
+
+      <time title="创建时间：2025-05-07 15:23:54 / 修改时间：17:13:13" itemprop="dateCreated datePublished" datetime="2025-05-07T15:23:54+08:00">2025-05-07</time>
+    </span>
+
+  
+    <span class="post-meta-break"></span>
+    <span class="post-meta-item" title="本文字数">
+      <span class="post-meta-item-icon">
+        <i class="far fa-file-word"></i>
+      </span>
+      <span class="post-meta-item-text">本文字数：</span>
+      <span>997</span>
+    </span>
+    <span class="post-meta-item" title="阅读时长">
+      <span class="post-meta-item-icon">
+        <i class="far fa-clock"></i>
+      </span>
+      <span class="post-meta-item-text">阅读时长 &asymp;</span>
+      <span>4 分钟</span>
+    </span>
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+          <h1 id="具体微结构"><a href="#具体微结构" class="headerlink" title="具体微结构"></a><strong>具体微结构</strong></h1><p>首先先翻译一下：</p>
+<p>在[14]中，我们研究了分支预测器与指令缓存的解耦。为了提供解耦的前端，提取目标队列(FTQ)用于桥接分支预测器和指令高速缓存之间的间隙。每个周期，分支预测器都会产生一个提取目标块预测，并将其存储在FTQ中，最终由指令缓存使用。FTQ提供允许分支预测器和指令高速缓存自主操作所需的缓冲。当分支预测器由于高速缓存未命中或指令缓冲区已满而暂停时，FTQ允许分支预测器在指令高速缓存之前工作。如果指令高速缓存是多端口的，则可以在单个周期内消耗多个有效的FTQ条目，直到端口耗尽。</p>
+<p>任何分支预测器(基本块目标缓冲器[22]、提前两个块预测器[15]或提取目标缓冲器[14])都可以放在FTQ之前，并产生要由指令高速缓存消耗的提取块地址。正是FTQ允许分支预测器在指令缓存之前运行。</p>
+<p><img src="/2025/05/07/FDIP/image-20250507155259388.png" alt="image-20250507155259388"></p>
+<p>FTQ包含一个提取块，当数据缓存或者指令缓存未命中，从PIQ开始预取。</p>
+<h3 id="Prefetch-Buffer-的工作机制"><a href="#Prefetch-Buffer-的工作机制" class="headerlink" title="Prefetch Buffer 的工作机制"></a><strong>Prefetch Buffer 的工作机制</strong></h3><p>在论文提出的 <strong>Fetch Directed Prefetching (FDP)</strong> 架构中，<strong>Prefetch Buffer</strong> 是一个关键组件，用于临时存储通过分支预测器前瞻生成的指令缓存块。以下是其具体工作原理和设计细节的详细解析：</p>
+<hr>
+<h4 id="1-Prefetch-Buffer-的核心作用"><a href="#1-Prefetch-Buffer-的核心作用" class="headerlink" title="1. Prefetch Buffer 的核心作用"></a><strong>1. Prefetch Buffer 的核心作用</strong></h4><ul>
+<li><strong>目标</strong>：通过提前将未来可能需要的指令缓存块加载到缓冲区，减少指令缓存未命中带来的延迟。</li>
+<li><strong>数据来源</strong>：由 <strong>Fetch Target Queue (FTQ)</strong> 中的候选预取地址生成。</li>
+<li><strong>与指令缓存的协作</strong>：在指令缓存查询时，Prefetch Buffer 并行查找；若命中，则直接将缓存块插入指令缓存。</li>
+</ul>
+<hr>
+<h4 id="2-Prefetch-Buffer-的结构设计"><a href="#2-Prefetch-Buffer-的结构设计" class="headerlink" title="2. Prefetch Buffer 的结构设计"></a><strong>2. Prefetch Buffer 的结构设计</strong></h4><p>- </p>
+<p>  FIFO 队列结构</p>
+<p>  ：</p>
+<ul>
+<li><p>采用先进先出（FIFO）的队列结构，新预取的缓存块插入队尾，最旧的块在队首。</p>
+</li>
+<li><p><strong>容量</strong>：论文中未明确指定具体条目数，但提及使用类似流式缓冲区的设计（例如 4 条目或更多）。</p>
+</li>
+<li><p><strong>条目内容</strong>：每个条目存储一个完整的指令缓存块（如 32 字节）及其地址标签。</p>
+</li>
+<li><p><strong>替换策略</strong>：当缓冲区满时，新预取请求需等待旧条目被消费或替换。</p>
+</li>
+</ul>
+<hr>
+<h4 id="3-预取流程的触发与管理"><a href="#3-预取流程的触发与管理" class="headerlink" title="3. 预取流程的触发与管理"></a><strong>3. 预取流程的触发与管理</strong></h4><p>- </p>
+<p>  预取地址的生成</p>
+<p>  ：</p>
+<ul>
+<li><p>FTQ 中的每个条目包含多个候选预取地址（每个地址对应一个缓存块）。</p>
+</li>
+<li><p>这些地址通过分支预测器生成，并标记为“候选预取位”（Candidate Bit）。</p>
+</li>
+<li></li>
+</ul>
+<p>  Prefetch Instruction Queue (PIQ)</p>
+<p>  ：</p>
+<ul>
+<li>候选地址首先进入 PIQ 等待调度。</li>
+<li>优先级：指令缓存未命中 &gt; 数据缓存未命中 &gt; 预取请求。</li>
+<li>当 L2 总线空闲时，从 PIQ 中取出地址发起预取请求。</li>
+</ul>
+<hr>
+<h4 id="4-预取缓冲区的操作流程"><a href="#4-预取缓冲区的操作流程" class="headerlink" title="4. 预取缓冲区的操作流程"></a><strong>4. 预取缓冲区的操作流程</strong></h4><p>1. </p>
+<p>   预取填充</p>
+<p>   ：</p>
+<ul>
+<li>从 PIQ 获取地址后，向 L2 缓存发起预取请求。</li>
+<li>预取的数据块存入 Prefetch Buffer 队尾。</li>
+</ul>
+<p>2. </p>
+<p>   指令缓存查询时的并行查找</p>
+<p>   ：</p>
+<ul>
+<li>当指令缓存需要访问某个地址时，同时查询指令缓存和 Prefetch Buffer。</li>
+<li>若在 Prefetch Buffer 中找到匹配项（命中）：<ul>
+<li>命中条目（通常是最旧条目）被移出缓冲区。</li>
+<li>该缓存块直接插入指令缓存，替换原有未命中的块。</li>
+</ul>
+</li>
+</ul>
+<p>3. </p>
+<p>   分支误预测的处理</p>
+<p>   ：</p>
+<ul>
+<li>发生分支误预测时，FTQ 和 Prefetch Buffer 会被清空（Flush），确保预取路径与正确执行路径一致。</li>
+</ul>
+<p><strong>如果cache未命中，且预取缓冲区有数据，此时如何解决？</strong></p>
+<p>论文并未提出，不过如果命中可以直接从缓冲区取出数据，类似于压缩队列</p>
+
+      
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+        <div class="post-eof"></div>
+      
+    </footer>
+  </article>
+</div>
+
+
+
+
+    
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
+    <link itemprop="mainEntityOfPage" href="http://example.com/2025/05/07/PDIP/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/my.jpg">
+      <meta itemprop="name" content="GB">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="GB's Blog">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
+      <meta itemprop="name" content="undefined | GB's Blog">
+      <meta itemprop="description" content="">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          <a href="/2025/05/07/PDIP/" class="post-title-link" itemprop="url">PDIP</a>
+        </h2>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">发表于</span>
+
+      <time title="创建时间：2025-05-07 15:04:46" itemprop="dateCreated datePublished" datetime="2025-05-07T15:04:46+08:00">2025-05-07</time>
+    </span>
+
+  
+    <span class="post-meta-break"></span>
+    <span class="post-meta-item" title="本文字数">
+      <span class="post-meta-item-icon">
+        <i class="far fa-file-word"></i>
+      </span>
+      <span class="post-meta-item-text">本文字数：</span>
+      <span>0</span>
+    </span>
+    <span class="post-meta-item" title="阅读时长">
+      <span class="post-meta-item-icon">
+        <i class="far fa-clock"></i>
+      </span>
+      <span class="post-meta-item-text">阅读时长 &asymp;</span>
+      <span>1 分钟</span>
+    </span>
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+          
+      
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+        <div class="post-eof"></div>
+      
+    </footer>
+  </article>
+</div>
+
+
+
 
     
 
@@ -1240,421 +1478,8 @@ MEEK改进，并参与流片工作（最高优先级，持续推进）</p>
 
 
 
-    
-
-
-<div class="post-block">
-  
-  
-
-  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
-    <link itemprop="mainEntityOfPage" href="http://example.com/2025/03/14/grvcore-debug/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/images/my.jpg">
-      <meta itemprop="name" content="GB">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="GB's Blog">
-      <meta itemprop="description" content="">
-    </span>
-
-    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
-      <meta itemprop="name" content="undefined | GB's Blog">
-      <meta itemprop="description" content="">
-    </span>
-      <header class="post-header">
-        <h2 class="post-title" itemprop="name headline">
-          <a href="/2025/03/14/grvcore-debug/" class="post-title-link" itemprop="url">grvcore_debug</a>
-        </h2>
-
-        <div class="post-meta-container">
-          <div class="post-meta">
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-calendar"></i>
-      </span>
-      <span class="post-meta-item-text">发表于</span>
-
-      <time title="创建时间：2025-03-14 11:24:31" itemprop="dateCreated datePublished" datetime="2025-03-14T11:24:31+08:00">2025-03-14</time>
-    </span>
-
-  
-    <span class="post-meta-break"></span>
-    <span class="post-meta-item" title="本文字数">
-      <span class="post-meta-item-icon">
-        <i class="far fa-file-word"></i>
-      </span>
-      <span class="post-meta-item-text">本文字数：</span>
-      <span>0</span>
-    </span>
-    <span class="post-meta-item" title="阅读时长">
-      <span class="post-meta-item-icon">
-        <i class="far fa-clock"></i>
-      </span>
-      <span class="post-meta-item-text">阅读时长 &asymp;</span>
-      <span>1 分钟</span>
-    </span>
-</div>
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-          
-      
-    </div>
-
-    
-    
-    
-
-    <footer class="post-footer">
-        <div class="post-eof"></div>
-      
-    </footer>
-  </article>
-</div>
-
-
-
-
-    
-
-
-<div class="post-block">
-  
-  
-
-  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
-    <link itemprop="mainEntityOfPage" href="http://example.com/2025/03/08/tilelink-reading-note/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/images/my.jpg">
-      <meta itemprop="name" content="GB">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="GB's Blog">
-      <meta itemprop="description" content="">
-    </span>
-
-    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
-      <meta itemprop="name" content="undefined | GB's Blog">
-      <meta itemprop="description" content="">
-    </span>
-      <header class="post-header">
-        <h2 class="post-title" itemprop="name headline">
-          <a href="/2025/03/08/tilelink-reading-note/" class="post-title-link" itemprop="url">tilelink_reading note</a>
-        </h2>
-
-        <div class="post-meta-container">
-          <div class="post-meta">
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-calendar"></i>
-      </span>
-      <span class="post-meta-item-text">发表于</span>
-
-      <time title="创建时间：2025-03-08 11:14:00" itemprop="dateCreated datePublished" datetime="2025-03-08T11:14:00+08:00">2025-03-08</time>
-    </span>
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-calendar-check"></i>
-      </span>
-      <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2025-03-09 00:00:06" itemprop="dateModified" datetime="2025-03-09T00:00:06+08:00">2025-03-09</time>
-    </span>
-
-  
-    <span class="post-meta-break"></span>
-    <span class="post-meta-item" title="本文字数">
-      <span class="post-meta-item-icon">
-        <i class="far fa-file-word"></i>
-      </span>
-      <span class="post-meta-item-text">本文字数：</span>
-      <span>8.2k</span>
-    </span>
-    <span class="post-meta-item" title="阅读时长">
-      <span class="post-meta-item-icon">
-        <i class="far fa-clock"></i>
-      </span>
-      <span class="post-meta-item-text">阅读时长 &asymp;</span>
-      <span>30 分钟</span>
-    </span>
-</div>
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-          <h1 id="Tilelink协议"><a href="#Tilelink协议" class="headerlink" title="Tilelink协议"></a>Tilelink协议</h1><h2 id="架构与信号描述"><a href="#架构与信号描述" class="headerlink" title="架构与信号描述"></a>架构与信号描述</h2><p>TileLink 支持多种类型的通讯代理模块，并定义了三个从简单到复杂的的协议扩展级别。每个级别定义了兼容该级别的通讯代理模块需要支持的协议扩展子集，如下图所示。最简单的是 TileLink 无缓存轻量级(Uncached Lightweight, TL-UL)，只支持简单的单个字读写(Get&#x2F;Put)的存储器操作。相对复杂的 TileLink无缓存重量级(Uncached Heavyweight,TL-UH)，添加了预处理(hints)、原子访问和突发访问支持，但不支持一致性的缓存访问。最后，缓存相关级别 TileLink Cached(TL-C)是最复杂（完整）的协议，支持使用一致性的缓存模块。</p>
-<p><img src="/2025/03/08/tilelink-reading-note/20250306151247639-1741275367112-10.png" alt="image-20250306151247639"></p>
-<p>除了 clock 和 reset 信号之外，TileLink 信号名字的组成：通道识别符（a到e）跟着一个下划线，再接一个信号名（在下面小节中一一列举）。</p>
-<p>对于拥有多个 TileLink 接口的设备，推荐在所有 TileLink 信号名字之前加上一些描述性的标示加下划线。例如，a_opcode 变成 gpio_a_opcode。</p>
-<p><img src="/2025/03/08/tilelink-reading-note/image-20250306151441976-1741275367112-11.png" alt="image-20250306151441976"></p>
-<h3 id="通道A"><a href="#通道A" class="headerlink" title="通道A"></a>通道A</h3><p>通道A从主接口流向从接口，携带发送到特定地址的请求消息。此通道由所有TileLink一致性级别使用，并且是强制性的。</p>
-<p><img src="/2025/03/08/tilelink-reading-note/image-20250306151716023-1741275367113-12.png" alt="image-20250306151716023"></p>
-<h3 id="通道B"><a href="#通道B" class="headerlink" title="通道B"></a>通道B</h3><p>通道B从从接口流到主接口，携带发送到特定主接口保存的特定缓存数据块的请求消息。该通道由TL-C一致性级别使用，在较低级别中是可选的。</p>
-<p><img src="/2025/03/08/tilelink-reading-note/image-20250306151802131-1741275367113-13.png" alt="image-20250306151802131"></p>
-<h3 id="通道C"><a href="#通道C" class="headerlink" title="通道C"></a>通道C</h3><p>通道C从主接口流向从接口。它可以携带对发送到特定缓存数据块的通道B请求的响应消息。它还用于主动写回脏缓存数据。此通道用于TL-C一致性级别，在较低级别中是可选的。</p>
-<p><img src="/2025/03/08/tilelink-reading-note/image-20250306151850411-1741275367113-14.png" alt="image-20250306151850411"></p>
-<h3 id="通道D"><a href="#通道D" class="headerlink" title="通道D"></a>通道D</h3><p>通道D从从接口流向主接口。它携带发送到特定地址的通道A请求的响应消息。它还携带通道C自愿回写的确认。此通道由所有TileLink一致性级别使用，并且是非可选的。</p>
-<p><img src="/2025/03/08/tilelink-reading-note/image-20250306151931772-1741275367113-15.png" alt="image-20250306151931772"></p>
-<h3 id="通道E"><a href="#通道E" class="headerlink" title="通道E"></a>通道E</h3><p>通道E从主接口流向从接口，携带通道D响应消息的接收确认，用于操作序列化，该通道用于TL-C一致性级别，在较低级别可选。</p>
-<p><img src="/2025/03/08/tilelink-reading-note/image-20250306152019419-1741275367113-16.png" alt="image-20250306152019419"></p>
-<h2 id="序列化、死锁"><a href="#序列化、死锁" class="headerlink" title="序列化、死锁"></a>序列化、死锁</h2><h3 id="Flow-Control-Rules"><a href="#Flow-Control-Rules" class="headerlink" title="Flow Control Rules"></a>Flow Control Rules</h3><p>为了实现正确的ready和valid信号握手，需要遵守以下规则：</p>
-<ul>
-<li>当ready信号为低时，接收者不能处理数据并且发送者认为该拍内的数据未被处理。</li>
-<li>当valid信号为低时，接收者应当认为该数据信号并不是一个正确的TileLink数据。</li>
-<li>valid必须与ready信号独立，如果一个发送者希望发送一拍数据，则必须使能一 个valid信号，同时该valid信号是与接收者的ready信号独立的。</li>
-<li>从ready到valid信号或者任何数据或控制信号之间不能存在任何组合逻辑路径。</li>
-<li>一个低优先级的有效不能组合地依赖于一个高优先级的有效。换句话说，发送一个请求的决定不能基于在同一个周期内接收到一个响应</li>
-<li>高优先级就绪可能不会组合依赖于低优先级就绪。换句话说，响应的接受可能不会取决于同一周期内接受的请求。</li>
-</ul>
-<p>对于能够携带簇发的TileLink的通道，有着额外的规则约束。一个簇发一旦第一拍数据 被接收，直到最后一拍数据传输结束都认为处于传输过程中。当一个数据包处于传输过程中 时，如果valid信号为高，发送者必须满足：</p>
-<ul>
-<li>只有同消息的簇发的一拍数据。</li>
-<li>控制信号与第一拍相同。</li>
-<li>数据为与之前拍数据的地址再加上按数据总线的字节宽度得到的地址所对应的数据。</li>
-</ul>
-<p><img src="/2025/03/08/tilelink-reading-note/image-20250306153533273-1741275367113-17.png" alt="image-20250306153533273"></p>
-<p>第一个信息为F，size为5，表示传输32个字节，需要四拍，opcode 0表示为PutFullData 4表示Get操作，第二个信息为G，大小为1字节，H被拒绝接受，并且下个周期控制信号改变，变为了传输4个字节的I，之后J虽然size含有16个字节，但GET操作不含数据，故一周期完成</p>
-<p><img src="/2025/03/08/tilelink-reading-note/image-20250306154049652-1741275367114-18.png" alt="image-20250306154049652"></p>
-<p>第一个信息为L，opcode为1 表示AccessAckData，含有数据，故需要4拍，之后和上面例子类似</p>
-<h3 id="请求响应数据排序"><a href="#请求响应数据排序" class="headerlink" title="请求响应数据排序"></a>请求响应数据排序</h3><p>我们现在定义在一个具有多拍数据包的情况下，发送响应消息时的规则。在如下情况下，响应消息的第一拍可以出现在响应通道上：</p>
-<ul>
-<li>在请求消息被接收了的同一个周期出现，但不会在这周期之前出现。</li>
-<li>在请求消息的第一拍握手成功之后的任意时间</li>
-</ul>
-<p>跟随在包的响应消息的第一拍后的多拍信号可以在任意延迟后出现，但与此同时，<strong>不能有来自其他消息的任一拍数据交错地插入此次传输中</strong>。</p>
-<h4 id="Burst-Responses"><a href="#Burst-Responses" class="headerlink" title="Burst Responses"></a>Burst Responses</h4><p><img src="/2025/03/08/tilelink-reading-note/image-20250306155350105-1741275367120-19.png" alt="image-20250306155350105"></p>
-<p>第一个请求的ack在任意延迟后出现在D通道，第二个请求在被接受的同时，d通道出现ack</p>
-<h4 id="Burst-Requests"><a href="#Burst-Requests" class="headerlink" title="Burst Requests"></a>Burst Requests</h4><p><img src="/2025/03/08/tilelink-reading-note/image-20250306155621522-1741275367120-20.png" alt="image-20250306155621522"></p>
-<p>第一个AcessAck被延迟任意长时间，但请求者会发送余下的信息</p>
-<p>第二个AcessAck在PutFullData同一拍出现，</p>
-<h4 id="Burst-Requests-and-Responses"><a href="#Burst-Requests-and-Responses" class="headerlink" title="Burst Requests and Responses"></a>Burst Requests and Responses</h4><p><img src="/2025/03/08/tilelink-reading-note/image-20250306155905329-1741275367120-21.png" alt="image-20250306155905329"></p>
-<p>对于大小为4，16字节（2拍）的操作，要么在请求和响应消息之间存在较长的延迟，要么两者的各拍信号重叠。如果每条消息的整体都能放入一拍之中(2ˆ3&#x3D;8&#x3D;1beat)，那么这些消息就能完全地重叠。</p>
-<h3 id="Byte-Lanes"><a href="#Byte-Lanes" class="headerlink" title="Byte Lanes"></a>Byte Lanes</h3><p>带有数据域的TileLink通道总是自然地以小端对齐方式运载数据载荷，一个字节通路传输的数据的地址的最低一部分总是相同的，如下图所示。</p>
-<p><img src="/2025/03/08/tilelink-reading-note/image-20250306160214144-1741275367120-22.png" alt="image-20250306160214144"></p>
-<p>一个操作要么使用所有的数据字节通道，要么使用其中一个2的幂大小的片段。操作使用的字节通道称为活动字节通道。</p>
-<p>在携带掩码字段的通道A和B上，所有非活动字节通道的掩码必须始终为LOW。此外，对于PutPartialData以外的所有消息，所有活动字节通道的掩码位必须为HIGH。PutPartialData可以降低掩码的各个位，并且这些位不必连续。</p>
-<p>掩码也用于没有数据有效载荷的消息。当操作大小小于数据总线时，掩码的生成应该与携带数据有效载荷的操作相同。对于大于数据总线的无数据操作，掩码的所有位都应该为高，尽管消息仍然是单拍。例如，参见图12。</p>
-<p><img src="/2025/03/08/tilelink-reading-note/image-20250306161231625-1741275367120-23.png" alt="image-20250306161231625"></p>
-<p>在图12中，PutFullData（0）必须将掩码的所有活动通道驱动为高。因此，第一个消息在多个节拍上具有所有节拍高。相比之下，PutPartialData（1）可以将掩码的活动通道驱动为高或低。Get（4）消息从不是多节拍的，但仍然必须将活动字节通道上的掩码驱动为高。对于小于节拍的消息，掩码的所有非活动字节通道必须被驱动为低（寻址0x62的操作中的位0和1）。</p>
-<h3 id="Deadlock-Freedom"><a href="#Deadlock-Freedom" class="headerlink" title="Deadlock Freedom"></a>Deadlock Freedom</h3><p><img src="/2025/03/08/tilelink-reading-note/image-20250306162310858-1741275367120-24.png" alt="image-20250306162310858"></p>
-<p><img src="/2025/03/08/tilelink-reading-note/image-20250306162236254-1741275367120-25.png" alt="image-20250306162236254"></p>
-<ol>
-<li>接受（accept）一拍：若发送者在某个通道上把valid信号拉高，接收者若把ready信号拉高则接受一拍。</li>
-<li>拒绝（reject）一拍：若发送者在某个通道上把valid信号拉高，接收者若把ready信号拉低则接受一拍。</li>
-<li>撤回（retract）一拍：若接收者拒绝一拍，发送者可以拉低valid或在下一拍修改控制或数据信号来撤回一拍。</li>
-<li>呈现（present）一拍：若valid拉高且所有控制和数据信号在ready也拉高之前都保持不变，称之为呈现一拍。</li>
-<li>进行中（in progress）：一个消息正在进行，表示从被接受的第一拍到最后一拍被接受之间的这段时间。</li>
-<li>传输中（in flight）：一个消息正在进行，表示从被呈现的第一拍到最后一拍被接受之间的这段时间。</li>
-<li>请求消息：需要一个对应的响应消息，所有的TileLink操作都从某个通道的请求消息开始。</li>
-<li>响应消息：跟随在请求消息之后的响应。</li>
-<li>已收到的（received）消息：从簇发传输的第一拍被接受开始，消息被收到。</li>
-<li>已回答的（answered）消息：收到的请求被响应后，消息被回答。</li>
-<li>代理（agent）：TileLink系统中的参与者，有一或多个TileLink链路。</li>
-<li>优先级：一个消息的优先级与对应通道的优先级对应，响应消息的优先级总是比对应请求的优先级高，转发消息的优先级也更高。</li>
-<li>最终事件：一个事件在任意长但并非无穷长之后最终发生。</li>
-<li>向前推进：当所有呈现的拍最终被接受，且所有收到的请求最终被回答时，系统可以向前推进。</li>
-<li>不活动的（quiescent）：当没有添加新的消息时，系统处于不活动的状态，注意尽管TileLink保证不出现死锁，但仍然可能产生活锁或饥饿状态。为了限制这种情况，代理只被允许发送<code>n+rf</code>个消息，包括<code>n</code>为该代理允许发送的新消息、<code>r</code>为该代理接收的消息以及<code>f</code>为该代理为每个收到的消息允许发送的后续消息。</li>
-</ol>
-<h4 id="Examples-of-agent-conformance"><a href="#Examples-of-agent-conformance" class="headerlink" title="Examples of agent conformance"></a>Examples of agent conformance</h4><h5 id="周期性转发的主设备（不符合）"><a href="#周期性转发的主设备（不符合）" class="headerlink" title="周期性转发的主设备（不符合）"></a>周期性转发的主设备（不符合）</h5><p>一个代理有一个主接口和一个从接口，在A通道接受请求消息，但在转发消息时只在偶数周期拉高valid信号。这个代理不符合协议要求，原因是该代理不能完整呈现转发的消息，不能保证最终回答一个收到的请求。</p>
-<h5 id="等待刷新（符合）"><a href="#等待刷新（符合）" class="headerlink" title="等待刷新（符合）"></a>等待刷新（符合）</h5><p>一个DDR控制器周期性地无法处理请求，在这段时间内无条件地拉低所有ready信号，但注意到该代理仍然最终可以接受呈现的拍，因此还是符合协议要求的。</p>
-<h5 id="等待消息被接收（不符合）"><a href="#等待消息被接收（不符合）" class="headerlink" title="等待消息被接收（不符合）"></a>等待消息被接收（不符合）</h5><p>一个代理有两个用于发送消息的链路，在链路1上发起簇发传输A，并且几拍中的第一拍被接受，表明消息已被接收，但仍在传输中，然后在链路2上发起簇发传输B，此时A的传输还未结束。在恢复A之前等待B被接受是不符合协议要求的。</p>
-<h5 id="非常慢的仲裁器（符合）"><a href="#非常慢的仲裁器（符合）" class="headerlink" title="非常慢的仲裁器（符合）"></a>非常慢的仲裁器（符合）</h5><p>考虑一个具有三个链路的TL-UH代理，仲裁来自两条链路的A通道请求，并转发到第三条链路的A通道，但该仲裁器的吞吐量非常低。</p>
-<p>代理空闲时将从任一输入的A通道中选择一个valid请求，一旦选择了一个请求，就会在另一个A通道上拉低ready信号，并在所选链路和输出链路之间连接ready和valid（通道A和D）。一旦请求的所有拍都已被输出通道接受，代理在两个输入A通道上拉低ready信号，并等待响应消息的最后一拍被所选的通道接受。</p>
-<p>该代理符合规则2，因为可以假设输入的A通道都遵守规则2，因此其输出的A通道请求将呈现接收到的请求的所有节拍，D通道也同理。</p>
-<p>假设代理正在处理输入的一个消息，在转发链路上分别有一个未回答或进行中的消息。由于该链路的优先级高于输入的链路，因此适用规则3，并且代理可以无限期地拒绝后续提交的A通道请求。</p>
-<p>假设代理空闲并且没有输入呈现消息，这种情况满足规则3i，因为没有消息可以接受，同时也满足规则3ii，因为只有在收到的请求被回答时，仲裁器才会再次空闲。</p>
-<h2 id="操作与信息"><a href="#操作与信息" class="headerlink" title="操作与信息"></a>操作与信息</h2><h3 id="操作分类"><a href="#操作分类" class="headerlink" title="操作分类"></a>操作分类</h3><p>TileLink 操作能被分为下列三组:</p>
-<ul>
-<li>Accesses (A) 在具体的地址读或写数据。</li>
-<li>Hints (H) 只是提供一些信息，没有实际的影响。</li>
-<li>Transfers (T) 在拓扑网络中改变权限或移动缓存拷贝。</li>
-</ul>
-<p>不是每个TileLink代理都需要支持所有操作。取决于其的TileLink兼容级别，一个代理需要支持的操作如下表所列。</p>
-<p><img src="/2025/03/08/tilelink-reading-note/image-20250306165146627-1741275367121-40.png" alt="image-20250306165146627"></p>
-<h3 id="消息分类"><a href="#消息分类" class="headerlink" title="消息分类"></a>消息分类</h3><p><img src="/2025/03/08/tilelink-reading-note/image-20250306165249965-1741275367120-26.png" alt="image-20250306165249965"></p>
-<p>操作为蓝色，紫色为消息</p>
-<p><img src="/2025/03/08/tilelink-reading-note/image-20250306165453357-1741275367120-27.png" alt="image-20250306165453357"></p>
-<p><img src="/2025/03/08/tilelink-reading-note/image-20250306165606275-1741275367120-28.png" alt="image-20250306165606275"></p>
-<p>在一个TileLink拓扑网络中，在任意给定时间内会有多个操作在进程中。这些操作可能以任意的顺序完成。为了确保主端能在一个操作完成后，再执行其他操作，TileLink要求从端在操作结束时及时发送一个回复消息。因此，如果处理器要确保两个写操作X和Y的顺序被其他所有代理获取时都是一致的，那么处理器发送X的<code>PutFullData</code>后，必须等待<code>AccessAck</code>回复，在此之后，才发送Y的<code>PutFullData</code>。</p>
-<p>TileLink的从端，包括缓存，不能在Put操作确认前就将数据写回。唯一的约束是，一旦确认消息发出后，整个拓扑网络不能观察到过去的状态，这是因为在确认消息发出后，所有的被缓存的数据的拷贝都必须是已更新的。例如，对于一个Put操作，其他缓存要么被<code>Probe</code>现有的数据拷贝，要么通过<code>PutFullData</code>将消息前递给其他缓存，并且在确认原始的请求消息前，收集对应的回复消息。</p>
-<p>发射回复消息的代理需要保证它们接收的操作是一个有效的序列。例如，假设一个代理接收了两个Put，X和Y，并且都没有被确认，必须选择一定的顺序，例如说是X在Y之前。如果选择了这样的顺序，必须保证只有三个状态，X与Y前的状态，X之后且Y之前的状态和X与Y之后的状态。代理不一定要以这样的顺序发射回复消息。然而，在代理已发射了一条回复之后，例如Y，如果此时接受了新的操作Z，那么Z必须排在Y之后。</p>
-<p>这些规则确保每个代理看到的全局操作排序与主端的确认信号引导的局部排序是一致的。处理器可以等待发出的确认消息返回后再发起其他请求，来实现fence指令。这样的能力使得多处理器在TileLink的共享存储系统中，安全地同步执行操作。</p>
-<blockquote>
-<p>这里的意思是A写入的值需要广播，以此来更新所有缓存块的状态</p>
-</blockquote>
-<h2 id="TL-UL"><a href="#TL-UL" class="headerlink" title="TL-UL"></a>TL-UL</h2><p>TileLink无缓存轻量级（TL-UL）是最简单的TileLink协议兼容级别，可用于连接低性能的外设以减小总线的面积消耗。该兼容级别的代理都支持两种存储访问操作：</p>
-<ul>
-<li>读（Get）操作：从底层内存中读取一定量的数据。</li>
-<li>写（Put）操作：向底层内存中写入一定数目的数据，写操作支持基于字节t通路掩码的部分写功能。</li>
-</ul>
-<p>在TL-UL中，每条消息都必须放在一拍中，不支持簇发操作，TL-UL一共定义了与存储访问操作相关的三种请求消息和两种响应消息类型，下表列举了这些消息。</p>
-<p><img src="/2025/03/08/tilelink-reading-note/image-20250306221635531-1741275367121-29.png" alt="image-20250306221635531"></p>
-<h3 id="Flows-and-Waves"><a href="#Flows-and-Waves" class="headerlink" title="Flows and Waves"></a>Flows and Waves</h3><p><img src="/2025/03/08/tilelink-reading-note/image-20250306221708281-1741275367121-30.png" alt="image-20250306221708281"></p>
-<p><img src="/2025/03/08/tilelink-reading-note/image-20250306221947941-1741275367121-31.png" alt="image-20250306221947941"></p>
-<p><img src="/2025/03/08/tilelink-reading-note/image-20250306222005808-1741275367121-32.png" alt="image-20250306222005808"></p>
-<p><img src="/2025/03/08/tilelink-reading-note/image-20250306222028232-1741275367121-33.png" alt="image-20250306222028232"></p>
-<h2 id="TL-UH"><a href="#TL-UH" class="headerlink" title="TL-UH"></a>TL-UH</h2><p>TileLink无缓冲重量级（TL-UH）用于最后一级缓存之外的总线，这种应用中不需要使用权限转换的操作。TL-UH建立在TL-UL的基础上，并提供一部分额外的操作，包括：</p>
-<ul>
-<li>原子（Atomic）操作：在原子性地读取现存的数据值的同时，同步地写入一个新的值，此新值为某些逻辑和算法操作的结果。</li>
-<li>预处理（Hint）操作：提供了与某些性能优化相关的可选的提示性消息。</li>
-<li>簇发（Burst）消息：允许带有比数据总线宽度更大的数据的消息在多个周期内作为数据包传输，应用于在Get、Put和原子操作中多种包含数据的消息。</li>
-</ul>
-<p><img src="/2025/03/08/tilelink-reading-note/image-20250306222211086-1741275367121-34.png" alt="image-20250306222211086"></p>
-<h3 id="Flows-and-Waves-1"><a href="#Flows-and-Waves-1" class="headerlink" title="Flows and Waves"></a>Flows and Waves</h3><p><img src="/2025/03/08/tilelink-reading-note/image-20250306222236442-1741275367121-35.png" alt="image-20250306222236442"></p>
-<p><img src="/2025/03/08/tilelink-reading-note/image-20250306222547617-1741275367121-36.png" alt="image-20250306222547617"></p>
-<p><img src="/2025/03/08/tilelink-reading-note/image-20250306222555978-1741275367121-37.png" alt="image-20250306222555978"></p>
-<h3 id="ArithmeticData"><a href="#ArithmeticData" class="headerlink" title="ArithmeticData"></a>ArithmeticData</h3><p><img src="/2025/03/08/tilelink-reading-note/image-20250306222657857-1741275367121-38.png" alt="image-20250306222657857"></p>
-<h3 id="LogicalData"><a href="#LogicalData" class="headerlink" title="LogicalData"></a>LogicalData</h3><p><img src="/2025/03/08/tilelink-reading-note/image-20250306222737816-1741275367121-39.png" alt="image-20250306222737816"></p>
-<h3 id="Intent"><a href="#Intent" class="headerlink" title="Intent"></a>Intent</h3><p><img src="/2025/03/08/tilelink-reading-note/image-20250306222754968-1741275367121-41.png" alt="image-20250306222754968"></p>
-<h3 id="HintAck"><a href="#HintAck" class="headerlink" title="HintAck"></a>HintAck</h3><p><img src="/2025/03/08/tilelink-reading-note/image-20250306222842419-1741275367121-42.png" alt="image-20250306222842419"></p>
-<h2 id="TL-C"><a href="#TL-C" class="headerlink" title="TL-C"></a>TL-C</h2><p>TileLink缓存支持级（TL-C）给主端代理提供缓存共享数据块副本的能力，保证缓存一致性。本章描述TL-C中缓存的数据副本上允许进行哪些访存操作，以及用来传输数据块的缓存的消息类型，实现中所定义的一致性协议描述了副本和权限如何通过具体的TileLink代理网络传输以回复所接收的存储访问操作，但具体的一致性协议描述不在TileLink协议内容范围内。</p>
-<p>TL-C新添加了三种操作、三个通道、一个五步的消息序列模板以及十种消息类型。</p>
-<p>新的操作transfer可以创建或者清除数据块的缓存副本。转换操作不会修改数据块的值，但是会改变他们的读写权限。转换操作可以与之前定义的TL-UL、TL-UH访存操作无缝协作，保证操作进行序列化的正确性。</p>
-<p>可缓存性是存储地址范围的一个属性，一个TileLink的实现需保证避免无法缓存地址范围的副本出现。</p>
-<h3 id="Implementing-Cache-Coherence-Using-TileLink"><a href="#Implementing-Cache-Coherence-Using-TileLink" class="headerlink" title="Implementing Cache Coherence Using TileLink"></a>Implementing Cache Coherence Using TileLink</h3><p>所有基于Tilelink的一致性协议都由一系列操作组成，通过这些操作，可以完成读写数据块权限的在转变。在代理对已缓存的副本执行响应的操作之前，必须获得正确的权限。当代理希望在本地处理一个访问操作时，它必须首先使用转换操作来获得必要的权限。转换操作在网络上创建或删除副本，从而修改每个副本可以提供的权限。</p>
-<p>代理中数据块副本的基本权限可以包括：None、Read或Read+Write。缓存架构中副本 可用的权限取决于缓存层次结构中副本的当前存在情况，如下所述。</p>
-<p>对于任何给定的地址，在给定主端和拥有该地址范围的从端之间都只会存在一个具体的路径。在TileLink网络DAG中，所有这些路径都覆盖会形成一个树，根节点上仅有一个从端节点。对于每个地址，此树包含所有针对该地址的操作执行的路径。如果我们省略了所有不能缓存数据的代理，那么就会留下一个描述所有可能缓存该地址数据的缓存代理位置的树。</p>
-<p>在逻辑时间的任意时刻，这些代理的某些子集真正包含缓存数据的副本。这些代理形成 了一致性树 。包容性（Inclusive）的TileLink一致性协议要求树在响应内存访问操作时进行提权（Grow）和降权（Shrink）操作。图中的每个节点都属于树中的位置，分为以下四类：</p>
-<ul>
-<li>Nothing：当前没有缓存数据副本的节点，没有读写权限。</li>
-<li>主干（Trunk）：在顶点（Tip）和根（Root）之间的路径上拥有缓存副本的节点，具有其副本的读权限，该副本可能包含脏数据。</li>
-<li>无分支的顶点（Tip with no Branches）：具有缓存副本的节点，且可以用作内存访问序列化，对其拥有的可能包含脏数据的副本具有读写权限。</li>
-<li>有分支的顶点（Tip with Branches）：具有缓存副本的节点，且可以用作内存写入序列化，对其拥有的可能包含过去写入的脏数据的副本具有读写权限。</li>
-<li>分支（Branch）：该节点由Trunk结点分出，具有只读数据缓存副本。</li>
-</ul>
-<p><img src="/2025/03/08/tilelink-reading-note/image-20250306223229723-1741275367121-43.png" alt="image-20250306223229723"></p>
-<p>上图例举了几个覆盖在单个TileLink网络上的一致性树。在A中，树的根节点有唯一的 副本，这使得它既是树的根节点，也是树的顶端节点。在B中，主端通过提升主干的特权 (Grow)，获得读写权限，直到其位于顶点处。在C中，另一个主端通过扩展一个分支获得了读权限，这意味着之前的顶点现在也是一个只读分支，且公共的父节点是主干节点。在D中，其他主端也升级为分支，进一步将尖端向根部移动，而最初的请求者已经主动修剪了其分支。</p>
-<h3 id="Operations"><a href="#Operations" class="headerlink" title="Operations"></a>Operations</h3><p>三个新操作统称为transfer操作，原因是这些操作将数据块的副本传输到内存层次结构中的新位置，包括：</p>
-<ul>
-<li>Acquire：在请求主端中创建块（或其特定权限）的新副本。</li>
-<li>Release：从请求的主端将块的副本（或其特定权限）释放回从端。</li>
-<li>Probe：强制将块的副本（或其特定权限）从主端移到发起请求的从端。</li>
-</ul>
-<p>Acquire操作要么以扩展树干的形式，要么以从现存的分支或者尖端添加新的分支的形式来拓展树。在新的分支生成前，旧的主干或分支可能需要递归的Probe方法进行修剪。为了响应缓存容量冲突，可通过Release操作主动裁剪分支。</p>
-<h3 id="Channels"><a href="#Channels" class="headerlink" title="Channels"></a>Channels</h3><p>为了支持转换操作，TL-C在执行内存访问操作所需的两个基本通道上添加了三个新通道。A和D通道也被重新用于发送额外的消息，以实现转换操作。转换操作使用的五个通道</p>
-<p>分别是：</p>
-<p>通道A. 主端为了读取或写入缓存块副本而发起对<strong>权限的请求</strong>。</p>
-<p>通道B. 从端查询或修改主端对缓存数据块的权限，或将<strong>内存访问前递(forward)给主端</strong>。</p>
-<p>通道C. 主端响应通道B传输的消息，<strong>可能会释放带有任脏数据块的权限。也用于主动回写脏的缓存数据</strong>。</p>
-<p>通道D. 从端向原始请求者提供数据或权限，授予对缓存块的访问权。也用于<strong>确认脏数据的主动写回</strong>。</p>
-<p>通道E. 主端提供此次事务完成的<strong>最终确认消息</strong>，从端可用来事务序列化</p>
-<p>这五个通道可分为11种消息</p>
-<p><img src="/2025/03/08/tilelink-reading-note/image-20250306224348821-1741275367121-44.png" alt="image-20250306224348821"></p>
-<h3 id="Permissions-Transitions"><a href="#Permissions-Transitions" class="headerlink" title="Permissions Transitions"></a>Permissions Transitions</h3><p><img src="/2025/03/08/tilelink-reading-note/image-20250306224553036-1741275367121-45.png" alt="image-20250306224553036"></p>
-<p>Prune: 权限降级，缩小一致性树。相比过去，完成操作之后具有较低的权限。</p>
-<p>Grow: 权限升级，增大一致性树。相比过去，完成操作之后具有较高的权限。</p>
-<p>Report: 包含权限保持不变，但报告当前权限状态。</p>
-<p>Cap: 包含权限更改，但不指定原始权限是什么，而只指定它们应该成为什么。</p>
-<h3 id="Flows-and-Waves-2"><a href="#Flows-and-Waves-2" class="headerlink" title="Flows and Waves"></a>Flows and Waves</h3><p>Transfer操作引入新的事务流，这些事务流可以组成完整的缓存一致性协议事务。下图描述了三个新消息流。</p>
-<p><img src="/2025/03/08/tilelink-reading-note/image-20250306225034736-1741275367121-46.png" alt="image-20250306225034736"></p>
-<p><img src="/2025/03/08/tilelink-reading-note/image-20250306225615605-1741275367121-47.png" alt="image-20250306225615605"></p>
-<p>上图的消息流涵盖了三种新操作：</p>
-<ol>
-<li>缓存主代理向从代理发送Acquire。</li>
-<li>为保证给响应消息留足够空间，主代理主动发送Release，即写回操作。（替换脏数据）</li>
-<li>从代理访问存储结构，以完成写操作。</li>
-<li>从代理通过ReleaseAck确认写回操作已完成。</li>
-<li>从代理向其他主代理发送必需的Probe。</li>
-<li>从代理等待所有被Probe的主代理返回ProbeAck。</li>
-<li>若有需要，从代理还需访问存储结构。</li>
-<li>从代理向原请求设备发送Grant。</li>
-<li>原主代理以GrantAck说明此次事务成功完成。</li>
-</ol>
-<p>虽然这三个流程构成了所有涉及缓存块传输的TileLink事务的基础，但是当它们临时地重叠或分层地组合时，会出现一些边界情况。现在我们将讨论TileLink如何管理并发性，并分散到各主从代理之间。</p>
-<p>TileLink假设消息并不完全是点到点的有序的传递，来自高优先级通道的消息必须能够在网络中先于较低优先级的消息处理，从端充当连接到它的所有主端的一个同步节点。由于每个事务都必须通过发送给从端的一条Acquire消息作为初始消息，因此从端可以轻松对事务进行排序。一个非常安全的实现方式是一次只接受一个事务，但是这种方式对性能影响巨大，而且事实证明我们可以在继续提供正确的序列化的同时增加并发性。尽管事务有着天然的分布式属性，对代理的行为施加一些限制，仍能够保证事务间的有序性。下图描述了每种操作并发的一些限制。</p>
-<p><img src="/2025/03/08/tilelink-reading-note/image-20250306225754731-1741275367121-48.png" alt="image-20250306225754731"></p>
-<p>对TileLink代理上的并发限制在发射或阻塞请求消息方面最容易理解。所有请求消息都会引发响应消息，并且响应消息保证最终产生向前推进的效果，但是在某些情况下，在收到还未处理的响应消息之前，不应该发出针对同一块的递归请求消息。我们按照请求消息类型来对这些情况分类：</p>
-<ul>
-<li>Acquire：如果在块上有一个pending的Grant块，主端就不应发射一个Acquire。一旦Acquire被发出，主端不应该在该块发出进一步的Acquire，直到它收到一个Grant。</li>
-<li>Grant：在块上有一个pending的ProbeAck时，从端不应该发射Grant。一旦发出了一个Grant时，从端不应该在该块上发射Probe，直到它收到一个GrantAck。</li>
-<li>Release：在块上有一个pending的Grant时，主端不应该发射一个Release。一旦发出了一个Release后，主端不能发射ProbeAck，直到它收到来自从端确认写回操作完成的ReleaseAck。</li>
-<li>Probe：在块上有一个pending的GrantAck时，从端不应该发射一个Probe。一旦发射了一个Probe，从端不能进一步发射Probe，直到它收到一个ProbeAck。</li>
-</ul>
-<p><img src="/2025/03/08/tilelink-reading-note/image-20250306231030603-1741275367121-49.png" alt="image-20250306231030603"></p>
-<p>上图展示了一个消息流，包含了Grant和Probe，具体如下：</p>
-<ol>
-<li>主代理A先发送Acquire，但由于网络延迟，后到从代理。</li>
-<li>主代理B后发送Acquire，但先到达从代理，被序列化在A的前面。</li>
-<li>从代理向A发送Probe，即使A还在等待Grant，也必须先处理Probe。</li>
-<li>从代理接收到A的ProbeAck后，向B发送Grant。</li>
-<li>从代理接收到A的Acquire，但由于正等待B的GrantAck，所以现在还不能处理这个请求。</li>
-<li>一旦接收到B的GrantAck，A的事务就可以正常处理了。</li>
-<li>从代理向B发送Probe，但这个操作被在上一个Grant之后。</li>
-<li>从代理向A发送合适类型的Grant(包括数据副本)，说明A在Acquire后被Probe过。</li>
-</ol>
-<p><img src="/2025/03/08/tilelink-reading-note/image-20250306231336559-1741275367121-50.png" alt="image-20250306231336559"></p>
-<p>上图展示了一个消息流，包含了Release和Probe，具体如下：</p>
-<ol>
-<li>主代理A向从代理发送Acquire。</li>
-<li>与此同时，主代理B通过Release主动剔除相同的数据缓存块。</li>
-<li>从代理向B发送Probe。</li>
-<li>从代理等待每个发送出的Probe，但可以处理主动发起的Release。从代理发送ReleaseAck确认主动写回的操作完成。</li>
-<li>B在接收到写回确认前不处理Probe。</li>
-<li>在从代理接收到B的ProbeAck后，A的事务就可以正常执行了。</li>
-</ol>
-<h3 id="TL-C-Messages"><a href="#TL-C-Messages" class="headerlink" title="TL-C Messages"></a>TL-C Messages</h3><p>权限转换新增的三个通道有六个新消息，另外新增了一个通道A消息、三个通道D消息。新的通道是B、C和E，新的消息类型是Acquire、Probe、ProbeAck[Data]、Release[Data]、ReleaseAck、Grant[Data]和GrantAck。</p>
-<h4 id="AcquireBlock"><a href="#AcquireBlock" class="headerlink" title="AcquireBlock"></a>AcquireBlock</h4><p>AcquireBlock消息是主代理计划在本地缓存数据块的副本时，发起的请求消息类型，主代理还可以使用这种消息类型来升级他们已缓存块上的权限（例如，获得只读副本的写权限），与Get消息一样，Acquire消息本身不包含数据，下表说明了通道A内该消息的信号编码。</p>
-<p><img src="/2025/03/08/tilelink-reading-note/image-20250306232112160-1741275367121-51.png" alt="image-20250306232112160"></p>
-<h4 id="AcquirePerm"><a href="#AcquirePerm" class="headerlink" title="AcquirePerm"></a>AcquirePerm</h4><p>AcquirePerm消息是主代理计划升级缓存数据块的权限，且无需提供数据副本时，发起的请求消息类型，下表说明了通道A内该消息的信号编码。</p>
-<p><img src="/2025/03/08/tilelink-reading-note/image-20250306232227402-1741275367121-52.png" alt="image-20250306232227402"></p>
-<h4 id="ProbeBlock"><a href="#ProbeBlock" class="headerlink" title="ProbeBlock"></a>ProbeBlock</h4><p>ProbeBlock消息是从代理用来查询或修改由特定主代理存储的数据块的缓存副本的权限的请求消息，从代理响应另一个主代理的Acquire或主动发起，可以取消主代理对一块缓存块的权限，下表说明了通道B内该消息的信号编码。</p>
-<p><img src="/2025/03/08/tilelink-reading-note/image-20250306232341927-1741275367121-53.png" alt="image-20250306232341927"></p>
-<h4 id="ProbePerm"><a href="#ProbePerm" class="headerlink" title="ProbePerm"></a>ProbePerm</h4><p>ProbePerm消息是从代理用来查询或修改由特定主代理存储的数据块的缓存副本的权限的请求消息，从代理响应另一个主代理的Acquire或主动发起，可以取消主代理对一块缓存块的权限，不过和ProbeBlock不同的是，ProbePerm要求不需要提供数据副本就可以发起请求，下表说明了通道B内该消息的信号编码。</p>
-<p><img src="/2025/03/08/tilelink-reading-note/image-20250306232441339-1741275367122-54.png" alt="image-20250306232441339"></p>
-<h4 id="ProbeAck"><a href="#ProbeAck" class="headerlink" title="ProbeAck"></a>ProbeAck</h4><p>ProbeAck消息是主代理用来回复Probe的消息，下表说明了通道C内该消息的信号编码。</p>
-<p><img src="/2025/03/08/tilelink-reading-note/image-20250306232604741-1741275367122-55.png" alt="image-20250306232604741"></p>
-<h4 id="ProbeAckData"><a href="#ProbeAckData" class="headerlink" title="ProbeAckData"></a>ProbeAckData</h4><p>ProbeAckData消息是主代理使用的响应消息，用于确认接收到Probe，并写回发送请求的从代理所需的脏数据，下表说明了通道C内该消息的信号编码。</p>
-<p><img src="/2025/03/08/tilelink-reading-note/image-20250306232656619-1741275367122-56.png" alt="image-20250306232656619"></p>
-<h4 id="Grant"><a href="#Grant" class="headerlink" title="Grant"></a>Grant</h4><p>Grant消息是一个响应也是一个请求消息，从代理使用它来确认接收到一个Acquire，并提供访问缓存块的权限给原始发送请求的主代理，下表说明了通道D内该消息的信号编码。</p>
-<p><img src="/2025/03/08/tilelink-reading-note/image-20250308111959008.png" alt="image-20250308111959008"></p>
-<h4 id="GrantData"><a href="#GrantData" class="headerlink" title="GrantData"></a>GrantData</h4><p>GrantData消息既是响应也是请求消息，从代理使用它向原始请求主代理提供确认消息以及数据块副本，下表说明了通道D内该消息的信号编码。</p>
-<p><img src="/2025/03/08/tilelink-reading-note/image-20250308111701640.png" alt="image-20250308111701640"></p>
-<h4 id="GrantAck"><a href="#GrantAck" class="headerlink" title="GrantAck"></a>GrantAck</h4><p>GrantAck响应消息被主代理用来提供事务完成的最终确认消息，同时也被从代理用来确 保操作的全局序列化，下表说明了通道E内该消息的信号编码。</p>
-<p><img src="/2025/03/08/tilelink-reading-note/image-20250308111741557.png" alt="image-20250308111741557"></p>
-<h4 id="Release"><a href="#Release" class="headerlink" title="Release"></a>Release</h4><p>Release消息是主代理用来主动降低其对一个缓存数据块的权限的请求消息，下表说明了通道C内该消息的信号编码。</p>
-<p><img src="/2025/03/08/tilelink-reading-note/image-20250308111839616.png" alt="image-20250308111839616"></p>
-<h4 id="ReleaseData"><a href="#ReleaseData" class="headerlink" title="ReleaseData"></a>ReleaseData</h4><p>ReleaseData消息是主代理发起的请求消息，用于主动降低对一块缓存数据块的权限，并将脏数据写回从代理，下表说明了通道C内该消息的信号编码。</p>
-<p><img src="/2025/03/08/tilelink-reading-note/image-20250308111857294.png" alt="image-20250308111857294"></p>
-<h4 id="ReleaseAck"><a href="#ReleaseAck" class="headerlink" title="ReleaseAck"></a>ReleaseAck</h4><p>ReleaseAck消息是一个从代理发起的响应消息，用来响应Release[Data]，用于确保从代理的操作的全局序列化，下表说明了通道D内该消息的信号编码。</p>
-<p><img src="/2025/03/08/tilelink-reading-note/image-20250308111940100.png" alt="image-20250308111940100"></p>
-<h3 id="TL-UL-and-TL-UH-Messages-on-Channel-A-and-Channel-D"><a href="#TL-UL-and-TL-UH-Messages-on-Channel-A-and-Channel-D" class="headerlink" title="TL-UL and TL-UH Messages on Channel A and Channel D"></a>TL-UL and TL-UH Messages on Channel A and Channel D</h3><p>TL-C规定了TL-UL和TL-UH现有消息的权限转换：</p>
-<ul>
-<li>Get操作隐式地将权限Cap为None（Invalid）。</li>
-<li>PutFullData、PutPartialData、ArthmeticData、LogicalData隐式地将权限Cap为非Read+Write（主干或顶点），即None（Invalid）或Read（分支）。</li>
-</ul>
-<h3 id="TL-UL-and-TL-UH-messages-on-B-and-C"><a href="#TL-UL-and-TL-UH-messages-on-B-and-C" class="headerlink" title="TL-UL and TL-UH messages on B and C"></a>TL-UL and TL-UH messages on B and C</h3>
-      
-    </div>
-
-    
-    
-    
-
-    <footer class="post-footer">
-        <div class="post-eof"></div>
-      
-    </footer>
-  </article>
-</div>
-
-
-
-
   <nav class="pagination">
-    <span class="page-number current">1</span><a class="page-number" href="/page/2/">2</a><a class="page-number" href="/page/3/">3</a><a class="extend next" rel="next" title="下一页" aria-label="下一页" href="/page/2/"><i class="fa fa-angle-right"></i></a>
+    <span class="page-number current">1</span><a class="page-number" href="/page/2/">2</a><span class="space">&hellip;</span><a class="page-number" href="/page/4/">4</a><a class="extend next" rel="next" title="下一页" aria-label="下一页" href="/page/2/"><i class="fa fa-angle-right"></i></a>
   </nav>
 
 </div>
@@ -1676,13 +1501,13 @@ MEEK改进，并参与流片工作（最高优先级，持续推进）</p>
     <span class="post-meta-item-icon">
       <i class="fa fa-chart-line"></i>
     </span>
-    <span title="站点总字数">149k</span>
+    <span title="站点总字数">150k</span>
   </span>
   <span class="post-meta-item">
     <span class="post-meta-item-icon">
       <i class="fa fa-coffee"></i>
     </span>
-    <span title="站点阅读时长">9:02</span>
+    <span title="站点阅读时长">9:06</span>
   </span>
 </div>
   <div class="powered-by">由 <a href="https://hexo.io/" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.js.org/" rel="noopener" target="_blank">NexT.Gemini</a> 强力驱动

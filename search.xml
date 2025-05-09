@@ -85,73 +85,6 @@
       </categories>
   </entry>
   <entry>
-    <title>BOP预取器</title>
-    <url>/2025/02/05/BOP%E9%A2%84%E5%8F%96%E5%99%A8/</url>
-    <content><![CDATA[<h1 id="BOP介绍"><a href="#BOP介绍" class="headerlink" title="BOP介绍"></a>BOP介绍</h1><p>主要相对于SandBox有更好的timeliness，</p>
-<h1 id="OFFSET-PREFETCHING"><a href="#OFFSET-PREFETCHING" class="headerlink" title="OFFSET PREFETCHING"></a>OFFSET PREFETCHING</h1><p>offset 预取是next line 的扩展，偏移量预取器预取行X +D，其中D为预取偏移量。情况D &#x3D; 1对应于下一行预取。本节提供一些示例来说明为什么偏移预取是一种有效的预取技术。下面的示例假设为64字节行。为方便起见，在存储器区域中访问的行用位向量表示，相邻的位表示相邻的行。位值告诉行是否被访问（“1”）或不被访问（“0”）。我们忽略了页面边界的影响，只考虑长访问流的稳定状态。</p>
-<h2 id="3-1-Example-1-sequential-stream"><a href="#3-1-Example-1-sequential-stream" class="headerlink" title="3.1 Example 1: sequential stream"></a>3.1 Example 1: sequential stream</h2><p>考虑下面的顺序流：111111111111111111…</p>
-<p>也就是说，程序访问的行是X、X+1、X+2，等等。在这个示例中，下一行预取器产生100%的预取覆盖率和准确性。但是，在访问X之后为X+1发出预取可能太迟，无法覆盖从最后一级缓存或内存中获取X+1的全部延迟，从而导致延迟预取。延迟预取可能会加快执行速度，但不如及时预取快。偏移量预取器在顺序流上产生100%的预取覆盖率和准确性，就像下一行预取器一样，但是如果偏移量足够大，可以提供及时的预取。</p>
-<p>另一个可能降低预取覆盖率的因素是scrambling（乱序访存），即内存访问的时间顺序可能与程序顺序不完全匹配[11]。</p>
-<p>一般来说，在长序列流上，对scrambling的容忍度随着偏移量的增大而提高。</p>
-<h2 id="3-2-Example-2-strided-stream"><a href="#3-2-Example-2-strided-stream" class="headerlink" title="3.2 Example 2: strided stream"></a>3.2 Example 2: strided stream</h2><p>考虑一个加载指令访问一个常量步长为+96字节的数组。对于64字节的缓存行，在内存区域中访问的行是：110110110110110110…</p>
-<p>如果在L1处没有步进预取器（或者如果它发出延迟预取），则观察L2访问（如AC&#x2F;DC[22]）的增量相关预取器将在这里完美地工作，因为行步进序列是周期性的（1,2,1,2，…）。尽管如此，在这个例子中，一个简单的偏移量预取器以3的倍数作为偏移量，可以获得100%的覆盖率和准确性。</p>
-<p>通过将偏移量设置为一个周期内跨步的总和或该数字的倍数，理论上，偏移量预取可以在任何周期的行跨步序列上提供100%的覆盖率和准确性。</p>
-<h2 id="3-3-Example-3-interleaved-streams"><a href="#3-3-Example-3-interleaved-streams" class="headerlink" title="3.3 Example 3: interleaved streams"></a>3.3 Example 3: interleaved streams</h2><p>考虑两个交错的流S1和S2访问不同的内存区域，并具有不同的行为：S1: 101010101010101010…</p>
-<p>S2: 110110110110110110…</p>
-<p>流S1单独可以用2的倍数作为偏移量完美地预取。流S2单独可以用3的倍数作为偏移量完美地预取。两个流都可以用6的倍数作为偏移量完美地预取。</p>
-<h1 id="BEST-OFFSET-BO-PREFETCHING"><a href="#BEST-OFFSET-BO-PREFETCHING" class="headerlink" title="BEST-OFFSET (BO) PREFETCHING"></a>BEST-OFFSET (BO) PREFETCHING</h1><p><img src="/2025/02/05/BOP%E9%A2%84%E5%8F%96%E5%99%A8/1731049049568.png" alt="1731049049568"></p>
-<p>图1显示了BO预取器的示意图。</p>
-<p>图1中的符号D表示当前预取偏移量，即当前用于预取的偏移量。当对行X的读请求访问L2缓存时，如果这是一个未命中或预取命中（即，设置了预取位），并且如果X和X +D位于同一内存页，则对行X +D的预取请求被发送到L3缓存。</p>
-<h2 id="4-1-Best-offset-learning"><a href="#4-1-Best-offset-learning" class="headerlink" title="4.1 Best-offset learning"></a>4.1 Best-offset learning</h2><p>预取偏移量D是自动动态设置的，试图适应应用程序的行为，这些行为可能会随着时间的推移而变化。</p>
-<p>最佳偏移学习算法试图通过测试几个不同的偏移来找到最佳的预取偏移量。如果在访问行X时，行X - d最近有一次访问，那么偏移量d可能是一个很好的预取偏移量。然而，X - d最近被访问的事实并不足以保证行X会及时预取。我们希望预取在任何可能的情况下都是及时的。也就是说，对于行X来说，d是一个很好的预取偏移量，行X - d必须最近被访问过，但不是太近。</p>
-<p>理想情况下，访问行X - d和X之间的时间应该大于完成预取请求的延迟。</p>
-<p>我们的解决方案是在最近的请求（RR）表中记录已完成的预取请求的基址。</p>
-<p>基址为触发预取请求的地址：预取行为X +D，则基址为X。从插入L2的预取行地址减去当前预取偏移量得到基址。</p>
-<p>如果行X−d在RR表中，则表示最近下发了对行X−d + D的预取请求，并且已经完成。因此，如果一个预取请求发出的偏移量是d而不是D，那么它将是当前访问的行X的预取，并且这个预取将是及时的（假设取行X的延迟等于取行X - d + D的延迟）。</p>
-<blockquote>
-<p>注：这句话的意思就是偏移量为d的已经预取到X了，也就是D&#x3D;d</p>
-</blockquote>
-<p>对于RR表有几种可能的实现。在本研究中，我们选择最简单的实现：直接映射RR表，通过哈希函数访问，每个表项都包含一个标签（tag）。标签不需要是完整的地址，部分标签就足够了</p>
-<p>除了RR表之外，BO预取器还具有<strong>偏移列表</strong>和<strong>分数表</strong>。分数表将分数与偏移列表中的每个偏移量关联起来。分数值在0到SCOREMAX之间（例如，SCOREMAX&#x3D;31表示5位分数）。</p>
-<p>预取偏移量在每个学习阶段结束时更新。一个学习阶段包括几个回合。在学习阶段开始时，所有分数都重置为0。对于每个符合条件的L2读访问（<strong>未命中或预取命中</strong>），我们从列表中测试偏移量di。如果X−di命中RR表，则增加偏移量di的分数。在一轮中，列表中的每个偏移都测试一次：我们在一轮中第一次访问时测试d1，在下一次访问时测试d2，然后是d3，以此类推。当列表中的所有偏移量都测试完后，当前一轮结束，从偏移量d1再次开始新一轮。</p>
-<blockquote>
-<p>注：预取命中就是命中了预取来的块</p>
-</blockquote>
-<p>当前的学习阶段在一轮结束时，当以下两个事件中的任何一个首先发生：其中一个分数等于SCOREMAX，或者轮数等于ROUNDMAX（一个固定参数）。当学习阶段结束时，我们搜索最佳偏移量，即得分最高的偏移量。这个偏移量成为新的预取偏移量，开始一个新的学习阶段。</p>
-<h2 id="4-2-Offset-list"><a href="#4-2-Offset-list" class="headerlink" title="4.2 Offset list"></a>4.2 Offset list</h2><p>没有什么可以阻止BO预取器使用负偏移值。虽然一些应用程序可能从负偏移中受益，但我们在实验中没有观察到任何好处。因此，我们在本研究中只考虑<strong>正偏移</strong>。有用的偏移量值取决于内存页大小，因为BO预取器不会跨页边界预取。例如，假设4KB页和64B行，一个页包含64行，并且没有必要考虑大于63的偏移值。但是，对于具有超级页面的系统，考虑大于63的偏移量可能是有用的。在偏移列表中包含的偏移量的选择有些随意。例如，一种可能性是包含从1到最大偏移量之间的所有偏移量。然而，这个最大偏移量不能太大，因为较大的偏移量列表意味着较大的分数表和较长的学习阶段。如果我们想让列表包含较大的偏移量，但又不想让列表太大，我们必须采样1和最大偏移量之间的偏移量（这需要将偏移量列表实现为ROM）。使用数千个代表性基准测试的微架构师可能希望对要放在列表中的偏移量进行广泛的探索。我们没有足够的基准来进行这样的探索。</p>
-<p>我们提出了一种偏移采样的方法，它是算法的，不是完全任意的：我们在我们的列表中包括所有在1到256之间的偏移，其质因数分解不包含大于5的质数。这给出了以下52个偏移量的列表：12 3 45 6 8 9 10 12 15 16 18 20 24 25 27 30 32 36 40 45 48 50 54 60 64 72 75 80 81 90 96 100 108 120 125 128 135 144 150 160 162 180 192 200 216 225 240 243 250 256。</p>
-<p>仅考虑具有小质数因子的偏移量有两个好处：</p>
-<p>•小偏移量比大偏移量更具代表性（小偏移量更可能有用）。</p>
-<p>•偏移列表比全偏移范围小得多。</p>
-<p>此外，这种方法与3.3节的例子是一致的：如果列表中有两个偏移量，那么它们的最小公倍数也是如此（前提是它不是太大）。</p>
-<h2 id="4-3-Prefetch-throttling"><a href="#4-3-Prefetch-throttling" class="headerlink" title="4.3 Prefetch throttling"></a>4.3 Prefetch throttling</h2><p>BO预取器是一级预取器：每次访问最多发出一次预取。</p>
-<p>可以想象一个预取度大于1的偏移预取器。例如，二级偏移量预取器将同时预取两个不同的偏移量，最佳偏移量和次最佳偏移量。这可能会为具有不规则访问模式的应用程序带来一些额外的性能。但是，这将增加预取请求的数量，给内存带宽和缓存标签带来更大的压力，除非实现预取过滤器。不需要带有一级BO预取器的预取过滤器。此外，使用两个偏移量的预取可能会在不规则的内存访问模式下产生许多无用的预取。</p>
-<blockquote>
-<p>举例：With two different prefetch offsets D1 and D2, redundant prefetch requests are issued when accessing lines X and X +D1 −D2.</p>
-</blockquote>
-<p>尽管如此，与其他一些预取方法（如跨步预取）相比，BO预取是相对积极的。对不规则访问模式发出的无用预取浪费了能量和内存带宽。在学习阶段结束时获得的最佳分数给出了关于预取准确性的一些信息。如果分数很低，这可能意味着偏移预取失败，我们可能决定关闭预取。我们定义了一个固定的阈值<strong>BADSCORE</strong>，这样当最佳分数不大于BADSCORE时，就会关闭预取。然而，最佳偏移学习永远不会停止，即使在预取关闭时也会继续，因此当应用程序行为发生变化并需要预取时，可以再次打开预取。</p>
-<p>图1说明了预取打开的情况：对于插入L2的每个预取行Y，我们写入地址Y−D 4。这将是一个过拟合的情况。由于D1和D2两个不同的预取偏移量，访问线路X和X +D1−D2时会发出冗余预取请求。到RR表中（如果Y和Y−D在同一页）。在预取关闭的学习阶段，在RR表中的插入被修改：对于每个提取的行Y，我们将地址Y写入RR表（即D &#x3D; 0）。</p>
-<blockquote>
-<p>这里也就是预取关闭D一定为0，所以将Y写入D</p>
-</blockquote>
-<h2 id="4-4-Implementation-details"><a href="#4-4-Implementation-details" class="headerlink" title="4.4 Implementation details"></a>4.4 Implementation details</h2><p>BO预取器具有3个加法器，如图1所示。这些加法器只需要生成页面内一行的位置。例如，对于4MB页面和64B行，每个加法器的宽度为22−6 &#x3D; 16位。页码位只是简单地从基址X或从预取的行地址Y复制（参见图1）。通过简单的哈希函数访问RR表。例如，对于一个包含256个条目的RR表，我们将最低8位行地址位与次低的8位进行异或，以获得表索引。对于12位标签，我们跳过8个最低有效行地址位并提取接下来的12位。</p>
-<h1 id="BASELINE-MICROARCHITECTURE"><a href="#BASELINE-MICROARCHITECTURE" class="headerlink" title="BASELINE MICROARCHITECTURE"></a>BASELINE MICROARCHITECTURE</h1><p>预取不是独立模型，需要考虑其他微结构影响</p>
-<p><img src="/2025/02/05/BOP%E9%A2%84%E5%8F%96%E5%99%A8/1731054466977.png" alt="1731054466977"></p>
-<p>首先这是基线模型，然后测试了1，2，4核工作对core0的影响，462程序会大大降低core0 的ipc</p>
-<p><img src="/2025/02/05/BOP%E9%A2%84%E5%8F%96%E5%99%A8/1731054598236.png" alt="1731054598236"></p>
-<p><img src="/2025/02/05/BOP%E9%A2%84%E5%8F%96%E5%99%A8/1731055018638.png" alt="1731055018638"></p>
-<p>他之后的实验工作就是通过固定offset测试BOP的偏移表是否含在内部，同时对比性能</p>
-]]></content>
-      <categories>
-        <category>论文阅读</category>
-      </categories>
-  </entry>
-  <entry>
-    <title>CDC_DESIGN</title>
-    <url>/2025/03/31/CDC-DESIGN/</url>
-    <content><![CDATA[]]></content>
-  </entry>
-  <entry>
     <title>A Primer on Memory Consistency</title>
     <url>/2025/02/05/A-Primer-on-Memory-Consistency/</url>
     <content><![CDATA[<h1 id="1-介绍"><a href="#1-介绍" class="headerlink" title="1.介绍"></a>1.介绍</h1><blockquote>
@@ -703,6 +636,73 @@
       </categories>
   </entry>
   <entry>
+    <title>BOP预取器</title>
+    <url>/2025/02/05/BOP%E9%A2%84%E5%8F%96%E5%99%A8/</url>
+    <content><![CDATA[<h1 id="BOP介绍"><a href="#BOP介绍" class="headerlink" title="BOP介绍"></a>BOP介绍</h1><p>主要相对于SandBox有更好的timeliness，</p>
+<h1 id="OFFSET-PREFETCHING"><a href="#OFFSET-PREFETCHING" class="headerlink" title="OFFSET PREFETCHING"></a>OFFSET PREFETCHING</h1><p>offset 预取是next line 的扩展，偏移量预取器预取行X +D，其中D为预取偏移量。情况D &#x3D; 1对应于下一行预取。本节提供一些示例来说明为什么偏移预取是一种有效的预取技术。下面的示例假设为64字节行。为方便起见，在存储器区域中访问的行用位向量表示，相邻的位表示相邻的行。位值告诉行是否被访问（“1”）或不被访问（“0”）。我们忽略了页面边界的影响，只考虑长访问流的稳定状态。</p>
+<h2 id="3-1-Example-1-sequential-stream"><a href="#3-1-Example-1-sequential-stream" class="headerlink" title="3.1 Example 1: sequential stream"></a>3.1 Example 1: sequential stream</h2><p>考虑下面的顺序流：111111111111111111…</p>
+<p>也就是说，程序访问的行是X、X+1、X+2，等等。在这个示例中，下一行预取器产生100%的预取覆盖率和准确性。但是，在访问X之后为X+1发出预取可能太迟，无法覆盖从最后一级缓存或内存中获取X+1的全部延迟，从而导致延迟预取。延迟预取可能会加快执行速度，但不如及时预取快。偏移量预取器在顺序流上产生100%的预取覆盖率和准确性，就像下一行预取器一样，但是如果偏移量足够大，可以提供及时的预取。</p>
+<p>另一个可能降低预取覆盖率的因素是scrambling（乱序访存），即内存访问的时间顺序可能与程序顺序不完全匹配[11]。</p>
+<p>一般来说，在长序列流上，对scrambling的容忍度随着偏移量的增大而提高。</p>
+<h2 id="3-2-Example-2-strided-stream"><a href="#3-2-Example-2-strided-stream" class="headerlink" title="3.2 Example 2: strided stream"></a>3.2 Example 2: strided stream</h2><p>考虑一个加载指令访问一个常量步长为+96字节的数组。对于64字节的缓存行，在内存区域中访问的行是：110110110110110110…</p>
+<p>如果在L1处没有步进预取器（或者如果它发出延迟预取），则观察L2访问（如AC&#x2F;DC[22]）的增量相关预取器将在这里完美地工作，因为行步进序列是周期性的（1,2,1,2，…）。尽管如此，在这个例子中，一个简单的偏移量预取器以3的倍数作为偏移量，可以获得100%的覆盖率和准确性。</p>
+<p>通过将偏移量设置为一个周期内跨步的总和或该数字的倍数，理论上，偏移量预取可以在任何周期的行跨步序列上提供100%的覆盖率和准确性。</p>
+<h2 id="3-3-Example-3-interleaved-streams"><a href="#3-3-Example-3-interleaved-streams" class="headerlink" title="3.3 Example 3: interleaved streams"></a>3.3 Example 3: interleaved streams</h2><p>考虑两个交错的流S1和S2访问不同的内存区域，并具有不同的行为：S1: 101010101010101010…</p>
+<p>S2: 110110110110110110…</p>
+<p>流S1单独可以用2的倍数作为偏移量完美地预取。流S2单独可以用3的倍数作为偏移量完美地预取。两个流都可以用6的倍数作为偏移量完美地预取。</p>
+<h1 id="BEST-OFFSET-BO-PREFETCHING"><a href="#BEST-OFFSET-BO-PREFETCHING" class="headerlink" title="BEST-OFFSET (BO) PREFETCHING"></a>BEST-OFFSET (BO) PREFETCHING</h1><p><img src="/2025/02/05/BOP%E9%A2%84%E5%8F%96%E5%99%A8/1731049049568.png" alt="1731049049568"></p>
+<p>图1显示了BO预取器的示意图。</p>
+<p>图1中的符号D表示当前预取偏移量，即当前用于预取的偏移量。当对行X的读请求访问L2缓存时，如果这是一个未命中或预取命中（即，设置了预取位），并且如果X和X +D位于同一内存页，则对行X +D的预取请求被发送到L3缓存。</p>
+<h2 id="4-1-Best-offset-learning"><a href="#4-1-Best-offset-learning" class="headerlink" title="4.1 Best-offset learning"></a>4.1 Best-offset learning</h2><p>预取偏移量D是自动动态设置的，试图适应应用程序的行为，这些行为可能会随着时间的推移而变化。</p>
+<p>最佳偏移学习算法试图通过测试几个不同的偏移来找到最佳的预取偏移量。如果在访问行X时，行X - d最近有一次访问，那么偏移量d可能是一个很好的预取偏移量。然而，X - d最近被访问的事实并不足以保证行X会及时预取。我们希望预取在任何可能的情况下都是及时的。也就是说，对于行X来说，d是一个很好的预取偏移量，行X - d必须最近被访问过，但不是太近。</p>
+<p>理想情况下，访问行X - d和X之间的时间应该大于完成预取请求的延迟。</p>
+<p>我们的解决方案是在最近的请求（RR）表中记录已完成的预取请求的基址。</p>
+<p>基址为触发预取请求的地址：预取行为X +D，则基址为X。从插入L2的预取行地址减去当前预取偏移量得到基址。</p>
+<p>如果行X−d在RR表中，则表示最近下发了对行X−d + D的预取请求，并且已经完成。因此，如果一个预取请求发出的偏移量是d而不是D，那么它将是当前访问的行X的预取，并且这个预取将是及时的（假设取行X的延迟等于取行X - d + D的延迟）。</p>
+<blockquote>
+<p>注：这句话的意思就是偏移量为d的已经预取到X了，也就是D&#x3D;d</p>
+</blockquote>
+<p>对于RR表有几种可能的实现。在本研究中，我们选择最简单的实现：直接映射RR表，通过哈希函数访问，每个表项都包含一个标签（tag）。标签不需要是完整的地址，部分标签就足够了</p>
+<p>除了RR表之外，BO预取器还具有<strong>偏移列表</strong>和<strong>分数表</strong>。分数表将分数与偏移列表中的每个偏移量关联起来。分数值在0到SCOREMAX之间（例如，SCOREMAX&#x3D;31表示5位分数）。</p>
+<p>预取偏移量在每个学习阶段结束时更新。一个学习阶段包括几个回合。在学习阶段开始时，所有分数都重置为0。对于每个符合条件的L2读访问（<strong>未命中或预取命中</strong>），我们从列表中测试偏移量di。如果X−di命中RR表，则增加偏移量di的分数。在一轮中，列表中的每个偏移都测试一次：我们在一轮中第一次访问时测试d1，在下一次访问时测试d2，然后是d3，以此类推。当列表中的所有偏移量都测试完后，当前一轮结束，从偏移量d1再次开始新一轮。</p>
+<blockquote>
+<p>注：预取命中就是命中了预取来的块</p>
+</blockquote>
+<p>当前的学习阶段在一轮结束时，当以下两个事件中的任何一个首先发生：其中一个分数等于SCOREMAX，或者轮数等于ROUNDMAX（一个固定参数）。当学习阶段结束时，我们搜索最佳偏移量，即得分最高的偏移量。这个偏移量成为新的预取偏移量，开始一个新的学习阶段。</p>
+<h2 id="4-2-Offset-list"><a href="#4-2-Offset-list" class="headerlink" title="4.2 Offset list"></a>4.2 Offset list</h2><p>没有什么可以阻止BO预取器使用负偏移值。虽然一些应用程序可能从负偏移中受益，但我们在实验中没有观察到任何好处。因此，我们在本研究中只考虑<strong>正偏移</strong>。有用的偏移量值取决于内存页大小，因为BO预取器不会跨页边界预取。例如，假设4KB页和64B行，一个页包含64行，并且没有必要考虑大于63的偏移值。但是，对于具有超级页面的系统，考虑大于63的偏移量可能是有用的。在偏移列表中包含的偏移量的选择有些随意。例如，一种可能性是包含从1到最大偏移量之间的所有偏移量。然而，这个最大偏移量不能太大，因为较大的偏移量列表意味着较大的分数表和较长的学习阶段。如果我们想让列表包含较大的偏移量，但又不想让列表太大，我们必须采样1和最大偏移量之间的偏移量（这需要将偏移量列表实现为ROM）。使用数千个代表性基准测试的微架构师可能希望对要放在列表中的偏移量进行广泛的探索。我们没有足够的基准来进行这样的探索。</p>
+<p>我们提出了一种偏移采样的方法，它是算法的，不是完全任意的：我们在我们的列表中包括所有在1到256之间的偏移，其质因数分解不包含大于5的质数。这给出了以下52个偏移量的列表：12 3 45 6 8 9 10 12 15 16 18 20 24 25 27 30 32 36 40 45 48 50 54 60 64 72 75 80 81 90 96 100 108 120 125 128 135 144 150 160 162 180 192 200 216 225 240 243 250 256。</p>
+<p>仅考虑具有小质数因子的偏移量有两个好处：</p>
+<p>•小偏移量比大偏移量更具代表性（小偏移量更可能有用）。</p>
+<p>•偏移列表比全偏移范围小得多。</p>
+<p>此外，这种方法与3.3节的例子是一致的：如果列表中有两个偏移量，那么它们的最小公倍数也是如此（前提是它不是太大）。</p>
+<h2 id="4-3-Prefetch-throttling"><a href="#4-3-Prefetch-throttling" class="headerlink" title="4.3 Prefetch throttling"></a>4.3 Prefetch throttling</h2><p>BO预取器是一级预取器：每次访问最多发出一次预取。</p>
+<p>可以想象一个预取度大于1的偏移预取器。例如，二级偏移量预取器将同时预取两个不同的偏移量，最佳偏移量和次最佳偏移量。这可能会为具有不规则访问模式的应用程序带来一些额外的性能。但是，这将增加预取请求的数量，给内存带宽和缓存标签带来更大的压力，除非实现预取过滤器。不需要带有一级BO预取器的预取过滤器。此外，使用两个偏移量的预取可能会在不规则的内存访问模式下产生许多无用的预取。</p>
+<blockquote>
+<p>举例：With two different prefetch offsets D1 and D2, redundant prefetch requests are issued when accessing lines X and X +D1 −D2.</p>
+</blockquote>
+<p>尽管如此，与其他一些预取方法（如跨步预取）相比，BO预取是相对积极的。对不规则访问模式发出的无用预取浪费了能量和内存带宽。在学习阶段结束时获得的最佳分数给出了关于预取准确性的一些信息。如果分数很低，这可能意味着偏移预取失败，我们可能决定关闭预取。我们定义了一个固定的阈值<strong>BADSCORE</strong>，这样当最佳分数不大于BADSCORE时，就会关闭预取。然而，最佳偏移学习永远不会停止，即使在预取关闭时也会继续，因此当应用程序行为发生变化并需要预取时，可以再次打开预取。</p>
+<p>图1说明了预取打开的情况：对于插入L2的每个预取行Y，我们写入地址Y−D 4。这将是一个过拟合的情况。由于D1和D2两个不同的预取偏移量，访问线路X和X +D1−D2时会发出冗余预取请求。到RR表中（如果Y和Y−D在同一页）。在预取关闭的学习阶段，在RR表中的插入被修改：对于每个提取的行Y，我们将地址Y写入RR表（即D &#x3D; 0）。</p>
+<blockquote>
+<p>这里也就是预取关闭D一定为0，所以将Y写入D</p>
+</blockquote>
+<h2 id="4-4-Implementation-details"><a href="#4-4-Implementation-details" class="headerlink" title="4.4 Implementation details"></a>4.4 Implementation details</h2><p>BO预取器具有3个加法器，如图1所示。这些加法器只需要生成页面内一行的位置。例如，对于4MB页面和64B行，每个加法器的宽度为22−6 &#x3D; 16位。页码位只是简单地从基址X或从预取的行地址Y复制（参见图1）。通过简单的哈希函数访问RR表。例如，对于一个包含256个条目的RR表，我们将最低8位行地址位与次低的8位进行异或，以获得表索引。对于12位标签，我们跳过8个最低有效行地址位并提取接下来的12位。</p>
+<h1 id="BASELINE-MICROARCHITECTURE"><a href="#BASELINE-MICROARCHITECTURE" class="headerlink" title="BASELINE MICROARCHITECTURE"></a>BASELINE MICROARCHITECTURE</h1><p>预取不是独立模型，需要考虑其他微结构影响</p>
+<p><img src="/2025/02/05/BOP%E9%A2%84%E5%8F%96%E5%99%A8/1731054466977.png" alt="1731054466977"></p>
+<p>首先这是基线模型，然后测试了1，2，4核工作对core0的影响，462程序会大大降低core0 的ipc</p>
+<p><img src="/2025/02/05/BOP%E9%A2%84%E5%8F%96%E5%99%A8/1731054598236.png" alt="1731054598236"></p>
+<p><img src="/2025/02/05/BOP%E9%A2%84%E5%8F%96%E5%99%A8/1731055018638.png" alt="1731055018638"></p>
+<p>他之后的实验工作就是通过固定offset测试BOP的偏移表是否含在内部，同时对比性能</p>
+]]></content>
+      <categories>
+        <category>论文阅读</category>
+      </categories>
+  </entry>
+  <entry>
+    <title>CDC_DESIGN</title>
+    <url>/2025/03/31/CDC-DESIGN/</url>
+    <content><![CDATA[]]></content>
+  </entry>
+  <entry>
     <title>DNN 加速器</title>
     <url>/2025/02/05/DNN-%E5%8A%A0%E9%80%9F%E5%99%A8/</url>
     <content><![CDATA[<h1 id="DNN加速器综述"><a href="#DNN加速器综述" class="headerlink" title="DNN加速器综述"></a>DNN加速器综述</h1><h2 id="硬件方案"><a href="#硬件方案" class="headerlink" title="硬件方案"></a>硬件方案</h2><p>两种架构:temporal and spatial architectures<br><img src="/2025/02/05/DNN-%E5%8A%A0%E9%80%9F%E5%99%A8/image00.png" alt="alt text"><br>其中asic和fpga主要为spatial结构,而CPU和GPU主要为temporal结构<br><strong>本次主要介绍空间架构</strong><br>这种结构有相当一部分能耗在存储上,故数据重用是研究重点<br><img src="/2025/02/05/DNN-%E5%8A%A0%E9%80%9F%E5%99%A8/image-1.png" alt="基本结构"><br>一些重用名词<br>input reuse:FC层<br>weight reuse:CONV层<br>conv reuse:卷积层的滑窗每次都有重复的<br><strong>Weight Stationary</strong><br>所有使用相同weight的mac必须映射到同一PE上进行串行处理。这最大限度地提高了RF中权重的卷积和滤波器重用，从而最大限度地减少了访问权重的能量消耗<br><img src="/2025/02/05/DNN-%E5%8A%A0%E9%80%9F%E5%99%A8/image-2.png" alt="alt text"><br>这是一个3x3的矩阵2x2的卷积核,最后生成2x2的输出<br><img src="/2025/02/05/DNN-%E5%8A%A0%E9%80%9F%E5%99%A8/image-3.png" alt="alt text"><br>先说上面那一种<br>仅介绍一个输出元素如何产生的,<br>T1:I0XW0<br>T2:I0XW0+I1XW1<br>T3:将结果移入PE2<br>T4:I0XW0+I1XW1+I2XW2<br>T5:I0XW0+I1XW1+I2XW2+I3XW3,完成一次卷积操作<br>下面哪一种和上面类似,不过是再次分块了<br><strong>Output Stationary</strong><br>映射规则是对相同的输出像素的所有mac必须依次映射到同一PE上。<br><img src="/2025/02/05/DNN-%E5%8A%A0%E9%80%9F%E5%99%A8/image-4.png" alt="alt text"><br><strong>Row Stationary</strong><br><img src="/2025/02/05/DNN-%E5%8A%A0%E9%80%9F%E5%99%A8/image-5.png" alt="alt text"><br><strong>No Local Reuse</strong><br><img src="/2025/02/05/DNN-%E5%8A%A0%E9%80%9F%E5%99%A8/image-6.png" alt="alt text"></p>
@@ -710,6 +710,82 @@
       <categories>
         <category>论文阅读</category>
       </categories>
+  </entry>
+  <entry>
+    <title>FDIP</title>
+    <url>/2025/05/07/FDIP/</url>
+    <content><![CDATA[<h1 id="具体微结构"><a href="#具体微结构" class="headerlink" title="具体微结构"></a><strong>具体微结构</strong></h1><p>首先先翻译一下：</p>
+<p>在[14]中，我们研究了分支预测器与指令缓存的解耦。为了提供解耦的前端，提取目标队列(FTQ)用于桥接分支预测器和指令高速缓存之间的间隙。每个周期，分支预测器都会产生一个提取目标块预测，并将其存储在FTQ中，最终由指令缓存使用。FTQ提供允许分支预测器和指令高速缓存自主操作所需的缓冲。当分支预测器由于高速缓存未命中或指令缓冲区已满而暂停时，FTQ允许分支预测器在指令高速缓存之前工作。如果指令高速缓存是多端口的，则可以在单个周期内消耗多个有效的FTQ条目，直到端口耗尽。</p>
+<p>任何分支预测器(基本块目标缓冲器[22]、提前两个块预测器[15]或提取目标缓冲器[14])都可以放在FTQ之前，并产生要由指令高速缓存消耗的提取块地址。正是FTQ允许分支预测器在指令缓存之前运行。</p>
+<p><img src="/2025/05/07/FDIP/image-20250507155259388.png" alt="image-20250507155259388"></p>
+<p>FTQ包含一个提取块，当数据缓存或者指令缓存未命中，从PIQ开始预取。</p>
+<h3 id="Prefetch-Buffer-的工作机制"><a href="#Prefetch-Buffer-的工作机制" class="headerlink" title="Prefetch Buffer 的工作机制"></a><strong>Prefetch Buffer 的工作机制</strong></h3><p>在论文提出的 <strong>Fetch Directed Prefetching (FDP)</strong> 架构中，<strong>Prefetch Buffer</strong> 是一个关键组件，用于临时存储通过分支预测器前瞻生成的指令缓存块。以下是其具体工作原理和设计细节的详细解析：</p>
+<hr>
+<h4 id="1-Prefetch-Buffer-的核心作用"><a href="#1-Prefetch-Buffer-的核心作用" class="headerlink" title="1. Prefetch Buffer 的核心作用"></a><strong>1. Prefetch Buffer 的核心作用</strong></h4><ul>
+<li><strong>目标</strong>：通过提前将未来可能需要的指令缓存块加载到缓冲区，减少指令缓存未命中带来的延迟。</li>
+<li><strong>数据来源</strong>：由 <strong>Fetch Target Queue (FTQ)</strong> 中的候选预取地址生成。</li>
+<li><strong>与指令缓存的协作</strong>：在指令缓存查询时，Prefetch Buffer 并行查找；若命中，则直接将缓存块插入指令缓存。</li>
+</ul>
+<hr>
+<h4 id="2-Prefetch-Buffer-的结构设计"><a href="#2-Prefetch-Buffer-的结构设计" class="headerlink" title="2. Prefetch Buffer 的结构设计"></a><strong>2. Prefetch Buffer 的结构设计</strong></h4><p>- </p>
+<p>  FIFO 队列结构</p>
+<p>  ：</p>
+<ul>
+<li><p>采用先进先出（FIFO）的队列结构，新预取的缓存块插入队尾，最旧的块在队首。</p>
+</li>
+<li><p><strong>容量</strong>：论文中未明确指定具体条目数，但提及使用类似流式缓冲区的设计（例如 4 条目或更多）。</p>
+</li>
+<li><p><strong>条目内容</strong>：每个条目存储一个完整的指令缓存块（如 32 字节）及其地址标签。</p>
+</li>
+<li><p><strong>替换策略</strong>：当缓冲区满时，新预取请求需等待旧条目被消费或替换。</p>
+</li>
+</ul>
+<hr>
+<h4 id="3-预取流程的触发与管理"><a href="#3-预取流程的触发与管理" class="headerlink" title="3. 预取流程的触发与管理"></a><strong>3. 预取流程的触发与管理</strong></h4><p>- </p>
+<p>  预取地址的生成</p>
+<p>  ：</p>
+<ul>
+<li><p>FTQ 中的每个条目包含多个候选预取地址（每个地址对应一个缓存块）。</p>
+</li>
+<li><p>这些地址通过分支预测器生成，并标记为“候选预取位”（Candidate Bit）。</p>
+</li>
+<li></li>
+</ul>
+<p>  Prefetch Instruction Queue (PIQ)</p>
+<p>  ：</p>
+<ul>
+<li>候选地址首先进入 PIQ 等待调度。</li>
+<li>优先级：指令缓存未命中 &gt; 数据缓存未命中 &gt; 预取请求。</li>
+<li>当 L2 总线空闲时，从 PIQ 中取出地址发起预取请求。</li>
+</ul>
+<hr>
+<h4 id="4-预取缓冲区的操作流程"><a href="#4-预取缓冲区的操作流程" class="headerlink" title="4. 预取缓冲区的操作流程"></a><strong>4. 预取缓冲区的操作流程</strong></h4><p>1. </p>
+<p>   预取填充</p>
+<p>   ：</p>
+<ul>
+<li>从 PIQ 获取地址后，向 L2 缓存发起预取请求。</li>
+<li>预取的数据块存入 Prefetch Buffer 队尾。</li>
+</ul>
+<p>2. </p>
+<p>   指令缓存查询时的并行查找</p>
+<p>   ：</p>
+<ul>
+<li>当指令缓存需要访问某个地址时，同时查询指令缓存和 Prefetch Buffer。</li>
+<li>若在 Prefetch Buffer 中找到匹配项（命中）：<ul>
+<li>命中条目（通常是最旧条目）被移出缓冲区。</li>
+<li>该缓存块直接插入指令缓存，替换原有未命中的块。</li>
+</ul>
+</li>
+</ul>
+<p>3. </p>
+<p>   分支误预测的处理</p>
+<p>   ：</p>
+<ul>
+<li>发生分支误预测时，FTQ 和 Prefetch Buffer 会被清空（Flush），确保预取路径与正确执行路径一致。</li>
+</ul>
+<p><strong>如果cache未命中，且预取缓冲区有数据，此时如何解决？</strong></p>
+<p>论文并未提出，不过如果命中可以直接从缓冲区取出数据，类似于压缩队列</p>
+]]></content>
   </entry>
   <entry>
     <title>Goals in this year</title>
@@ -915,6 +991,23 @@ MEEK改进，并参与流片工作（最高优先级，持续推进）</p>
       <categories>
         <category>论文阅读</category>
       </categories>
+  </entry>
+  <entry>
+    <title>PDIP</title>
+    <url>/2025/05/07/PDIP/</url>
+    <content><![CDATA[]]></content>
+  </entry>
+  <entry>
+    <title>MLOP</title>
+    <url>/2025/02/13/MLOP/</url>
+    <content><![CDATA[<h1 id="Multi-Lookahead-Offset-Prefetching"><a href="#Multi-Lookahead-Offset-Prefetching" class="headerlink" title="Multi-Lookahead Offset Prefetching"></a>Multi-Lookahead Offset Prefetching</h1><h2 id="摘要"><a href="#摘要" class="headerlink" title="摘要"></a>摘要</h2><p>讲的就是MLOP集timelineness和coverage于一体，并且可以弥补BOP只能预测一个offset，MLOP使用一个轻量级的硬件结构，由一个小存储器和一个简单的逻辑组成，用于识别在不同预测前瞻下可以覆盖特定缓存未命中的预取偏移量。基于此，MLOP为预取偏移量分配分数，并为每个前瞻选择分数最高的偏移量来发出预取请求。我们评估并比较了MLOP与各种最近的先进数据预取器，并表明我们的提议比没有数据预取器的系统提高了30%的系统性能，比之前性能最好的数据预取器提高了4%。</p>
+<h2 id="提议"><a href="#提议" class="headerlink" title="提议"></a><strong>提议</strong></h2><p><img src="/2025/02/13/MLOP/1739438759612.png" alt="1739438759612"></p>
+<p>偏移量在前瞻级别X的分数表示预取器能够预取访问的次数，至少在发生前X次访问，例如，偏移量在前瞻级别1的分数表示预取器能够预取任何未来访问的次数</p>
+<p>AMT中存放的是一个一个region的memory访问情况 每个region对应一个entry, entry中存储一个bit vector, 表示每一个位置是否被访问过了。 此外，每个region还会有一个history queue。以queue的形式存最近k个访问的offset，然后每个位向量都有level个级别的历史访问顺序。</p>
+<p>因为MLOP有多个lookahead level, 每个level有自己的最佳offset。因此，MLOP开了level个score table, 记录当前level每个offset的得分</p>
+<p>为了在前瞻级别1更新偏移量分数，每当发生访问时，我们找到其对应的位向量（使用其高位来搜索AMT），然后根据位向量信息，识别可以预取该访问的偏移量，并相应地增加这些偏移量在第一前瞻级别的分数。最后，我们在AMT中设置当前访问块对应的位。更新高位的分数需要先屏蔽低位的访问</p>
+<p>说实话他这个论文比较空，建议读ppt</p>
+]]></content>
   </entry>
   <entry>
     <title>MEEK 代码阅读</title>
@@ -1926,91 +2019,439 @@ CDC入队条件比较弱,考虑更改</p>
 <td></td>
 </tr>
 </tbody></table>
+<p><strong>gemm</strong></p>
+<p><img src="/2025/02/21/MEEK-%E4%BB%A3%E7%A0%81%E9%98%85%E8%AF%BB/image-20250506111950608.png" alt="image-20250506111950608"></p>
+<table>
+<thead>
+<tr>
+<th></th>
+<th>IPC</th>
+<th>total cycle</th>
+<th>cdc_bp</th>
+<th>no_core_avaliable</th>
+<th>ic_stall</th>
+<th></th>
+</tr>
+</thead>
+<tbody><tr>
+<td>未开check</td>
+<td>1.965</td>
+<td>182857</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td></td>
+</tr>
+<tr>
+<td>2 core</td>
+<td>0.835</td>
+<td>429344</td>
+<td>0</td>
+<td>230183&#x2F;53.7%&#x2F;100%</td>
+<td>230434&#x2F;53.7%</td>
+<td></td>
+</tr>
+<tr>
+<td>4 core</td>
+<td>1.608</td>
+<td>223510</td>
+<td>0</td>
+<td>72858&#x2F;21.3%&#x2F;97.8%</td>
+<td>23046&#x2F;10%</td>
+<td></td>
+</tr>
+<tr>
+<td>6 core</td>
+<td>1.766</td>
+<td>203488</td>
+<td>0</td>
+<td>913&#x2F;4.5%&#x2F;45.1%</td>
+<td>2025&#x2F;1%</td>
+<td></td>
+</tr>
+</tbody></table>
+<table>
+<thead>
+<tr>
+<th></th>
+<th>core1</th>
+<th>core2</th>
+<th>core3</th>
+<th>core4</th>
+<th>avag</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>IPC</td>
+<td>0.86</td>
+<td>0.85</td>
+<td>0.86</td>
+<td>0.84</td>
+<td>0.855</td>
+</tr>
+<tr>
+<td>分支误预测</td>
+<td>0.9%</td>
+<td>1.1%</td>
+<td>0.8%</td>
+<td>1.1%</td>
+<td>1%</td>
+</tr>
+<tr>
+<td>ICache缺失率</td>
+<td>0.04%</td>
+<td>0.01%</td>
+<td>0.05%</td>
+<td>0.06%</td>
+<td>0.04%</td>
+</tr>
+<tr>
+<td>DIV Block</td>
+<td>0.67%</td>
+<td>0.83%</td>
+<td>0.81%</td>
+<td>0.82%</td>
+<td>0.78%</td>
+</tr>
+</tbody></table>
+<p><strong>mcf</strong></p>
+<p><img src="/2025/02/21/MEEK-%E4%BB%A3%E7%A0%81%E9%98%85%E8%AF%BB/image-20250506112003438.png" alt="image-20250506112003438"></p>
+<table>
+<thead>
+<tr>
+<th></th>
+<th>IPC</th>
+<th>total cycle</th>
+<th>cdc_bp</th>
+<th>no_core_avaliable</th>
+<th>ic_stall</th>
+<th></th>
+</tr>
+</thead>
+<tbody><tr>
+<td>未开check</td>
+<td>1.671</td>
+<td>1906116</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td></td>
+</tr>
+<tr>
+<td>2 core</td>
+<td>0.72</td>
+<td>4869315</td>
+<td>0</td>
+<td>3015365&#x2F;55.2%&#x2F;99.7%</td>
+<td>3021601&#x2F;55.3%</td>
+<td></td>
+</tr>
+<tr>
+<td>4 core</td>
+<td>1.265</td>
+<td>2518167</td>
+<td>0</td>
+<td>72858&#x2F;21.3%&#x2F;97.8%</td>
+<td>660083&#x2F;21.7%</td>
+<td></td>
+</tr>
+<tr>
+<td>6 core</td>
+<td>1.666</td>
+<td>1912461</td>
+<td>0</td>
+<td>8211&#x2F;0.4%&#x2F;37.8%</td>
+<td>21735&#x2F;1.1%</td>
+<td></td>
+</tr>
+</tbody></table>
+<table>
+<thead>
+<tr>
+<th></th>
+<th>core1</th>
+<th>core2</th>
+<th>core3</th>
+<th>core4</th>
+<th>avag</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>IPC</td>
+<td>0.74</td>
+<td></td>
+<td></td>
+<td>0.67</td>
+<td>0.7</td>
+</tr>
+<tr>
+<td>分支误预测</td>
+<td>5.5%</td>
+<td></td>
+<td></td>
+<td>6.7%</td>
+<td>6%</td>
+</tr>
+<tr>
+<td>ICache缺失率</td>
+<td>0.02%</td>
+<td></td>
+<td></td>
+<td>0.03%</td>
+<td>0.02%</td>
+</tr>
+<tr>
+<td>DIV Block</td>
+<td>1.4%</td>
+<td></td>
+<td></td>
+<td>1.2%</td>
+<td>1.3%</td>
+</tr>
+</tbody></table>
+<p><strong>linpack</strong></p>
+<p><img src="/2025/02/21/MEEK-%E4%BB%A3%E7%A0%81%E9%98%85%E8%AF%BB/image-20250506131003932.png" alt="image-20250506131003932"></p>
+<table>
+<thead>
+<tr>
+<th></th>
+<th>IPC</th>
+<th>total cycle</th>
+<th>cdc_bp</th>
+<th>no_core_avaliable</th>
+<th>ic_stall</th>
+<th></th>
+</tr>
+</thead>
+<tbody><tr>
+<td>未开check</td>
+<td>1.796</td>
+<td>243676</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td></td>
+</tr>
+<tr>
+<td>2 core</td>
+<td>0.508</td>
+<td>868162</td>
+<td>0</td>
+<td>632489&#x2F;72.9%&#x2F;100%</td>
+<td>633141&#x2F;72.9%</td>
+<td></td>
+</tr>
+<tr>
+<td>4 core</td>
+<td>0.982</td>
+<td>445532</td>
+<td>0</td>
+<td></td>
+<td>214406&#x2F;48.1%</td>
+<td></td>
+</tr>
+<tr>
+<td>6 core</td>
+<td>1.387</td>
+<td>315550</td>
+<td>0</td>
+<td>78638&#x2F;24.9%&#x2F;95.8%</td>
+<td>82092&#x2F;26.0%</td>
+<td></td>
+</tr>
+</tbody></table>
+<table>
+<thead>
+<tr>
+<th></th>
+<th>core1</th>
+<th>core2</th>
+<th>core3</th>
+<th>core4</th>
+<th>avag</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>IPC</td>
+<td>0.52</td>
+<td>0.53</td>
+<td></td>
+<td></td>
+<td>0.527</td>
+</tr>
+<tr>
+<td>分支误预测</td>
+<td>7.6%</td>
+<td>7.7%</td>
+<td></td>
+<td></td>
+<td>7.6%</td>
+</tr>
+<tr>
+<td>ICache缺失率</td>
+<td>0.03%</td>
+<td>0.03%</td>
+<td></td>
+<td></td>
+<td>0.03%</td>
+</tr>
+<tr>
+<td>DIV Block</td>
+<td>0.81%</td>
+<td>0.66%</td>
+<td></td>
+<td></td>
+<td>0.74%</td>
+</tr>
+</tbody></table>
+<p><strong>whetstone</strong></p>
+<p><img src="/2025/02/21/MEEK-%E4%BB%A3%E7%A0%81%E9%98%85%E8%AF%BB/image-20250506133923975.png" alt="image-20250506133923975"></p>
+<table>
+<thead>
+<tr>
+<th></th>
+<th>IPC</th>
+<th>total cycle</th>
+<th>cdc_bp</th>
+<th>no_core_avaliable</th>
+<th>ic_stall</th>
+<th></th>
+</tr>
+</thead>
+<tbody><tr>
+<td>未开check</td>
+<td>0.363</td>
+<td>180812</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td></td>
+</tr>
+<tr>
+<td>2 core</td>
+<td>0.283</td>
+<td>225835</td>
+<td>0</td>
+<td>48576&#x2F;21.5%&#x2F;100%</td>
+<td>48624&#x2F;21.5%</td>
+<td></td>
+</tr>
+<tr>
+<td>4 core</td>
+<td>0.356</td>
+<td>181373</td>
+<td>0</td>
+<td></td>
+<td>1728&#x2F;1%</td>
+<td></td>
+</tr>
+<tr>
+<td>6 core</td>
+<td>0.359</td>
+<td>180019</td>
+<td>0</td>
+<td>2&#x2F;0%&#x2F;1%</td>
+<td>213&#x2F;0.01%</td>
+<td></td>
+</tr>
+</tbody></table>
+<table>
+<thead>
+<tr>
+<th></th>
+<th>core1</th>
+<th>core2</th>
+<th>core3</th>
+<th>core4</th>
+<th>avag</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>IPC</td>
+<td>0.374</td>
+<td></td>
+<td>0.376</td>
+<td>0.274</td>
+<td>0.348</td>
+</tr>
+<tr>
+<td>分支误预测</td>
+<td>2.1%</td>
+<td></td>
+<td>3.2%</td>
+<td>1.9%</td>
+<td>2.5%</td>
+</tr>
+<tr>
+<td>ICache缺失率</td>
+<td>0.2%</td>
+<td></td>
+<td>0.03%</td>
+<td>0.2%</td>
+<td>0.03%</td>
+</tr>
+<tr>
+<td>DIV Block</td>
+<td>0%</td>
+<td></td>
+<td></td>
+<td></td>
+<td>0%</td>
+</tr>
+</tbody></table>
+<p><img src="/2025/02/21/MEEK-%E4%BB%A3%E7%A0%81%E9%98%85%E8%AF%BB/IPC.png" alt="IPC">![4core_slowdown](MEEK-代码阅读&#x2F;4core_slowdown.png</p>
+<p><img src="/2025/02/21/MEEK-%E4%BB%A3%E7%A0%81%E9%98%85%E8%AF%BB/core.png" alt="core"></p>
+<p><img src="/2025/02/21/MEEK-%E4%BB%A3%E7%A0%81%E9%98%85%E8%AF%BB/image-20250506165037770.png" alt="image-20250506165037770"></p>
+<p><img src="/2025/02/21/MEEK-%E4%BB%A3%E7%A0%81%E9%98%85%E8%AF%BB/4core_no.png" alt="4core_no"></p>
 ]]></content>
       <categories>
         <category>代码阅读</category>
       </categories>
   </entry>
   <entry>
-    <title>MLOP</title>
-    <url>/2025/02/13/MLOP/</url>
-    <content><![CDATA[<h1 id="Multi-Lookahead-Offset-Prefetching"><a href="#Multi-Lookahead-Offset-Prefetching" class="headerlink" title="Multi-Lookahead Offset Prefetching"></a>Multi-Lookahead Offset Prefetching</h1><h2 id="摘要"><a href="#摘要" class="headerlink" title="摘要"></a>摘要</h2><p>讲的就是MLOP集timelineness和coverage于一体，并且可以弥补BOP只能预测一个offset，MLOP使用一个轻量级的硬件结构，由一个小存储器和一个简单的逻辑组成，用于识别在不同预测前瞻下可以覆盖特定缓存未命中的预取偏移量。基于此，MLOP为预取偏移量分配分数，并为每个前瞻选择分数最高的偏移量来发出预取请求。我们评估并比较了MLOP与各种最近的先进数据预取器，并表明我们的提议比没有数据预取器的系统提高了30%的系统性能，比之前性能最好的数据预取器提高了4%。</p>
-<h2 id="提议"><a href="#提议" class="headerlink" title="提议"></a><strong>提议</strong></h2><p><img src="/2025/02/13/MLOP/1739438759612.png" alt="1739438759612"></p>
-<p>偏移量在前瞻级别X的分数表示预取器能够预取访问的次数，至少在发生前X次访问，例如，偏移量在前瞻级别1的分数表示预取器能够预取任何未来访问的次数</p>
-<p>AMT中存放的是一个一个region的memory访问情况 每个region对应一个entry, entry中存储一个bit vector, 表示每一个位置是否被访问过了。 此外，每个region还会有一个history queue。以queue的形式存最近k个访问的offset，然后每个位向量都有level个级别的历史访问顺序。</p>
-<p>因为MLOP有多个lookahead level, 每个level有自己的最佳offset。因此，MLOP开了level个score table, 记录当前level每个offset的得分</p>
-<p>为了在前瞻级别1更新偏移量分数，每当发生访问时，我们找到其对应的位向量（使用其高位来搜索AMT），然后根据位向量信息，识别可以预取该访问的偏移量，并相应地增加这些偏移量在第一前瞻级别的分数。最后，我们在AMT中设置当前访问块对应的位。更新高位的分数需要先屏蔽低位的访问</p>
-<p>说实话他这个论文比较空，建议读ppt</p>
-]]></content>
-  </entry>
-  <entry>
-    <title>PGC</title>
-    <url>/2025/04/11/PGC/</url>
-    <content><![CDATA[<h1 id="To-Cross-or-Not-to-Cross-Pages-for-Prefetching"><a href="#To-Cross-or-Not-to-Cross-Pages-for-Prefetching" class="headerlink" title="To Cross, or Not to Cross Pages for Prefetching?"></a>To Cross, or Not to Cross Pages for Prefetching?</h1><p>这项研究的目标是L1D预取器，而不是低级高速缓存预取器，因为一级高速缓存可以直接访问虚拟内存子系统，而不是低级高速缓存。</p>
-<h2 id="II-MOTIVATION"><a href="#II-MOTIVATION" class="headerlink" title="II. MOTIVATION"></a>II. MOTIVATION</h2><p><strong>1) First-Level Caches and Page-Cross Prefetching:</strong></p>
-<p>在虚拟地址空间中容易检测到的模式可能在物理地址空间中难以检测到，因为在虚拟地址空间中相邻的两个地址可能在物理地址空间中相隔很远[48]。一级缓存是VIPT，可以直接访问TLB，但不准确的跨页预取可能会导致5次·内存访问，（(最多4次内存访问用于推测性页遍历[12]，1次内存访问用于高速缓存预取请求)）</p>
-<p><strong>2) Lower-Level Caches and Page-Cross Prefetching:</strong></p>
-<p>放置在低级高速缓存旁边的预取器(L2C有限责任公司)[18]，[20]，[42]，[48]，[49]，[71]，[77]，[92]，[93]使用物理地址驱动预取决策，因为这些高速缓存被实现为物理索引的物理标记(PIPT)结构[15]。出于安全原因，这些预取器通常只允许在物理页面边界内预取，因为不能保证物理地址的连续性[89]</p>
-<h3 id="Trends-on-Page-Cross-Prefetching"><a href="#Trends-on-Page-Cross-Prefetching" class="headerlink" title="Trends on Page-Cross Prefetching"></a>Trends on Page-Cross Prefetching</h3><p><strong>学术观点</strong>：</p>
-<p>这些作品通常设计新的预取器，其将高速缓存访问与比先前设计更多的特征相关联，以捕获更独特的模式。学术L1D预取器主要限于页面边界内的预取，并且它们没有针对跨页面边界进行优化，尽管它们可以直接访问虚拟内存子系统(第II-A节)。</p>
-<p><strong>工业界</strong>：</p>
-<p>当预取器能够准确地执行跨页预取时，将L1D预取器限制为在页边界内预取提供了次优的收益。虽然学术著作仍然限制L1D预取器在页边界内预取，但供应商允许L1D预取器跨页边界预取[3]、[8]、[29]、[35]。跨页预取需要通过TLB层次结构，并可能启动页遍历，该页遍历在TLB中获取预取块所在页的翻译；第II-A节介绍了跨页预取的优点和缺点。但是，供应商没有提供额外的信息。目前还不清楚供应商是遵循始终允许跨页面预取的静态策略，还是使用跨页面边界协调预取的技术。</p>
-<p><img src="/2025/04/11/PGC/image-20250411094640722.png" alt="image-20250411094640722"></p>
-<p><img src="/2025/04/11/PGC/image-20250411094652527.png" alt="image-20250411094652527"></p>
-<p>图3表示了(I)有用的跨页预取，即在其在高速缓存中的生命周期内提供至少一次命中的预取，以及(ii)无用的跨页预取，I</p>
-<p>然后引出图4</p>
-<p><img src="/2025/04/11/PGC/image-20250411094740926.png" alt="image-20250411094740926"></p>
-<p>有用的预取一般会降低TLB KPKI,无用的预取大幅增加MPKI而导致不必要的内存访问（页表遍历）</p>
-<p><strong>A scheme able to accurately enable page-cross prefetching only when is beneficial has the potential to deliver</strong><br><strong>significant performance enhancements.</strong></p>
-<h2 id="PAGE-CROSS-PREFETCH-FILTERING"><a href="#PAGE-CROSS-PREFETCH-FILTERING" class="headerlink" title="PAGE-CROSS PREFETCH FILTERING"></a>PAGE-CROSS PREFETCH FILTERING</h2><p>提出了新的跨页预取算法：MOKA</p>
-<p>(1)预测跨页边界预取的有用性的各种程序特征(例如，PC)，(2)在决定是否发布跨页预取时考虑系统状态的各种系统特征(例如，sTLB MPKI)，以及(3)在运行时调整决策阈值以确保跨不同执行阶段和工作负荷的准确预测的自适应方案。</p>
-<p><img src="/2025/04/11/PGC/image-20250411095229333.png" alt="image-20250411095229333"></p>
-<p>图5展示了假设VIPT L1D [12]，[15]的MOKA框架的设计和高级操作。</p>
-<p>在L1D访问时，L1D预取器产生预取请求。对于每个预取请求，MOKA检查它是否是跨页预取A。跨页过滤器仅在跨页边界B的预取中激活，并决定是否发出相应的请求。</p>
-<p>通过跨页过滤器的预取需要通过TLB层次结构，以找到预取块所在的页的转换C。如果所请求的转换不是TLB驻留的，则触发推测性页遍历，以将相应的转换带入TLB层次结构D。</p>
-<p>最后，发出跨页预取，最终将相应的预取块存储在L1D中。</p>
-<h3 id="Hardware-Components-of-the-Page-Cross-Filter"><a href="#Hardware-Components-of-the-Page-Cross-Filter" class="headerlink" title="Hardware Components of the Page-Cross Filter"></a>Hardware Components of the Page-Cross Filter</h3><p><strong>Perceptron Predictors</strong></p>
-<p>MOKA框架提供散列感知器预测器[17]，[85]，用存储与选定程序特征相关的感知器权重的权重表(wt)实现；感知器权重由饱和计数器[32]、[35]、[44]-[47]、[58]、[59]、[72]、[85]、[86]实现。页面交叉过滤器为每个选定的节目特征使用一个散列感知器预测器。</p>
-<p><strong>Saturating Counters for System Features.</strong> </p>
-<p>MOKA框架还提供系统特征，即，将跨页预取的有用性与系统状态(例如，TLB压力)相关联的特征。通过在跨页过滤器的决策中考虑系统状态，系统特征有助于预测跨页预取是否有用。系统特征是用饱和计数器实现的；我们称之为系统特征权重。</p>
-<p><strong>Virtual Update Buffer (vUB)</strong></p>
-<p>MOKA uses vUB for training purposes. vUB is responsible for capturing false negatives,i.e., cases where the Page-Cross Filter erroneously discarded a page-cross prefetch that would have saved a demand L1D miss if it was issued.，</p>
-<p><strong>Physical Update Buffer (pUB).</strong></p>
-<p>跨页过滤器使用pUB来确保根据所发布的跨页预取的有用性来正确更新权重(对于程序和系统功能)。当跨页预取在驱逐之前服务于至少一个L1D需求访问时，它被认为是有用的；否则被认为没用。为此，pUB条目存储跨页过滤器决定发出的跨页预取的物理地址以及相应的散列索引。请注意，pUB出于训练目的存储物理地址(而不是虚拟地址vUB ),因为它在L1D驱逐时更新权重，并且L1D被物理标记</p>
-<p><strong>Adaptive Thresholding Scheme.</strong></p>
-<p>为了确定跨页预取的有用性，跨页过滤器将累积权重(程序特征权重和系统特征权重的总和)与阈值进行比较；发出累积权重高于阈值的预取，而丢弃其他预取(第三部分-C1)。由于工作负载的异构性和阶段变化行为，使用静态阈值提供了次优的增益。MOKA框架采用了基于时期的机制(第三节-C3 ),该机制利用各种运行时信息(例如，LLC压力)来调整决策中使用的阈值。</p>
-<p> <strong>Prediction</strong></p>
-<p><img src="/2025/04/11/PGC/image-20250411100942238.png" alt="image-20250411100942238"></p>
-<p>预测分为四个阶段：</p>
-<p>第一阶段1包括三个步骤。首先，跨页过滤器从当前加载请求中提取一组选定的程序特征(第三部分-D1)。然后，每个特征被散列并用于索引相应的WT。在索引之后，从每个WT中检索权重(wi)。所有程序功能都采用相同的程序。第二阶段2检查在决策中是否需要考虑任何系统特征(第三章-D2)。<strong>为此，它计算每个系统特征(例如，sTLB MPKI)的值</strong>，并将其与阈值(SFn？图6中的Tsfn如果系统特征值(SFn)超过(或子种子，取决于特征)相关阈值(Tsfn)，则在决策中考虑相应的权重(weightSFn)。</p>
-<p>第三阶段3将所有考虑的程序和系统特征的权重相加，并生成最终权重(wfinal)。然后，将wfinal与激活阈值Ta 4进行比较。如果wfinal大于Ta，则发出跨页预取；否则它将被丢弃</p>
-<p><strong>training</strong></p>
-<p>MOKA为每个L1D块增加了一个额外的位，称为跨页位(PCB ),指示该块是否已通过跨页预取在L1D中获取。</p>
-<p><img src="/2025/04/11/PGC/image-20250411101455040.png" alt="image-20250411101455040"></p>
-<p>在L1D需求未命中1时，在vUB中搜索可能的命中2。vUB命中3表示相应的跨页预取被跨页过滤器错误地丢弃，于是程序和系统权重(正训练)，增加了将来发布(允许)相应的跨页预取的概率。</p>
-<p>类似地，当需求请求在L1D 4中命中并且命中的块具有其PCB设置时，即，该块由有用的跨页预取获取，则查询pUB 5。在pUB命中6时，命中pUB条目的散列索引被用于增加相应程序和系统特征7的权重</p>
-<p>在具有PCB的块的L1D驱逐时，PageCross过滤器检查被驱逐的块在其生命期内是否在高速缓存9中提供了至少一次命中。如果没有，搜索pUB以找到匹配的条目10，因为pUB存储所发布的跨页预取的物理地址和散列索引；这就是为什么pUB将物理地址而不是虚拟地址存储为vUB(第III-B节)的原因。</p>
-<p>匹配的pUB条目的散列索引用于减少相应的程序和系统权重(负训练)11，因为没有提供任何命中的被驱逐的L1D块指示跨页过滤器未能将相应的跨页预取分类为无用的。</p>
-<p><strong>Adaptive Thresholding Scheme:</strong></p>
-<p><img src="/2025/04/11/PGC/image-20250411102748445.png" alt="image-20250411102748445"></p>
-<p>图8显示了自适应阈值方案的操作。在一个时期内，收集以下运行时统计数据(图8中的步骤I)并用于调整Ta:有用和无用的跨页预取的数量、IPC、LLC未命中率、ROB压力和L1I MPKI。</p>
-<p>即具有非常高的缓存和ROB压力的阶段，并当场调整Ta的值。具体来说，它将Ta设置为高阈值(th ),以仅在以下情况下允许具有非常高置信度ii的跨页预取:(1)存在高ROB压力和许多进行中的L1D未命中，以及(2)跨页预取的准确性已经达到低值(T1)。此外，当存在高L1I压力(L1i MPKI&gt;TL1i) iii时，阈值方案将Ta设置为中间值(tm ),以避免加剧L2C中跨页预取和需求指令访问之间的竞争。最后，在LLC压力非常高的阶段期间，阈值方案禁用跨页预取iv；如果LLC压力下降，则由于vUB的操作，页面交叉预取可能再次被激活(第三节-C2)。</p>
-<p>在一个时期结束时，阈值方案潜在地使用在先前时期期间收集的运行时间信息来更新Ta。具体而言，它考虑了跨页预取的准确度v，并且当准确度分别低于阈值T2和T1时，它强制中或高阈值。此外，如果在两个连续时期vi之间跨页预取精度增加(减少),则阈值方案将Ta值增加(减少)1。最后，如果在两个连续时期vii之间存在IPC下降，则阈值方案将Ta设置为tm(如果Ta低于tm)</p>
-<p><strong>Bouquet of Features</strong></p>
-<p><strong>Program Features:</strong></p>
-<p><img src="/2025/04/11/PGC/image-20250411104247992.png" alt="image-20250411104247992"></p>
-<p>表1显示，大多数程序特性使用虚拟地址的不同位，PC，以及发出跨页预取时预取器使用的增量。请注意，MOKA框架包含的程序特性不是专用于特定预取器的，而是对使用哪个预取器是透明的。制作利用特定预取器的元数据的专用特征(例如，前瞻)有可能进一步提高跨页过滤器的效率。我们的工作并不关注特定的预取器，而是提供了一个有效的跨页预取的整体方案。</p>
-<p><strong>System Features:</strong></p>
-<p>程序特性(第三节-D1)对于跨页过滤器的准确性和性能至关重要。但是，他们在做出决策时没有考虑系统状态(例如，TLB&#x2F;缓存压力)。换句话说，过去被证明有用(无用)的跨页预取在具有不同属性的不同执行阶段可能是无用的(有用的)。MOKA框架考虑了表1中列出的6个系统特性来捕捉这些场景。每个系统功能都是用一个饱和计数器实现的，并在不同阶段监控跨页预取的有效性。例如，在sTLB未命中率高于预定义阈值(SFsTLB_missrate&gt;TsTLB_missrate)的阶段，sTLB未命中率系统功能会监控跨页预取的有效性。</p>
-<p><strong>Combining Features:</strong> </p>
-<p><strong>The feature selection process takes place offline and uses IPC speedup as optimization metric.2</strong></p>
-<p><strong>DRIPPER: A Page-Cross Filter Prototype</strong></p>
-<p><img src="/2025/04/11/PGC/image-20250411104818933.png" alt="image-20250411104818933"></p>
-<p>我们观察到所有滴头配置(表II)都使用一个程序特征和两个系统特征。为所有考虑的预取器选择相同的系统特征(sTLB MPKI，sTLB未命中率),而两个预取器(BOP，IPCP)还共同具有所使用的程序特征(PC⊕Delta).</p>
-<p>所选功能背后的基本原理如下:此程序功能使用L1D预取器使用的增量来发布跨页预取，并了解特定增量在用于生成跨页预取请求时是否有益。</p>
-<p>PC⊕Delta.该程序特征是通过将PC与预取器用来发出跨页预取的增量进行异或运算来计算的，并提供某个PC是否偏好用于跨页预取的特定增量的信息。</p>
-<p>sTLB MPKI。这个系统特性将具有低sTLB MPKI速率(SFsTLB_mpki&lt;TsTLB_mpki)的阶段与跨页预取的有用性相关联。该特性背后的核心思想是，当sTLB MPKI较低时，跨页预取请求在TLB层次结构中命中的概率较高(触发页遍历的概率较低)。因此，如果跨页预取在这些阶段有用&#x2F;无用，这个特性通过增加最终的累积权重(第3步，图6)使DRIPPER对跨页预取更积极&#x2F;更不积极。只有当SFsTLB_mpki&lt;TsTLB_mpki时，该系统功能才有助于决策。</p>
-<p>sTLB未命中率。该系统特征是对sTLB MPKI系统特征的补充，因为它以sTLB压力高的阶段为目标，而sTLB MPKI系统特征以sTLB压力低的阶段为目标。我们使用sTLB失效率度量而不是sTLB MPKI度量来捕获具有高sTLB压力的相位，因为前者比后者对变化更敏感。此系统功能在sTLB未命中率较高的阶段(SFsTLB_missrate&gt;TsTLB_missrate)测量跨页预取的有用性，以识别其他功能无法捕捉的错过的机会。核心思想是，当sTLB中大多数请求内存访问未命中时，允许L1D预取器触发跨页预取可能会提高sTLB命中率，因为跨页预取会引入页遍历。因此，<strong>如果跨页预取在高sTLB未命中率的阶段被证明是有用的，这个特性增加了DRIPPER允许跨页预取的可能性</strong>。仅当SFsTLB_missrate&gt;TsTLB_missrate时，才使用此功能。</p>
+    <title>bingo</title>
+    <url>/2025/02/14/bingo/</url>
+    <content><![CDATA[<h1 id="Bingo-Spatial-Data-Prefetcher"><a href="#Bingo-Spatial-Data-Prefetcher" class="headerlink" title="Bingo Spatial Data Prefetcher"></a>Bingo Spatial Data Prefetcher</h1><h2 id="概要"><a href="#概要" class="headerlink" title="概要"></a>概要</h2><p>在本文中，我们做出以下贡献：•我们表明，依靠单个事件发出预取请求是最先进的空间数据预取的主要效率来源。</p>
+<p>•我们提出了一个tage-like预测器，以准确和最大提取空间相关的数据访问模式。</p>
+<p>•我们建议将多个历史表合并到单个统一元数据表中的方案，从而大大降低了存储要求。</p>
+<p>•将所有内容放在一起，我们提出了一个名为Bingo的空间数据预取器，并对各种大数据应用程序进行了精心评估。我们表明，我们的提案平均将系统性能提高了60％，而没有预取器的基线高达285％。同时，它的表现胜过最好的先前的空间数据预取器平均11％，高达67％</p>
+<h2 id="背景"><a href="#背景" class="headerlink" title="背景"></a>背景</h2><p>Spatial data prefetching：</p>
+<ul>
+<li>仅需要存储offset或者delta，不需要存储完整地址</li>
+<li>访问顺序不重要，不需要记录访问顺序</li>
+<li>消除强制cache miss，（cache的3C）</li>
+</ul>
+<p>之前的空间预取器分为两类：</p>
+<ol>
+<li>PPH：记录每个页面的访问历史方法</li>
+<li>SHH：记录全局访问方法（SPP）</li>
+</ol>
+<h2 id="微结构设计"><a href="#微结构设计" class="headerlink" title="微结构设计"></a>微结构设计</h2><p>bingo在访问新页面时去将模式移动到历史表，他使用PC+addr和pc+offset模式，PC+addr预测的为长历史事件（相同的指令和相同的地址应该同时发生），</p>
+<p><img src="/2025/02/14/bingo/1739535735601.png" alt="1739535735601"></p>
+<p>但是实际两个表是多于的</p>
+<p><img src="/2025/02/14/bingo/1739536173909.png" alt="1739536173909"></p>
+<p>也就是短事件和长事件有很多预测一致的表项</p>
+<p>对于Bingo的情况，在“PC+Address”中携带“PC+Offset”的信息;因此，通过知道‘PC+地址’，我们也知道‘PC+偏移’是什么。为了利用这种现象，我们建议只具有一个历史表，该历史表仅存储长事件的历史，但是用长事件和短事件来查找。对于宾果的情况，历史表存储在每个“PC+地址”事件之后观察到的足迹，但是利用触发器访问的“PC+地址”和“PC+偏移”两者来查找足迹，以便提供高准确性，同时不丢失预取机会。</p>
+<p>为了达到这样，我们使用短事件去hash，但长事件作为tag保存，并且替换算法为LRU</p>
+<p>每次访问时，先使用pc+addr匹配，如果没匹配到，就使用pc+offset匹配</p>
+<p><img src="/2025/02/14/bingo/1739537107193.png" alt="1739537107193"></p>
+<h3 id="Bingo历史表的组成"><a href="#Bingo历史表的组成" class="headerlink" title="Bingo历史表的组成"></a>Bingo历史表的组成</h3><p>Bingo的空间数据预取器采用了一个存储高效的单历史表设计，这个表是实现预取功能的核心组件。历史表的每个条目包含了以下几个关键组成部分：</p>
+<ul>
+<li><strong>触发访问事件</strong> ：这是预取器在记录访问模式时所依据的事件，通常包括程序计数器（PC）、地址（Address）和偏移量（Offset）等信息。例如，长事件为 <code>PC+Address</code>，短事件为 <code>PC+Offset</code>。</li>
+<li><strong>页面足迹（Footprint）</strong> ：这是一个位向量，表示页面中哪些块被访问过。每个位对应页面中的一个缓存块，<code>1</code>表示该块被访问过，<code>0</code>表示未被访问。</li>
+<li><strong>踏频信息（Recency）</strong> ：用于记录条目的最近使用情况，帮助预取器选择替换策略，如最久未使用（LRU）。</li>
+<li><strong>标签（Tag）</strong> ：用于标识条目，确保正确的事件匹配。</li>
+</ul>
+<h3 id="Bingo历史表的工作原理"><a href="#Bingo历史表的工作原理" class="headerlink" title="Bingo历史表的工作原理"></a>Bingo历史表的工作原理</h3><p>Bingo历史表的工作过程可以分为以下几个步骤：</p>
+<ol>
+<li><strong>触发访问</strong> ：当处理器访问一个新的页面时，触发访问发生，预取器开始记录该页面的访问模式。</li>
+<li><strong>记录足迹</strong> ：在页面的驻留期间，预取器会记录所有访问到的缓存块，生成页面的足迹（Footprint）。</li>
+<li><strong>存储足迹</strong> ：当页面的驻留结束时，预取器将足迹以及触发访问的事件（如 <code>PC+Address</code>）存储到历史表中。存储时，使用短事件的哈希值来索引表的位置，并将长事件作为标签存储。</li>
+<li><strong>预取决策</strong> ：当后续的访问触发预取时，预取器首先使用长事件（如 <code>PC+Address</code>）查找历史表。如果找到匹配项，就使用对应的足迹进行预取。如果未找到匹配项，则使用短事件（如 <code>PC+Offset</code>）再次查找历史表。如果找到匹配项，就使用对应的足迹进行预取。如果仍未找到匹配项，则不进行预取。</li>
+</ol>
+<p>通过这种设计，Bingo能够在保持高准确性的同时，不丢失预测机会，从而提高系统性能。</p>
+<p>其中足迹的获取是第一次访问这个页面就记录，然后结束后把足迹送入，类似于SMS生成方式</p>
+<h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><p>该论文创新点在于结合了PC+addr和PC+offset，并且将二者存在一个表内，pc+offset索引，pc+addr作为tag</p>
 ]]></content>
   </entry>
   <entry>
@@ -2130,49 +2571,73 @@ CDC入队条件比较弱,考虑更改</p>
       </categories>
   </entry>
   <entry>
-    <title>bingo</title>
-    <url>/2025/02/14/bingo/</url>
-    <content><![CDATA[<h1 id="Bingo-Spatial-Data-Prefetcher"><a href="#Bingo-Spatial-Data-Prefetcher" class="headerlink" title="Bingo Spatial Data Prefetcher"></a>Bingo Spatial Data Prefetcher</h1><h2 id="概要"><a href="#概要" class="headerlink" title="概要"></a>概要</h2><p>在本文中，我们做出以下贡献：•我们表明，依靠单个事件发出预取请求是最先进的空间数据预取的主要效率来源。</p>
-<p>•我们提出了一个tage-like预测器，以准确和最大提取空间相关的数据访问模式。</p>
-<p>•我们建议将多个历史表合并到单个统一元数据表中的方案，从而大大降低了存储要求。</p>
-<p>•将所有内容放在一起，我们提出了一个名为Bingo的空间数据预取器，并对各种大数据应用程序进行了精心评估。我们表明，我们的提案平均将系统性能提高了60％，而没有预取器的基线高达285％。同时，它的表现胜过最好的先前的空间数据预取器平均11％，高达67％</p>
-<h2 id="背景"><a href="#背景" class="headerlink" title="背景"></a>背景</h2><p>Spatial data prefetching：</p>
-<ul>
-<li>仅需要存储offset或者delta，不需要存储完整地址</li>
-<li>访问顺序不重要，不需要记录访问顺序</li>
-<li>消除强制cache miss，（cache的3C）</li>
-</ul>
-<p>之前的空间预取器分为两类：</p>
-<ol>
-<li>PPH：记录每个页面的访问历史方法</li>
-<li>SHH：记录全局访问方法（SPP）</li>
-</ol>
-<h2 id="微结构设计"><a href="#微结构设计" class="headerlink" title="微结构设计"></a>微结构设计</h2><p>bingo在访问新页面时去将模式移动到历史表，他使用PC+addr和pc+offset模式，PC+addr预测的为长历史事件（相同的指令和相同的地址应该同时发生），</p>
-<p><img src="/2025/02/14/bingo/1739535735601.png" alt="1739535735601"></p>
-<p>但是实际两个表是多于的</p>
-<p><img src="/2025/02/14/bingo/1739536173909.png" alt="1739536173909"></p>
-<p>也就是短事件和长事件有很多预测一致的表项</p>
-<p>对于Bingo的情况，在“PC+Address”中携带“PC+Offset”的信息;因此，通过知道‘PC+地址’，我们也知道‘PC+偏移’是什么。为了利用这种现象，我们建议只具有一个历史表，该历史表仅存储长事件的历史，但是用长事件和短事件来查找。对于宾果的情况，历史表存储在每个“PC+地址”事件之后观察到的足迹，但是利用触发器访问的“PC+地址”和“PC+偏移”两者来查找足迹，以便提供高准确性，同时不丢失预取机会。</p>
-<p>为了达到这样，我们使用短事件去hash，但长事件作为tag保存，并且替换算法为LRU</p>
-<p>每次访问时，先使用pc+addr匹配，如果没匹配到，就使用pc+offset匹配</p>
-<p><img src="/2025/02/14/bingo/1739537107193.png" alt="1739537107193"></p>
-<h3 id="Bingo历史表的组成"><a href="#Bingo历史表的组成" class="headerlink" title="Bingo历史表的组成"></a>Bingo历史表的组成</h3><p>Bingo的空间数据预取器采用了一个存储高效的单历史表设计，这个表是实现预取功能的核心组件。历史表的每个条目包含了以下几个关键组成部分：</p>
-<ul>
-<li><strong>触发访问事件</strong> ：这是预取器在记录访问模式时所依据的事件，通常包括程序计数器（PC）、地址（Address）和偏移量（Offset）等信息。例如，长事件为 <code>PC+Address</code>，短事件为 <code>PC+Offset</code>。</li>
-<li><strong>页面足迹（Footprint）</strong> ：这是一个位向量，表示页面中哪些块被访问过。每个位对应页面中的一个缓存块，<code>1</code>表示该块被访问过，<code>0</code>表示未被访问。</li>
-<li><strong>踏频信息（Recency）</strong> ：用于记录条目的最近使用情况，帮助预取器选择替换策略，如最久未使用（LRU）。</li>
-<li><strong>标签（Tag）</strong> ：用于标识条目，确保正确的事件匹配。</li>
-</ul>
-<h3 id="Bingo历史表的工作原理"><a href="#Bingo历史表的工作原理" class="headerlink" title="Bingo历史表的工作原理"></a>Bingo历史表的工作原理</h3><p>Bingo历史表的工作过程可以分为以下几个步骤：</p>
-<ol>
-<li><strong>触发访问</strong> ：当处理器访问一个新的页面时，触发访问发生，预取器开始记录该页面的访问模式。</li>
-<li><strong>记录足迹</strong> ：在页面的驻留期间，预取器会记录所有访问到的缓存块，生成页面的足迹（Footprint）。</li>
-<li><strong>存储足迹</strong> ：当页面的驻留结束时，预取器将足迹以及触发访问的事件（如 <code>PC+Address</code>）存储到历史表中。存储时，使用短事件的哈希值来索引表的位置，并将长事件作为标签存储。</li>
-<li><strong>预取决策</strong> ：当后续的访问触发预取时，预取器首先使用长事件（如 <code>PC+Address</code>）查找历史表。如果找到匹配项，就使用对应的足迹进行预取。如果未找到匹配项，则使用短事件（如 <code>PC+Offset</code>）再次查找历史表。如果找到匹配项，就使用对应的足迹进行预取。如果仍未找到匹配项，则不进行预取。</li>
-</ol>
-<p>通过这种设计，Bingo能够在保持高准确性的同时，不丢失预测机会，从而提高系统性能。</p>
-<p>其中足迹的获取是第一次访问这个页面就记录，然后结束后把足迹送入，类似于SMS生成方式</p>
-<h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><p>该论文创新点在于结合了PC+addr和PC+offset，并且将二者存在一个表内，pc+offset索引，pc+addr作为tag</p>
+    <title>PGC</title>
+    <url>/2025/04/11/PGC/</url>
+    <content><![CDATA[<h1 id="To-Cross-or-Not-to-Cross-Pages-for-Prefetching"><a href="#To-Cross-or-Not-to-Cross-Pages-for-Prefetching" class="headerlink" title="To Cross, or Not to Cross Pages for Prefetching?"></a>To Cross, or Not to Cross Pages for Prefetching?</h1><p>这项研究的目标是L1D预取器，而不是低级高速缓存预取器，因为一级高速缓存可以直接访问虚拟内存子系统，而不是低级高速缓存。</p>
+<h2 id="II-MOTIVATION"><a href="#II-MOTIVATION" class="headerlink" title="II. MOTIVATION"></a>II. MOTIVATION</h2><p><strong>1) First-Level Caches and Page-Cross Prefetching:</strong></p>
+<p>在虚拟地址空间中容易检测到的模式可能在物理地址空间中难以检测到，因为在虚拟地址空间中相邻的两个地址可能在物理地址空间中相隔很远[48]。一级缓存是VIPT，可以直接访问TLB，但不准确的跨页预取可能会导致5次·内存访问，（(最多4次内存访问用于推测性页遍历[12]，1次内存访问用于高速缓存预取请求)）</p>
+<p><strong>2) Lower-Level Caches and Page-Cross Prefetching:</strong></p>
+<p>放置在低级高速缓存旁边的预取器(L2C有限责任公司)[18]，[20]，[42]，[48]，[49]，[71]，[77]，[92]，[93]使用物理地址驱动预取决策，因为这些高速缓存被实现为物理索引的物理标记(PIPT)结构[15]。出于安全原因，这些预取器通常只允许在物理页面边界内预取，因为不能保证物理地址的连续性[89]</p>
+<h3 id="Trends-on-Page-Cross-Prefetching"><a href="#Trends-on-Page-Cross-Prefetching" class="headerlink" title="Trends on Page-Cross Prefetching"></a>Trends on Page-Cross Prefetching</h3><p><strong>学术观点</strong>：</p>
+<p>这些作品通常设计新的预取器，其将高速缓存访问与比先前设计更多的特征相关联，以捕获更独特的模式。学术L1D预取器主要限于页面边界内的预取，并且它们没有针对跨页面边界进行优化，尽管它们可以直接访问虚拟内存子系统(第II-A节)。</p>
+<p><strong>工业界</strong>：</p>
+<p>当预取器能够准确地执行跨页预取时，将L1D预取器限制为在页边界内预取提供了次优的收益。虽然学术著作仍然限制L1D预取器在页边界内预取，但供应商允许L1D预取器跨页边界预取[3]、[8]、[29]、[35]。跨页预取需要通过TLB层次结构，并可能启动页遍历，该页遍历在TLB中获取预取块所在页的翻译；第II-A节介绍了跨页预取的优点和缺点。但是，供应商没有提供额外的信息。目前还不清楚供应商是遵循始终允许跨页面预取的静态策略，还是使用跨页面边界协调预取的技术。</p>
+<p><img src="/2025/04/11/PGC/image-20250411094640722.png" alt="image-20250411094640722"></p>
+<p><img src="/2025/04/11/PGC/image-20250411094652527.png" alt="image-20250411094652527"></p>
+<p>图3表示了(I)有用的跨页预取，即在其在高速缓存中的生命周期内提供至少一次命中的预取，以及(ii)无用的跨页预取，I</p>
+<p>然后引出图4</p>
+<p><img src="/2025/04/11/PGC/image-20250411094740926.png" alt="image-20250411094740926"></p>
+<p>有用的预取一般会降低TLB KPKI,无用的预取大幅增加MPKI而导致不必要的内存访问（页表遍历）</p>
+<p><strong>A scheme able to accurately enable page-cross prefetching only when is beneficial has the potential to deliver</strong><br><strong>significant performance enhancements.</strong></p>
+<h2 id="PAGE-CROSS-PREFETCH-FILTERING"><a href="#PAGE-CROSS-PREFETCH-FILTERING" class="headerlink" title="PAGE-CROSS PREFETCH FILTERING"></a>PAGE-CROSS PREFETCH FILTERING</h2><p>提出了新的跨页预取算法：MOKA</p>
+<p>(1)预测跨页边界预取的有用性的各种程序特征(例如，PC)，(2)在决定是否发布跨页预取时考虑系统状态的各种系统特征(例如，sTLB MPKI)，以及(3)在运行时调整决策阈值以确保跨不同执行阶段和工作负荷的准确预测的自适应方案。</p>
+<p><img src="/2025/04/11/PGC/image-20250411095229333.png" alt="image-20250411095229333"></p>
+<p>图5展示了假设VIPT L1D [12]，[15]的MOKA框架的设计和高级操作。</p>
+<p>在L1D访问时，L1D预取器产生预取请求。对于每个预取请求，MOKA检查它是否是跨页预取A。跨页过滤器仅在跨页边界B的预取中激活，并决定是否发出相应的请求。</p>
+<p>通过跨页过滤器的预取需要通过TLB层次结构，以找到预取块所在的页的转换C。如果所请求的转换不是TLB驻留的，则触发推测性页遍历，以将相应的转换带入TLB层次结构D。</p>
+<p>最后，发出跨页预取，最终将相应的预取块存储在L1D中。</p>
+<h3 id="Hardware-Components-of-the-Page-Cross-Filter"><a href="#Hardware-Components-of-the-Page-Cross-Filter" class="headerlink" title="Hardware Components of the Page-Cross Filter"></a>Hardware Components of the Page-Cross Filter</h3><p><strong>Perceptron Predictors</strong></p>
+<p>MOKA框架提供散列感知器预测器[17]，[85]，用存储与选定程序特征相关的感知器权重的权重表(wt)实现；感知器权重由饱和计数器[32]、[35]、[44]-[47]、[58]、[59]、[72]、[85]、[86]实现。页面交叉过滤器为每个选定的节目特征使用一个散列感知器预测器。</p>
+<p><strong>Saturating Counters for System Features.</strong> </p>
+<p>MOKA框架还提供系统特征，即，将跨页预取的有用性与系统状态(例如，TLB压力)相关联的特征。通过在跨页过滤器的决策中考虑系统状态，系统特征有助于预测跨页预取是否有用。系统特征是用饱和计数器实现的；我们称之为系统特征权重。</p>
+<p><strong>Virtual Update Buffer (vUB)</strong></p>
+<p>MOKA uses vUB for training purposes. vUB is responsible for capturing false negatives,i.e., cases where the Page-Cross Filter erroneously discarded a page-cross prefetch that would have saved a demand L1D miss if it was issued.，</p>
+<p><strong>Physical Update Buffer (pUB).</strong></p>
+<p>跨页过滤器使用pUB来确保根据所发布的跨页预取的有用性来正确更新权重(对于程序和系统功能)。当跨页预取在驱逐之前服务于至少一个L1D需求访问时，它被认为是有用的；否则被认为没用。为此，pUB条目存储跨页过滤器决定发出的跨页预取的物理地址以及相应的散列索引。请注意，pUB出于训练目的存储物理地址(而不是虚拟地址vUB ),因为它在L1D驱逐时更新权重，并且L1D被物理标记</p>
+<p><strong>Adaptive Thresholding Scheme.</strong></p>
+<p>为了确定跨页预取的有用性，跨页过滤器将累积权重(程序特征权重和系统特征权重的总和)与阈值进行比较；发出累积权重高于阈值的预取，而丢弃其他预取(第三部分-C1)。由于工作负载的异构性和阶段变化行为，使用静态阈值提供了次优的增益。MOKA框架采用了基于时期的机制(第三节-C3 ),该机制利用各种运行时信息(例如，LLC压力)来调整决策中使用的阈值。</p>
+<p> <strong>Prediction</strong></p>
+<p><img src="/2025/04/11/PGC/image-20250411100942238.png" alt="image-20250411100942238"></p>
+<p>预测分为四个阶段：</p>
+<p>第一阶段1包括三个步骤。首先，跨页过滤器从当前加载请求中提取一组选定的程序特征(第三部分-D1)。然后，每个特征被散列并用于索引相应的WT。在索引之后，从每个WT中检索权重(wi)。所有程序功能都采用相同的程序。第二阶段2检查在决策中是否需要考虑任何系统特征(第三章-D2)。<strong>为此，它计算每个系统特征(例如，sTLB MPKI)的值</strong>，并将其与阈值(SFn？图6中的Tsfn如果系统特征值(SFn)超过(或子种子，取决于特征)相关阈值(Tsfn)，则在决策中考虑相应的权重(weightSFn)。</p>
+<p>第三阶段3将所有考虑的程序和系统特征的权重相加，并生成最终权重(wfinal)。然后，将wfinal与激活阈值Ta 4进行比较。如果wfinal大于Ta，则发出跨页预取；否则它将被丢弃</p>
+<p><strong>training</strong></p>
+<p>MOKA为每个L1D块增加了一个额外的位，称为跨页位(PCB ),指示该块是否已通过跨页预取在L1D中获取。</p>
+<p><img src="/2025/04/11/PGC/image-20250411101455040.png" alt="image-20250411101455040"></p>
+<p>在L1D需求未命中1时，在vUB中搜索可能的命中2。vUB命中3表示相应的跨页预取被跨页过滤器错误地丢弃，于是程序和系统权重(正训练)，增加了将来发布(允许)相应的跨页预取的概率。</p>
+<p>类似地，当需求请求在L1D 4中命中并且命中的块具有其PCB设置时，即，该块由有用的跨页预取获取，则查询pUB 5。在pUB命中6时，命中pUB条目的散列索引被用于增加相应程序和系统特征7的权重</p>
+<p>在具有PCB的块的L1D驱逐时，PageCross过滤器检查被驱逐的块在其生命期内是否在高速缓存9中提供了至少一次命中。如果没有，搜索pUB以找到匹配的条目10，因为pUB存储所发布的跨页预取的物理地址和散列索引；这就是为什么pUB将物理地址而不是虚拟地址存储为vUB(第III-B节)的原因。</p>
+<p>匹配的pUB条目的散列索引用于减少相应的程序和系统权重(负训练)11，因为没有提供任何命中的被驱逐的L1D块指示跨页过滤器未能将相应的跨页预取分类为无用的。</p>
+<p><strong>Adaptive Thresholding Scheme:</strong></p>
+<p><img src="/2025/04/11/PGC/image-20250411102748445.png" alt="image-20250411102748445"></p>
+<p>图8显示了自适应阈值方案的操作。在一个时期内，收集以下运行时统计数据(图8中的步骤I)并用于调整Ta:有用和无用的跨页预取的数量、IPC、LLC未命中率、ROB压力和L1I MPKI。</p>
+<p>即具有非常高的缓存和ROB压力的阶段，并当场调整Ta的值。具体来说，它将Ta设置为高阈值(th ),以仅在以下情况下允许具有非常高置信度ii的跨页预取:(1)存在高ROB压力和许多进行中的L1D未命中，以及(2)跨页预取的准确性已经达到低值(T1)。此外，当存在高L1I压力(L1i MPKI&gt;TL1i) iii时，阈值方案将Ta设置为中间值(tm ),以避免加剧L2C中跨页预取和需求指令访问之间的竞争。最后，在LLC压力非常高的阶段期间，阈值方案禁用跨页预取iv；如果LLC压力下降，则由于vUB的操作，页面交叉预取可能再次被激活(第三节-C2)。</p>
+<p>在一个时期结束时，阈值方案潜在地使用在先前时期期间收集的运行时间信息来更新Ta。具体而言，它考虑了跨页预取的准确度v，并且当准确度分别低于阈值T2和T1时，它强制中或高阈值。此外，如果在两个连续时期vi之间跨页预取精度增加(减少),则阈值方案将Ta值增加(减少)1。最后，如果在两个连续时期vii之间存在IPC下降，则阈值方案将Ta设置为tm(如果Ta低于tm)</p>
+<p><strong>Bouquet of Features</strong></p>
+<p><strong>Program Features:</strong></p>
+<p><img src="/2025/04/11/PGC/image-20250411104247992.png" alt="image-20250411104247992"></p>
+<p>表1显示，大多数程序特性使用虚拟地址的不同位，PC，以及发出跨页预取时预取器使用的增量。请注意，MOKA框架包含的程序特性不是专用于特定预取器的，而是对使用哪个预取器是透明的。制作利用特定预取器的元数据的专用特征(例如，前瞻)有可能进一步提高跨页过滤器的效率。我们的工作并不关注特定的预取器，而是提供了一个有效的跨页预取的整体方案。</p>
+<p><strong>System Features:</strong></p>
+<p>程序特性(第三节-D1)对于跨页过滤器的准确性和性能至关重要。但是，他们在做出决策时没有考虑系统状态(例如，TLB&#x2F;缓存压力)。换句话说，过去被证明有用(无用)的跨页预取在具有不同属性的不同执行阶段可能是无用的(有用的)。MOKA框架考虑了表1中列出的6个系统特性来捕捉这些场景。每个系统功能都是用一个饱和计数器实现的，并在不同阶段监控跨页预取的有效性。例如，在sTLB未命中率高于预定义阈值(SFsTLB_missrate&gt;TsTLB_missrate)的阶段，sTLB未命中率系统功能会监控跨页预取的有效性。</p>
+<p><strong>Combining Features:</strong> </p>
+<p><strong>The feature selection process takes place offline and uses IPC speedup as optimization metric.2</strong></p>
+<p><strong>DRIPPER: A Page-Cross Filter Prototype</strong></p>
+<p><img src="/2025/04/11/PGC/image-20250411104818933.png" alt="image-20250411104818933"></p>
+<p>我们观察到所有滴头配置(表II)都使用一个程序特征和两个系统特征。为所有考虑的预取器选择相同的系统特征(sTLB MPKI，sTLB未命中率),而两个预取器(BOP，IPCP)还共同具有所使用的程序特征(PC⊕Delta).</p>
+<p>所选功能背后的基本原理如下:此程序功能使用L1D预取器使用的增量来发布跨页预取，并了解特定增量在用于生成跨页预取请求时是否有益。</p>
+<p>PC⊕Delta.该程序特征是通过将PC与预取器用来发出跨页预取的增量进行异或运算来计算的，并提供某个PC是否偏好用于跨页预取的特定增量的信息。</p>
+<p>sTLB MPKI。这个系统特性将具有低sTLB MPKI速率(SFsTLB_mpki&lt;TsTLB_mpki)的阶段与跨页预取的有用性相关联。该特性背后的核心思想是，当sTLB MPKI较低时，跨页预取请求在TLB层次结构中命中的概率较高(触发页遍历的概率较低)。因此，如果跨页预取在这些阶段有用&#x2F;无用，这个特性通过增加最终的累积权重(第3步，图6)使DRIPPER对跨页预取更积极&#x2F;更不积极。只有当SFsTLB_mpki&lt;TsTLB_mpki时，该系统功能才有助于决策。</p>
+<p>sTLB未命中率。该系统特征是对sTLB MPKI系统特征的补充，因为它以sTLB压力高的阶段为目标，而sTLB MPKI系统特征以sTLB压力低的阶段为目标。我们使用sTLB失效率度量而不是sTLB MPKI度量来捕获具有高sTLB压力的相位，因为前者比后者对变化更敏感。此系统功能在sTLB未命中率较高的阶段(SFsTLB_missrate&gt;TsTLB_missrate)测量跨页预取的有用性，以识别其他功能无法捕捉的错过的机会。核心思想是，当sTLB中大多数请求内存访问未命中时，允许L1D预取器触发跨页预取可能会提高sTLB命中率，因为跨页预取会引入页遍历。因此，<strong>如果跨页预取在高sTLB未命中率的阶段被证明是有用的，这个特性增加了DRIPPER允许跨页预取的可能性</strong>。仅当SFsTLB_missrate&gt;TsTLB_missrate时，才使用此功能。</p>
 ]]></content>
   </entry>
   <entry>
@@ -2625,6 +3090,71 @@ CDC入队条件比较弱,考虑更改</p>
 <p>2.firesim 在使用au280时,应该使用BaseXilinxAlveoConfig替换PLATFORM_CONFIG&#x3D;BaseXilinxAlveoU280Config,直接加入一個BaseXilinxAlveoU280Config也可以</p>
 <h1 id="2025-2-5"><a href="#2025-2-5" class="headerlink" title="2025-2-5"></a>2025-2-5</h1><p>今日发现dcache的写dirty有问题：目前这个写逻辑有问题，只有当写数据，或者写miss才会设定dirty位，读miss读出的数据是不会设置dirty位的，但不影响功能，</p>
 <p>而且之后可能会加入mshr合并机制：mshr不合并？</p>
+]]></content>
+  </entry>
+  <entry>
+    <title>nemu linux</title>
+    <url>/2025/02/19/nemu-linux/</url>
+    <content><![CDATA[<h1 id="Difftest-适配"><a href="#Difftest-适配" class="headerlink" title="Difftest 适配"></a>Difftest 适配</h1><p>在跑linux需要加入csr的检查,以测出特权指令执行的结果是否正确</p>
+<p>首先需要做的就是维护一套csr寄存器,我个人做法就是设置一个csr_map结构体,然后查询这个结构体来找到csr是否实现</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">nemu_csr_t csr_map[] = &#123; </span><br><span class="line">    &#123;0x100, &quot;sstatus&quot; ,true&#125;, </span><br><span class="line">    &#123;0x104, &quot;sie&quot;     ,true&#125;, </span><br><span class="line">    &#123;0x105, &quot;stvec&quot;   ,true&#125;, </span><br><span class="line">    &#123;0x140, &quot;sscratch&quot;,true&#125;, </span><br><span class="line">    &#123;0x141, &quot;sepc&quot;    ,true&#125;, </span><br><span class="line">    &#123;0x142, &quot;scause&quot;  ,true&#125;, </span><br><span class="line">    &#123;0x143, &quot;stval&quot;   ,true&#125;, </span><br><span class="line">    &#123;0x144, &quot;sip&quot;     ,true&#125;, </span><br><span class="line">    &#123;0x180, &quot;satp&quot;    ,true&#125;, </span><br><span class="line">    &#123;0x300, &quot;mstatus&quot; ,true&#125;,</span><br><span class="line">    &#123;0x301, &quot;misa&quot;    ,false&#125;,</span><br><span class="line">    &#123;0x302, &quot;medeleg&quot; ,true&#125;, </span><br><span class="line">    &#123;0x303, &quot;mideleg&quot; ,true&#125;,  </span><br><span class="line">    &#123;0x304, &quot;mie&quot;     ,true&#125;,  </span><br><span class="line">    &#123;0x305, &quot;mtvec&quot;   ,true&#125;,  </span><br><span class="line">    &#123;0x310, &quot;mstatush&quot;,true&#125;,</span><br><span class="line">    // &#123;0x312, &quot;medelegh&quot;,true&#125;,////2024 standard  </span><br><span class="line">    &#123;0x340, &quot;mscratch&quot;,true&#125;,</span><br><span class="line">    &#123;0x341, &quot;mepc&quot;    ,true&#125;,</span><br><span class="line">    &#123;0x342, &quot;mcause&quot;  ,true&#125;,</span><br><span class="line">    &#123;0x343, &quot;mtval&quot;   ,true&#125;,  </span><br><span class="line">    &#123;0x344, &quot;mip&quot;     ,true&#125;,  </span><br><span class="line">    &#123;0xf11, &quot;mvendorid&quot;,true&#125;,   </span><br><span class="line">    &#123;0xf14, &quot;mhartid&quot; ,true&#125;   </span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>然后每次增加一个csr寄存器,只需在difftest.cc和inst.c同时将寄存器加入map即可</p>
+<p>之后我们需要实现非法指令异常,可以参考yield在nemu实现,当遇到一些没实现的csr时,就可以触发异常,然后sbi会自己处理这些没实现的csr,我们此时也要去将这个非法指令访问异常同步到spike中,具体可以参考spike的get_csr</p>
+<p>完成上述,基本difftest改造完成</p>
+<h1 id="移植opensbi"><a href="#移植opensbi" class="headerlink" title="移植opensbi"></a>移植opensbi</h1><p>首先下载opensbi</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">git clone https://github.com/riscv-software-src/opensbi</span><br></pre></td></tr></table></figure>
+
+<p>然后复制一份platform&#x2F;templete,将这个改为适配nemu的平台,具体改动:</p>
+<p>先设置objects.mk,然后</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">PLATFORM_RISCV_XLEN = 32</span><br><span class="line">PLATFORM_RISCV_ABI = ilp32</span><br><span class="line">PLATFORM_RISCV_ISA = rv32ima_zicsr_zifencei</span><br><span class="line">PLATFORM_RISCV_CODE_MODEL = medany</span><br><span class="line">FW_TEXT_START=0x80000000//如果这个不行,可以直接修改链接脚本,具体在firmware/fw_jump.elf.ldS</span><br><span class="line">FW_JUMP=y</span><br><span class="line">ifeq ($(PLATFORM_RISCV_XLEN), 32)</span><br><span class="line">FW_JUMP_ADDR=0x0</span><br><span class="line">else</span><br><span class="line">FW_JUMP_ADDR=0x80200000</span><br><span class="line">endif</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<p>然后设置platform.c,主要就是设置timer,uart的地址,这里可以根据自己的想法去设置设备地址,也可以使用nemu内部的地址,建议uart使用nemu的,只需稍微改动即可,改动可参考uart8250手册</p>
+<p>之后就是debug过程,最后由于跳转到0x0,所以会直接段错误退出,注意最好看19年的手册,24年新出的手册会增加一些csr,从而导致spike触发非法指令</p>
+<p>运行结果如下</p>
+<p><img src="/2025/02/19/nemu-linux/nemu-linux/1740061516016.png" alt="1740061516016"></p>
+<p>如果不确定需要实现哪些寄存器,可以先抛出非法指令异常,之后opensbi会告诉你要设置哪些寄存器</p>
+<h1 id="移植linux"><a href="#移植linux" class="headerlink" title="移植linux"></a>移植linux</h1><p><strong>为什么执行到relocate_enable_mmu会访问无效地址？</strong></p>
+<p>因为指第一次写入satp并没有去执行sfence，所以导致系统仍然使用之前的映射关系</p>
+<ul>
+<li><input disabled type="checkbox"> 需要去为ref传递异常号</li>
+<li><input disabled type="checkbox"> 为什么会跳转到c000098，这里可能发生了嵌套异常（错误的行为）</li>
+</ul>
+<p>终于可以跑起来一部分页表了：</p>
+<p>发现之前的问题是因为自己的pte解析出错了</p>
+<p>目前的问题是：</p>
+<p>会访问0x80040000的数据，这个就是j指令</p>
+]]></content>
+      <categories>
+        <category>计算机体系结构</category>
+      </categories>
+  </entry>
+  <entry>
+    <title>runahead</title>
+    <url>/2025/02/05/runahead/</url>
+    <content><![CDATA[<h1 id="runahead"><a href="#runahead" class="headerlink" title="runahead"></a>runahead</h1><p>(又是Onur Mutlu写的文章)</p>
+<h2 id="要解决的问题-摘要"><a href="#要解决的问题-摘要" class="headerlink" title="要解决的问题(摘要)"></a>要解决的问题(摘要)</h2><p>现如今高性能处理器都通过OoO来中和一些高延迟操作(如cache miss,中断异常,设备访问),之前做法都是增大指令窗口(个人理解为rob中可存储指令个数),现在可以提前执行,也即是runahead,在相同的机器上,runahead结合128个Instruction Windows与在没有提前执行和384个Instruction Windows相比性能几乎没有差异</p>
+<h2 id="相关工作"><a href="#相关工作" class="headerlink" title="相关工作"></a>相关工作</h2><p>mem access对CPU的性能影响很大,故之前有人提出了cache,no-blocking cache,硬件预取,软件预取,基于线程预取<br>Balasubramonian提出了长延迟指令阻塞退役时执行未来指令的机制。它们的机制动态地将寄存器文件的一部分分配给“未来线程”，该线程在“主线程”停止时启动。这种机制需要对两种不同上下文的部分硬件支持。<br>缺点:两模式都无法全部享用处理器资源<br>在运行提前执行中，普通模式和运行提前模式都可以利用机器的全部资源，这有助于机器在运行提前模式中获得进一步的领先。<br>Lebeck提出，将依赖于长延迟操作的指令从(相对较小的)调度窗口中移除，放入(相对较大的)等待指令缓冲区(WIB)中，直到操作完成，然后将指令移回调度窗口。这结合了大指令窗口的延迟容忍优势和小调度窗口的快速周期时间优势。(类似于超标量发射队列的推测唤醒那一节)</p>
+<h2 id="IW和SW-和超标量哪一本的含义不同"><a href="#IW和SW-和超标量哪一本的含义不同" class="headerlink" title="IW和SW(和超标量哪一本的含义不同)"></a>IW和SW(和超标量哪一本的含义不同)</h2><p>An out-of-order execution machine<br>accomplishes this using two windows: the instruction window and the scheduling window.</p>
+<p>指令窗口是已经解码的指令但还没退休,也即是在rob的指令,调度窗口是指令窗口的一个子集,其主要作用就是找到可以执行的指令<br><img src="/2025/02/05/runahead/image.png" alt="alt text"><br>可以看到runahead+128表项的IW的停顿百分比与IPC(每个条顶部为IPC),其消除full window<br>stalls获得了20%的IPC提升</p>
+<h2 id="runahead-1"><a href="#runahead-1" class="headerlink" title="runahead"></a>runahead</h2><p>CPU任何时候都可以进入runahead,本论文在l2cache miss,并且该内存操作到达指令窗口的头部时(也就是最老的指令)进入提前执行.提前执行时的pc得存起来,以便退出runahead恢复archstate,IW中所有指令都被标记为runahead inst,在这个模式中取到的指令也是No updates to the checkpointed register file are allowed during runahead mode.runahead的执行与内存通信和无效结果的传播有关,一些规则:</p>
+<ol>
+<li>Invalid bits and instructions.</li>
+<li>Propagation of INV values.<br>进入runahead的第一条无效指令为load或者store(引起这个问题的原因),若为load,则rf的INV拉高,若为store,则runahead cache分配一个表项,并且将dest 的byte置为无效Any invalid instruction that writes to a register marks that<br>register as INV after it is scheduled or executed. Any valid<br>operation that writes to a register resets the INV bit ofits<br>destination register.</li>
+<li>Runahead store operations and runahead cache.之前的工作runahead load之前有runahead store(raw)被视为无效指令并被删除我们认为转发是必要的,如果两个指令都在IW中,直接通过store buffer获取指令,如果指令伪退休了,<br>我们将其存入runahead cache,其目的是转发数据和状态,被替换的dirty行不会存入下一级存储器,而是会直接删除(正常模式的指令无法访问该cache)store buffer 和runahead cache的每个字节都有对应的INV,而runahead cache 中还有STO为,指示store是否写入该字节,只有访问该cache中的STO和valid 之高的line,才不会miss,规则如下:<ol>
+<li>当有效runahead store执行-&gt;拉低cache的INV,若datacache中该数据缺失,则进行预取</li>
+<li>当无效runahead store被选中-&gt;将store buffer对应位置拉高INV</li>
+<li>当有效runahead store退休,写入cache,重置INV,设置写入字节的STO</li>
+<li>当无效的runahead store执行,cache的INV升高,设置STO</li>
+<li>runahead store不会将数据写入data cache<br>但store地址无效时,其操作将会被视为NOP,这时与之相关的load可能无法获得正确的值,可以使用memory dependence predictors解决</li>
+</ol>
+</li>
+<li>Runahead load operations.Runahead load操作可能因三种不同原因而无效它可能源于一个 INV 物理寄存器。（寄存器的INV位）它可能依赖于store buffer中标记为 INV 的存储。（store buffer的INV位）它可能依赖于一个已经伪退休的 INV 存储器。（runahead cache的INV位）Runahead load 执行时会<strong>并行</strong>访问data cache,store buffer和runahead cache访问store buffer和runahead cache:只有访问的line的INV置低,(STO置为高),才能获取数据,若无效,则该指令的dst reg 置为INV如果store buffer和runahead cache 都miss,但data cache hit,使用该数据,但实际这时数据可能是无效的-&gt;依赖于之前的store,但之前的store 的line是INV的或者被驱逐出cache(这种很罕见,故不会影响性能),如果三个都miss,则访问l2cache,如果访问l2cache miss,则驱除该指令,然后当作正常模式的指令运行,(个人理解这个可能会形成嵌套runahead)</li>
+<li>Execution and prediction of branches.<strong>在runahead模式的分支指令预测失败后不会恢复****训练策略</strong>runahead 时就训练BHT,这样其训练效果好不能再runahead训练BHT,这样可能导致分支预测不太行,导致runahead遇见分支性能下降只能在runahead训练BHT,正常模式通过fifo访问BHT两种模式有不同的表</li>
+<li>Instruction pseudo-retirement during runahead mode.<br>runahead模式退休和正常差不多,区别在于:runahead如果检测ROB有inv指令,直接退休,两种模式均会更新RAT</li>
+</ol>
+<h2 id="Exiting-runahead-mode"><a href="#Exiting-runahead-mode" class="headerlink" title="Exiting runahead mode"></a>Exiting runahead mode</h2><p>退出也是可以随时退出,本文使用和分支预测失误后恢复的方法相似<br>本文使用的是当blocking的数据返回后退出runahead,</p>
+<h2 id="一些名词"><a href="#一些名词" class="headerlink" title="一些名词"></a>一些名词</h2><p>BHT,FIFO,ROB,RAT,store buffer</p>
 ]]></content>
   </entry>
   <entry>
@@ -4185,43 +4715,6 @@ CDC入队条件比较弱,考虑更改</p>
       </categories>
   </entry>
   <entry>
-    <title>nemu linux</title>
-    <url>/2025/02/19/nemu-linux/</url>
-    <content><![CDATA[<h1 id="Difftest-适配"><a href="#Difftest-适配" class="headerlink" title="Difftest 适配"></a>Difftest 适配</h1><p>在跑linux需要加入csr的检查,以测出特权指令执行的结果是否正确</p>
-<p>首先需要做的就是维护一套csr寄存器,我个人做法就是设置一个csr_map结构体,然后查询这个结构体来找到csr是否实现</p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">nemu_csr_t csr_map[] = &#123; </span><br><span class="line">    &#123;0x100, &quot;sstatus&quot; ,true&#125;, </span><br><span class="line">    &#123;0x104, &quot;sie&quot;     ,true&#125;, </span><br><span class="line">    &#123;0x105, &quot;stvec&quot;   ,true&#125;, </span><br><span class="line">    &#123;0x140, &quot;sscratch&quot;,true&#125;, </span><br><span class="line">    &#123;0x141, &quot;sepc&quot;    ,true&#125;, </span><br><span class="line">    &#123;0x142, &quot;scause&quot;  ,true&#125;, </span><br><span class="line">    &#123;0x143, &quot;stval&quot;   ,true&#125;, </span><br><span class="line">    &#123;0x144, &quot;sip&quot;     ,true&#125;, </span><br><span class="line">    &#123;0x180, &quot;satp&quot;    ,true&#125;, </span><br><span class="line">    &#123;0x300, &quot;mstatus&quot; ,true&#125;,</span><br><span class="line">    &#123;0x301, &quot;misa&quot;    ,false&#125;,</span><br><span class="line">    &#123;0x302, &quot;medeleg&quot; ,true&#125;, </span><br><span class="line">    &#123;0x303, &quot;mideleg&quot; ,true&#125;,  </span><br><span class="line">    &#123;0x304, &quot;mie&quot;     ,true&#125;,  </span><br><span class="line">    &#123;0x305, &quot;mtvec&quot;   ,true&#125;,  </span><br><span class="line">    &#123;0x310, &quot;mstatush&quot;,true&#125;,</span><br><span class="line">    // &#123;0x312, &quot;medelegh&quot;,true&#125;,////2024 standard  </span><br><span class="line">    &#123;0x340, &quot;mscratch&quot;,true&#125;,</span><br><span class="line">    &#123;0x341, &quot;mepc&quot;    ,true&#125;,</span><br><span class="line">    &#123;0x342, &quot;mcause&quot;  ,true&#125;,</span><br><span class="line">    &#123;0x343, &quot;mtval&quot;   ,true&#125;,  </span><br><span class="line">    &#123;0x344, &quot;mip&quot;     ,true&#125;,  </span><br><span class="line">    &#123;0xf11, &quot;mvendorid&quot;,true&#125;,   </span><br><span class="line">    &#123;0xf14, &quot;mhartid&quot; ,true&#125;   </span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<p>然后每次增加一个csr寄存器,只需在difftest.cc和inst.c同时将寄存器加入map即可</p>
-<p>之后我们需要实现非法指令异常,可以参考yield在nemu实现,当遇到一些没实现的csr时,就可以触发异常,然后sbi会自己处理这些没实现的csr,我们此时也要去将这个非法指令访问异常同步到spike中,具体可以参考spike的get_csr</p>
-<p>完成上述,基本difftest改造完成</p>
-<h1 id="移植opensbi"><a href="#移植opensbi" class="headerlink" title="移植opensbi"></a>移植opensbi</h1><p>首先下载opensbi</p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">git clone https://github.com/riscv-software-src/opensbi</span><br></pre></td></tr></table></figure>
-
-<p>然后复制一份platform&#x2F;templete,将这个改为适配nemu的平台,具体改动:</p>
-<p>先设置objects.mk,然后</p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">PLATFORM_RISCV_XLEN = 32</span><br><span class="line">PLATFORM_RISCV_ABI = ilp32</span><br><span class="line">PLATFORM_RISCV_ISA = rv32ima_zicsr_zifencei</span><br><span class="line">PLATFORM_RISCV_CODE_MODEL = medany</span><br><span class="line">FW_TEXT_START=0x80000000//如果这个不行,可以直接修改链接脚本,具体在firmware/fw_jump.elf.ldS</span><br><span class="line">FW_JUMP=y</span><br><span class="line">ifeq ($(PLATFORM_RISCV_XLEN), 32)</span><br><span class="line">FW_JUMP_ADDR=0x0</span><br><span class="line">else</span><br><span class="line">FW_JUMP_ADDR=0x80200000</span><br><span class="line">endif</span><br><span class="line"></span><br></pre></td></tr></table></figure>
-
-<p>然后设置platform.c,主要就是设置timer,uart的地址,这里可以根据自己的想法去设置设备地址,也可以使用nemu内部的地址,建议uart使用nemu的,只需稍微改动即可,改动可参考uart8250手册</p>
-<p>之后就是debug过程,最后由于跳转到0x0,所以会直接段错误退出,注意最好看19年的手册,24年新出的手册会增加一些csr,从而导致spike触发非法指令</p>
-<p>运行结果如下</p>
-<p><img src="/2025/02/19/nemu-linux/nemu-linux/1740061516016.png" alt="1740061516016"></p>
-<p>如果不确定需要实现哪些寄存器,可以先抛出非法指令异常,之后opensbi会告诉你要设置哪些寄存器</p>
-<h1 id="移植linux"><a href="#移植linux" class="headerlink" title="移植linux"></a>移植linux</h1><p><strong>为什么执行到relocate_enable_mmu会访问无效地址？</strong></p>
-<p>因为指第一次写入satp并没有去执行sfence，所以导致系统仍然使用之前的映射关系</p>
-<ul>
-<li><input disabled type="checkbox"> 需要去为ref传递异常号</li>
-<li><input disabled type="checkbox"> 为什么会跳转到c000098，这里可能发生了嵌套异常（错误的行为）</li>
-</ul>
-<p>终于可以跑起来一部分页表了：</p>
-<p>发现之前的问题是因为自己的pte解析出错了</p>
-<p>目前的问题是：</p>
-<p>会访问0x80040000的数据，这个就是j指令</p>
-]]></content>
-      <categories>
-        <category>计算机体系结构</category>
-      </categories>
-  </entry>
-  <entry>
     <title>regfile_prefetch</title>
     <url>/2025/04/25/regfile-prefetch/</url>
     <content><![CDATA[<p><img src="/2025/04/25/regfile-prefetch/image-20250425144739509.png" alt="image-20250425144739509"></p>
@@ -4253,34 +4746,6 @@ CDC入队条件比较弱,考虑更改</p>
 <p>为了保证正确性，RFP考虑了所有可能修改负载数据的存储。当一个RFP被发送到L1和LSQ时，它会扫描所有较旧的商店(按照先老后小的顺序)，并将其地址与商店地址进行匹配。匹配时，它等待存储完成，并使用存储数据而不是缓存数据进行预取。如果存储的地址不可用(意味着存储还没有执行)，我们依靠内存歧义消除(MD) [14]机制来决定RFP是需要等待存储还是跳过它</p>
 <p><strong>流水线简化</strong></p>
 <p>如果一个RFP请求未命中L1，我们允许它继续处理，并从较低级别的缓存中获取数据，类似于常规的按需加载。在DTLB未命中的情况下，我们为了流水线简化而丢弃RFP，因为TLB未命中需要很长的延迟，并且在这种情况下RFP将没有足够的剩余运行时间。</p>
-]]></content>
-  </entry>
-  <entry>
-    <title>runahead</title>
-    <url>/2025/02/05/runahead/</url>
-    <content><![CDATA[<h1 id="runahead"><a href="#runahead" class="headerlink" title="runahead"></a>runahead</h1><p>(又是Onur Mutlu写的文章)</p>
-<h2 id="要解决的问题-摘要"><a href="#要解决的问题-摘要" class="headerlink" title="要解决的问题(摘要)"></a>要解决的问题(摘要)</h2><p>现如今高性能处理器都通过OoO来中和一些高延迟操作(如cache miss,中断异常,设备访问),之前做法都是增大指令窗口(个人理解为rob中可存储指令个数),现在可以提前执行,也即是runahead,在相同的机器上,runahead结合128个Instruction Windows与在没有提前执行和384个Instruction Windows相比性能几乎没有差异</p>
-<h2 id="相关工作"><a href="#相关工作" class="headerlink" title="相关工作"></a>相关工作</h2><p>mem access对CPU的性能影响很大,故之前有人提出了cache,no-blocking cache,硬件预取,软件预取,基于线程预取<br>Balasubramonian提出了长延迟指令阻塞退役时执行未来指令的机制。它们的机制动态地将寄存器文件的一部分分配给“未来线程”，该线程在“主线程”停止时启动。这种机制需要对两种不同上下文的部分硬件支持。<br>缺点:两模式都无法全部享用处理器资源<br>在运行提前执行中，普通模式和运行提前模式都可以利用机器的全部资源，这有助于机器在运行提前模式中获得进一步的领先。<br>Lebeck提出，将依赖于长延迟操作的指令从(相对较小的)调度窗口中移除，放入(相对较大的)等待指令缓冲区(WIB)中，直到操作完成，然后将指令移回调度窗口。这结合了大指令窗口的延迟容忍优势和小调度窗口的快速周期时间优势。(类似于超标量发射队列的推测唤醒那一节)</p>
-<h2 id="IW和SW-和超标量哪一本的含义不同"><a href="#IW和SW-和超标量哪一本的含义不同" class="headerlink" title="IW和SW(和超标量哪一本的含义不同)"></a>IW和SW(和超标量哪一本的含义不同)</h2><p>An out-of-order execution machine<br>accomplishes this using two windows: the instruction window and the scheduling window.</p>
-<p>指令窗口是已经解码的指令但还没退休,也即是在rob的指令,调度窗口是指令窗口的一个子集,其主要作用就是找到可以执行的指令<br><img src="/2025/02/05/runahead/image.png" alt="alt text"><br>可以看到runahead+128表项的IW的停顿百分比与IPC(每个条顶部为IPC),其消除full window<br>stalls获得了20%的IPC提升</p>
-<h2 id="runahead-1"><a href="#runahead-1" class="headerlink" title="runahead"></a>runahead</h2><p>CPU任何时候都可以进入runahead,本论文在l2cache miss,并且该内存操作到达指令窗口的头部时(也就是最老的指令)进入提前执行.提前执行时的pc得存起来,以便退出runahead恢复archstate,IW中所有指令都被标记为runahead inst,在这个模式中取到的指令也是No updates to the checkpointed register file are allowed during runahead mode.runahead的执行与内存通信和无效结果的传播有关,一些规则:</p>
-<ol>
-<li>Invalid bits and instructions.</li>
-<li>Propagation of INV values.<br>进入runahead的第一条无效指令为load或者store(引起这个问题的原因),若为load,则rf的INV拉高,若为store,则runahead cache分配一个表项,并且将dest 的byte置为无效Any invalid instruction that writes to a register marks that<br>register as INV after it is scheduled or executed. Any valid<br>operation that writes to a register resets the INV bit ofits<br>destination register.</li>
-<li>Runahead store operations and runahead cache.之前的工作runahead load之前有runahead store(raw)被视为无效指令并被删除我们认为转发是必要的,如果两个指令都在IW中,直接通过store buffer获取指令,如果指令伪退休了,<br>我们将其存入runahead cache,其目的是转发数据和状态,被替换的dirty行不会存入下一级存储器,而是会直接删除(正常模式的指令无法访问该cache)store buffer 和runahead cache的每个字节都有对应的INV,而runahead cache 中还有STO为,指示store是否写入该字节,只有访问该cache中的STO和valid 之高的line,才不会miss,规则如下:<ol>
-<li>当有效runahead store执行-&gt;拉低cache的INV,若datacache中该数据缺失,则进行预取</li>
-<li>当无效runahead store被选中-&gt;将store buffer对应位置拉高INV</li>
-<li>当有效runahead store退休,写入cache,重置INV,设置写入字节的STO</li>
-<li>当无效的runahead store执行,cache的INV升高,设置STO</li>
-<li>runahead store不会将数据写入data cache<br>但store地址无效时,其操作将会被视为NOP,这时与之相关的load可能无法获得正确的值,可以使用memory dependence predictors解决</li>
-</ol>
-</li>
-<li>Runahead load operations.Runahead load操作可能因三种不同原因而无效它可能源于一个 INV 物理寄存器。（寄存器的INV位）它可能依赖于store buffer中标记为 INV 的存储。（store buffer的INV位）它可能依赖于一个已经伪退休的 INV 存储器。（runahead cache的INV位）Runahead load 执行时会<strong>并行</strong>访问data cache,store buffer和runahead cache访问store buffer和runahead cache:只有访问的line的INV置低,(STO置为高),才能获取数据,若无效,则该指令的dst reg 置为INV如果store buffer和runahead cache 都miss,但data cache hit,使用该数据,但实际这时数据可能是无效的-&gt;依赖于之前的store,但之前的store 的line是INV的或者被驱逐出cache(这种很罕见,故不会影响性能),如果三个都miss,则访问l2cache,如果访问l2cache miss,则驱除该指令,然后当作正常模式的指令运行,(个人理解这个可能会形成嵌套runahead)</li>
-<li>Execution and prediction of branches.<strong>在runahead模式的分支指令预测失败后不会恢复****训练策略</strong>runahead 时就训练BHT,这样其训练效果好不能再runahead训练BHT,这样可能导致分支预测不太行,导致runahead遇见分支性能下降只能在runahead训练BHT,正常模式通过fifo访问BHT两种模式有不同的表</li>
-<li>Instruction pseudo-retirement during runahead mode.<br>runahead模式退休和正常差不多,区别在于:runahead如果检测ROB有inv指令,直接退休,两种模式均会更新RAT</li>
-</ol>
-<h2 id="Exiting-runahead-mode"><a href="#Exiting-runahead-mode" class="headerlink" title="Exiting runahead mode"></a>Exiting runahead mode</h2><p>退出也是可以随时退出,本文使用和分支预测失误后恢复的方法相似<br>本文使用的是当blocking的数据返回后退出runahead,</p>
-<h2 id="一些名词"><a href="#一些名词" class="headerlink" title="一些名词"></a>一些名词</h2><p>BHT,FIFO,ROB,RAT,store buffer</p>
 ]]></content>
   </entry>
   <entry>
