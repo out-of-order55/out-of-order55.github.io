@@ -1,6 +1,68 @@
 <?xml version="1.0" encoding="utf-8"?>
 <search>
   <entry>
+    <title>BOP预取器</title>
+    <url>/2025/02/05/BOP%E9%A2%84%E5%8F%96%E5%99%A8/</url>
+    <content><![CDATA[<h1 id="BOP介绍"><a href="#BOP介绍" class="headerlink" title="BOP介绍"></a>BOP介绍</h1><p>主要相对于SandBox有更好的timeliness，</p>
+<h1 id="OFFSET-PREFETCHING"><a href="#OFFSET-PREFETCHING" class="headerlink" title="OFFSET PREFETCHING"></a>OFFSET PREFETCHING</h1><p>offset 预取是next line 的扩展，偏移量预取器预取行X +D，其中D为预取偏移量。情况D &#x3D; 1对应于下一行预取。本节提供一些示例来说明为什么偏移预取是一种有效的预取技术。下面的示例假设为64字节行。为方便起见，在存储器区域中访问的行用位向量表示，相邻的位表示相邻的行。位值告诉行是否被访问（“1”）或不被访问（“0”）。我们忽略了页面边界的影响，只考虑长访问流的稳定状态。</p>
+<h2 id="3-1-Example-1-sequential-stream"><a href="#3-1-Example-1-sequential-stream" class="headerlink" title="3.1 Example 1: sequential stream"></a>3.1 Example 1: sequential stream</h2><p>考虑下面的顺序流：111111111111111111…</p>
+<p>也就是说，程序访问的行是X、X+1、X+2，等等。在这个示例中，下一行预取器产生100%的预取覆盖率和准确性。但是，在访问X之后为X+1发出预取可能太迟，无法覆盖从最后一级缓存或内存中获取X+1的全部延迟，从而导致延迟预取。延迟预取可能会加快执行速度，但不如及时预取快。偏移量预取器在顺序流上产生100%的预取覆盖率和准确性，就像下一行预取器一样，但是如果偏移量足够大，可以提供及时的预取。</p>
+<p>另一个可能降低预取覆盖率的因素是scrambling（乱序访存），即内存访问的时间顺序可能与程序顺序不完全匹配[11]。</p>
+<p>一般来说，在长序列流上，对scrambling的容忍度随着偏移量的增大而提高。</p>
+<h2 id="3-2-Example-2-strided-stream"><a href="#3-2-Example-2-strided-stream" class="headerlink" title="3.2 Example 2: strided stream"></a>3.2 Example 2: strided stream</h2><p>考虑一个加载指令访问一个常量步长为+96字节的数组。对于64字节的缓存行，在内存区域中访问的行是：110110110110110110…</p>
+<p>如果在L1处没有步进预取器（或者如果它发出延迟预取），则观察L2访问（如AC&#x2F;DC[22]）的增量相关预取器将在这里完美地工作，因为行步进序列是周期性的（1,2,1,2，…）。尽管如此，在这个例子中，一个简单的偏移量预取器以3的倍数作为偏移量，可以获得100%的覆盖率和准确性。</p>
+<p>通过将偏移量设置为一个周期内跨步的总和或该数字的倍数，理论上，偏移量预取可以在任何周期的行跨步序列上提供100%的覆盖率和准确性。</p>
+<h2 id="3-3-Example-3-interleaved-streams"><a href="#3-3-Example-3-interleaved-streams" class="headerlink" title="3.3 Example 3: interleaved streams"></a>3.3 Example 3: interleaved streams</h2><p>考虑两个交错的流S1和S2访问不同的内存区域，并具有不同的行为：S1: 101010101010101010…</p>
+<p>S2: 110110110110110110…</p>
+<p>流S1单独可以用2的倍数作为偏移量完美地预取。流S2单独可以用3的倍数作为偏移量完美地预取。两个流都可以用6的倍数作为偏移量完美地预取。</p>
+<h1 id="BEST-OFFSET-BO-PREFETCHING"><a href="#BEST-OFFSET-BO-PREFETCHING" class="headerlink" title="BEST-OFFSET (BO) PREFETCHING"></a>BEST-OFFSET (BO) PREFETCHING</h1><p><img src="/2025/02/05/BOP%E9%A2%84%E5%8F%96%E5%99%A8/1731049049568.png" alt="1731049049568"></p>
+<p>图1显示了BO预取器的示意图。</p>
+<p>图1中的符号D表示当前预取偏移量，即当前用于预取的偏移量。当对行X的读请求访问L2缓存时，如果这是一个未命中或预取命中（即，设置了预取位），并且如果X和X +D位于同一内存页，则对行X +D的预取请求被发送到L3缓存。</p>
+<h2 id="4-1-Best-offset-learning"><a href="#4-1-Best-offset-learning" class="headerlink" title="4.1 Best-offset learning"></a>4.1 Best-offset learning</h2><p>预取偏移量D是自动动态设置的，试图适应应用程序的行为，这些行为可能会随着时间的推移而变化。</p>
+<p>最佳偏移学习算法试图通过测试几个不同的偏移来找到最佳的预取偏移量。如果在访问行X时，行X - d最近有一次访问，那么偏移量d可能是一个很好的预取偏移量。然而，X - d最近被访问的事实并不足以保证行X会及时预取。我们希望预取在任何可能的情况下都是及时的。也就是说，对于行X来说，d是一个很好的预取偏移量，行X - d必须最近被访问过，但不是太近。</p>
+<p>理想情况下，访问行X - d和X之间的时间应该大于完成预取请求的延迟。</p>
+<p>我们的解决方案是在最近的请求（RR）表中记录已完成的预取请求的基址。</p>
+<p>基址为触发预取请求的地址：预取行为X +D，则基址为X。从插入L2的预取行地址减去当前预取偏移量得到基址。</p>
+<p>如果行X−d在RR表中，则表示最近下发了对行X−d + D的预取请求，并且已经完成。因此，如果一个预取请求发出的偏移量是d而不是D，那么它将是当前访问的行X的预取，并且这个预取将是及时的（假设取行X的延迟等于取行X - d + D的延迟）。</p>
+<blockquote>
+<p>注：这句话的意思就是偏移量为d的已经预取到X了，也就是D&#x3D;d</p>
+</blockquote>
+<p>对于RR表有几种可能的实现。在本研究中，我们选择最简单的实现：直接映射RR表，通过哈希函数访问，每个表项都包含一个标签（tag）。标签不需要是完整的地址，部分标签就足够了</p>
+<p>除了RR表之外，BO预取器还具有<strong>偏移列表</strong>和<strong>分数表</strong>。分数表将分数与偏移列表中的每个偏移量关联起来。分数值在0到SCOREMAX之间（例如，SCOREMAX&#x3D;31表示5位分数）。</p>
+<p>预取偏移量在每个学习阶段结束时更新。一个学习阶段包括几个回合。在学习阶段开始时，所有分数都重置为0。对于每个符合条件的L2读访问（<strong>未命中或预取命中</strong>），我们从列表中测试偏移量di。如果X−di命中RR表，则增加偏移量di的分数。在一轮中，列表中的每个偏移都测试一次：我们在一轮中第一次访问时测试d1，在下一次访问时测试d2，然后是d3，以此类推。当列表中的所有偏移量都测试完后，当前一轮结束，从偏移量d1再次开始新一轮。</p>
+<blockquote>
+<p>注：预取命中就是命中了预取来的块</p>
+</blockquote>
+<p>当前的学习阶段在一轮结束时，当以下两个事件中的任何一个首先发生：其中一个分数等于SCOREMAX，或者轮数等于ROUNDMAX（一个固定参数）。当学习阶段结束时，我们搜索最佳偏移量，即得分最高的偏移量。这个偏移量成为新的预取偏移量，开始一个新的学习阶段。</p>
+<h2 id="4-2-Offset-list"><a href="#4-2-Offset-list" class="headerlink" title="4.2 Offset list"></a>4.2 Offset list</h2><p>没有什么可以阻止BO预取器使用负偏移值。虽然一些应用程序可能从负偏移中受益，但我们在实验中没有观察到任何好处。因此，我们在本研究中只考虑<strong>正偏移</strong>。有用的偏移量值取决于内存页大小，因为BO预取器不会跨页边界预取。例如，假设4KB页和64B行，一个页包含64行，并且没有必要考虑大于63的偏移值。但是，对于具有超级页面的系统，考虑大于63的偏移量可能是有用的。在偏移列表中包含的偏移量的选择有些随意。例如，一种可能性是包含从1到最大偏移量之间的所有偏移量。然而，这个最大偏移量不能太大，因为较大的偏移量列表意味着较大的分数表和较长的学习阶段。如果我们想让列表包含较大的偏移量，但又不想让列表太大，我们必须采样1和最大偏移量之间的偏移量（这需要将偏移量列表实现为ROM）。使用数千个代表性基准测试的微架构师可能希望对要放在列表中的偏移量进行广泛的探索。我们没有足够的基准来进行这样的探索。</p>
+<p>我们提出了一种偏移采样的方法，它是算法的，不是完全任意的：我们在我们的列表中包括所有在1到256之间的偏移，其质因数分解不包含大于5的质数。这给出了以下52个偏移量的列表：12 3 45 6 8 9 10 12 15 16 18 20 24 25 27 30 32 36 40 45 48 50 54 60 64 72 75 80 81 90 96 100 108 120 125 128 135 144 150 160 162 180 192 200 216 225 240 243 250 256。</p>
+<p>仅考虑具有小质数因子的偏移量有两个好处：</p>
+<p>•小偏移量比大偏移量更具代表性（小偏移量更可能有用）。</p>
+<p>•偏移列表比全偏移范围小得多。</p>
+<p>此外，这种方法与3.3节的例子是一致的：如果列表中有两个偏移量，那么它们的最小公倍数也是如此（前提是它不是太大）。</p>
+<h2 id="4-3-Prefetch-throttling"><a href="#4-3-Prefetch-throttling" class="headerlink" title="4.3 Prefetch throttling"></a>4.3 Prefetch throttling</h2><p>BO预取器是一级预取器：每次访问最多发出一次预取。</p>
+<p>可以想象一个预取度大于1的偏移预取器。例如，二级偏移量预取器将同时预取两个不同的偏移量，最佳偏移量和次最佳偏移量。这可能会为具有不规则访问模式的应用程序带来一些额外的性能。但是，这将增加预取请求的数量，给内存带宽和缓存标签带来更大的压力，除非实现预取过滤器。不需要带有一级BO预取器的预取过滤器。此外，使用两个偏移量的预取可能会在不规则的内存访问模式下产生许多无用的预取。</p>
+<blockquote>
+<p>举例：With two different prefetch offsets D1 and D2, redundant prefetch requests are issued when accessing lines X and X +D1 −D2.</p>
+</blockquote>
+<p>尽管如此，与其他一些预取方法（如跨步预取）相比，BO预取是相对积极的。对不规则访问模式发出的无用预取浪费了能量和内存带宽。在学习阶段结束时获得的最佳分数给出了关于预取准确性的一些信息。如果分数很低，这可能意味着偏移预取失败，我们可能决定关闭预取。我们定义了一个固定的阈值<strong>BADSCORE</strong>，这样当最佳分数不大于BADSCORE时，就会关闭预取。然而，最佳偏移学习永远不会停止，即使在预取关闭时也会继续，因此当应用程序行为发生变化并需要预取时，可以再次打开预取。</p>
+<p>图1说明了预取打开的情况：对于插入L2的每个预取行Y，我们写入地址Y−D 4。这将是一个过拟合的情况。由于D1和D2两个不同的预取偏移量，访问线路X和X +D1−D2时会发出冗余预取请求。到RR表中（如果Y和Y−D在同一页）。在预取关闭的学习阶段，在RR表中的插入被修改：对于每个提取的行Y，我们将地址Y写入RR表（即D &#x3D; 0）。</p>
+<blockquote>
+<p>这里也就是预取关闭D一定为0，所以将Y写入D</p>
+</blockquote>
+<h2 id="4-4-Implementation-details"><a href="#4-4-Implementation-details" class="headerlink" title="4.4 Implementation details"></a>4.4 Implementation details</h2><p>BO预取器具有3个加法器，如图1所示。这些加法器只需要生成页面内一行的位置。例如，对于4MB页面和64B行，每个加法器的宽度为22−6 &#x3D; 16位。页码位只是简单地从基址X或从预取的行地址Y复制（参见图1）。通过简单的哈希函数访问RR表。例如，对于一个包含256个条目的RR表，我们将最低8位行地址位与次低的8位进行异或，以获得表索引。对于12位标签，我们跳过8个最低有效行地址位并提取接下来的12位。</p>
+<h1 id="BASELINE-MICROARCHITECTURE"><a href="#BASELINE-MICROARCHITECTURE" class="headerlink" title="BASELINE MICROARCHITECTURE"></a>BASELINE MICROARCHITECTURE</h1><p>预取不是独立模型，需要考虑其他微结构影响</p>
+<p><img src="/2025/02/05/BOP%E9%A2%84%E5%8F%96%E5%99%A8/1731054466977.png" alt="1731054466977"></p>
+<p>首先这是基线模型，然后测试了1，2，4核工作对core0的影响，462程序会大大降低core0 的ipc</p>
+<p><img src="/2025/02/05/BOP%E9%A2%84%E5%8F%96%E5%99%A8/1731054598236.png" alt="1731054598236"></p>
+<p><img src="/2025/02/05/BOP%E9%A2%84%E5%8F%96%E5%99%A8/1731055018638.png" alt="1731055018638"></p>
+<p>他之后的实验工作就是通过固定offset测试BOP的偏移表是否含在内部，同时对比性能</p>
+]]></content>
+      <categories>
+        <category>论文阅读</category>
+      </categories>
+  </entry>
+  <entry>
     <title>A Primer on Hardware Prefetching</title>
     <url>/2025/02/05/A-Primer-on-Hardware-Prefetching/</url>
     <content><![CDATA[<h1 id="介绍"><a href="#介绍" class="headerlink" title="介绍"></a>介绍</h1><p>预取要干的事情：</p>
@@ -83,6 +145,120 @@
       <categories>
         <category>计算机体系结构</category>
       </categories>
+  </entry>
+  <entry>
+    <title>DNN 加速器</title>
+    <url>/2025/02/05/DNN-%E5%8A%A0%E9%80%9F%E5%99%A8/</url>
+    <content><![CDATA[<h1 id="DNN加速器综述"><a href="#DNN加速器综述" class="headerlink" title="DNN加速器综述"></a>DNN加速器综述</h1><h2 id="硬件方案"><a href="#硬件方案" class="headerlink" title="硬件方案"></a>硬件方案</h2><p>两种架构:temporal and spatial architectures<br><img src="/2025/02/05/DNN-%E5%8A%A0%E9%80%9F%E5%99%A8/image00.png" alt="alt text"><br>其中asic和fpga主要为spatial结构,而CPU和GPU主要为temporal结构<br><strong>本次主要介绍空间架构</strong><br>这种结构有相当一部分能耗在存储上,故数据重用是研究重点<br><img src="/2025/02/05/DNN-%E5%8A%A0%E9%80%9F%E5%99%A8/image-1.png" alt="基本结构"><br>一些重用名词<br>input reuse:FC层<br>weight reuse:CONV层<br>conv reuse:卷积层的滑窗每次都有重复的<br><strong>Weight Stationary</strong><br>所有使用相同weight的mac必须映射到同一PE上进行串行处理。这最大限度地提高了RF中权重的卷积和滤波器重用，从而最大限度地减少了访问权重的能量消耗<br><img src="/2025/02/05/DNN-%E5%8A%A0%E9%80%9F%E5%99%A8/image-2.png" alt="alt text"><br>这是一个3x3的矩阵2x2的卷积核,最后生成2x2的输出<br><img src="/2025/02/05/DNN-%E5%8A%A0%E9%80%9F%E5%99%A8/image-3.png" alt="alt text"><br>先说上面那一种<br>仅介绍一个输出元素如何产生的,<br>T1:I0XW0<br>T2:I0XW0+I1XW1<br>T3:将结果移入PE2<br>T4:I0XW0+I1XW1+I2XW2<br>T5:I0XW0+I1XW1+I2XW2+I3XW3,完成一次卷积操作<br>下面哪一种和上面类似,不过是再次分块了<br><strong>Output Stationary</strong><br>映射规则是对相同的输出像素的所有mac必须依次映射到同一PE上。<br><img src="/2025/02/05/DNN-%E5%8A%A0%E9%80%9F%E5%99%A8/image-4.png" alt="alt text"><br><strong>Row Stationary</strong><br><img src="/2025/02/05/DNN-%E5%8A%A0%E9%80%9F%E5%99%A8/image-5.png" alt="alt text"><br><strong>No Local Reuse</strong><br><img src="/2025/02/05/DNN-%E5%8A%A0%E9%80%9F%E5%99%A8/image-6.png" alt="alt text"></p>
+]]></content>
+      <categories>
+        <category>论文阅读</category>
+      </categories>
+  </entry>
+  <entry>
+    <title>CDC_DESIGN</title>
+    <url>/2025/03/31/CDC-DESIGN/</url>
+    <content><![CDATA[]]></content>
+  </entry>
+  <entry>
+    <title>FDIP</title>
+    <url>/2025/05/07/FDIP/</url>
+    <content><![CDATA[<h1 id="具体微结构"><a href="#具体微结构" class="headerlink" title="具体微结构"></a><strong>具体微结构</strong></h1><p>首先先翻译一下：</p>
+<p>在[14]中，我们研究了分支预测器与指令缓存的解耦。为了提供解耦的前端，提取目标队列(FTQ)用于桥接分支预测器和指令高速缓存之间的间隙。每个周期，分支预测器都会产生一个提取目标块预测，并将其存储在FTQ中，最终由指令缓存使用。FTQ提供允许分支预测器和指令高速缓存自主操作所需的缓冲。当分支预测器由于高速缓存未命中或指令缓冲区已满而暂停时，FTQ允许分支预测器在指令高速缓存之前工作。如果指令高速缓存是多端口的，则可以在单个周期内消耗多个有效的FTQ条目，直到端口耗尽。</p>
+<p>任何分支预测器(基本块目标缓冲器[22]、提前两个块预测器[15]或提取目标缓冲器[14])都可以放在FTQ之前，并产生要由指令高速缓存消耗的提取块地址。正是FTQ允许分支预测器在指令缓存之前运行。</p>
+<p><img src="/2025/05/07/FDIP/image-20250507155259388.png" alt="image-20250507155259388"></p>
+<p>FTQ包含一个提取块，当数据缓存或者指令缓存未命中，从PIQ开始预取。</p>
+<h3 id="Prefetch-Buffer-的工作机制"><a href="#Prefetch-Buffer-的工作机制" class="headerlink" title="Prefetch Buffer 的工作机制"></a><strong>Prefetch Buffer 的工作机制</strong></h3><p>在论文提出的 <strong>Fetch Directed Prefetching (FDP)</strong> 架构中，<strong>Prefetch Buffer</strong> 是一个关键组件，用于临时存储通过分支预测器前瞻生成的指令缓存块。以下是其具体工作原理和设计细节的详细解析：</p>
+<hr>
+<h4 id="1-Prefetch-Buffer-的核心作用"><a href="#1-Prefetch-Buffer-的核心作用" class="headerlink" title="1. Prefetch Buffer 的核心作用"></a><strong>1. Prefetch Buffer 的核心作用</strong></h4><ul>
+<li><strong>目标</strong>：通过提前将未来可能需要的指令缓存块加载到缓冲区，减少指令缓存未命中带来的延迟。</li>
+<li><strong>数据来源</strong>：由 <strong>Fetch Target Queue (FTQ)</strong> 中的候选预取地址生成。</li>
+<li><strong>与指令缓存的协作</strong>：在指令缓存查询时，Prefetch Buffer 并行查找；若命中，则直接将缓存块插入指令缓存。</li>
+</ul>
+<hr>
+<h4 id="2-Prefetch-Buffer-的结构设计"><a href="#2-Prefetch-Buffer-的结构设计" class="headerlink" title="2. Prefetch Buffer 的结构设计"></a><strong>2. Prefetch Buffer 的结构设计</strong></h4><p>- </p>
+<p>  FIFO 队列结构</p>
+<p>  ：</p>
+<ul>
+<li><p>采用先进先出（FIFO）的队列结构，新预取的缓存块插入队尾，最旧的块在队首。</p>
+</li>
+<li><p><strong>容量</strong>：论文中未明确指定具体条目数，但提及使用类似流式缓冲区的设计（例如 4 条目或更多）。</p>
+</li>
+<li><p><strong>条目内容</strong>：每个条目存储一个完整的指令缓存块（如 32 字节）及其地址标签。</p>
+</li>
+<li><p><strong>替换策略</strong>：当缓冲区满时，新预取请求需等待旧条目被消费或替换。</p>
+</li>
+</ul>
+<hr>
+<h4 id="3-预取流程的触发与管理"><a href="#3-预取流程的触发与管理" class="headerlink" title="3. 预取流程的触发与管理"></a><strong>3. 预取流程的触发与管理</strong></h4><p>- </p>
+<p>  预取地址的生成</p>
+<p>  ：</p>
+<ul>
+<li><p>FTQ 中的每个条目包含多个候选预取地址（每个地址对应一个缓存块）。</p>
+</li>
+<li><p>这些地址通过分支预测器生成，并标记为“候选预取位”（Candidate Bit）。</p>
+</li>
+<li></li>
+</ul>
+<p>  Prefetch Instruction Queue (PIQ)</p>
+<p>  ：</p>
+<ul>
+<li>候选地址首先进入 PIQ 等待调度。</li>
+<li>优先级：指令缓存未命中 &gt; 数据缓存未命中 &gt; 预取请求。</li>
+<li>当 L2 总线空闲时，从 PIQ 中取出地址发起预取请求。</li>
+</ul>
+<hr>
+<h4 id="4-预取缓冲区的操作流程"><a href="#4-预取缓冲区的操作流程" class="headerlink" title="4. 预取缓冲区的操作流程"></a><strong>4. 预取缓冲区的操作流程</strong></h4><p>1. </p>
+<p>   预取填充</p>
+<p>   ：</p>
+<ul>
+<li>从 PIQ 获取地址后，向 L2 缓存发起预取请求。</li>
+<li>预取的数据块存入 Prefetch Buffer 队尾。</li>
+</ul>
+<p>2. </p>
+<p>   指令缓存查询时的并行查找</p>
+<p>   ：</p>
+<ul>
+<li>当指令缓存需要访问某个地址时，同时查询指令缓存和 Prefetch Buffer。</li>
+<li>若在 Prefetch Buffer 中找到匹配项（命中）：<ul>
+<li>命中条目（通常是最旧条目）被移出缓冲区。</li>
+<li>该缓存块直接插入指令缓存，替换原有未命中的块。</li>
+</ul>
+</li>
+</ul>
+<p>3. </p>
+<p>   分支误预测的处理</p>
+<p>   ：</p>
+<ul>
+<li>发生分支误预测时，FTQ 和 Prefetch Buffer 会被清空（Flush），确保预取路径与正确执行路径一致。</li>
+</ul>
+<p><strong>如果cache未命中，且预取缓冲区有数据，此时如何解决？</strong></p>
+<p>论文并未提出，不过如果命中可以直接从缓冲区取出数据，类似于压缩队列</p>
+]]></content>
+  </entry>
+  <entry>
+    <title>Goals in this year</title>
+    <url>/2025/04/24/Goals-in-this-year/</url>
+    <content><![CDATA[<ul>
+<li><input checked disabled type="checkbox"> 写一个超标量处理器</li>
+</ul>
+<p>目前通过官方的测试，但并未进行性能调优。</p>
+<ul>
+<li><input disabled type="checkbox"> nemu启动linux（低优先级）（7-8月目标）</li>
+</ul>
+<p>目前可以启动on mmu linux ，以及opensbi</p>
+<ul>
+<li><p><input disabled type="checkbox"> 
+gem5加入data prefetcher，并评估性能（5-6月目标）</p>
+</li>
+<li><p><input disabled type="checkbox"> 
+boom加入data prefetcher，并评估性能（6-7月目标）</p>
+</li>
+<li><p><input disabled type="checkbox"> 
+MEEK改进，并参与流片工作（最高优先级，持续推进）</p>
+</li>
+</ul>
+]]></content>
   </entry>
   <entry>
     <title>A Primer on Memory Consistency</title>
@@ -636,182 +812,6 @@
       </categories>
   </entry>
   <entry>
-    <title>BOP预取器</title>
-    <url>/2025/02/05/BOP%E9%A2%84%E5%8F%96%E5%99%A8/</url>
-    <content><![CDATA[<h1 id="BOP介绍"><a href="#BOP介绍" class="headerlink" title="BOP介绍"></a>BOP介绍</h1><p>主要相对于SandBox有更好的timeliness，</p>
-<h1 id="OFFSET-PREFETCHING"><a href="#OFFSET-PREFETCHING" class="headerlink" title="OFFSET PREFETCHING"></a>OFFSET PREFETCHING</h1><p>offset 预取是next line 的扩展，偏移量预取器预取行X +D，其中D为预取偏移量。情况D &#x3D; 1对应于下一行预取。本节提供一些示例来说明为什么偏移预取是一种有效的预取技术。下面的示例假设为64字节行。为方便起见，在存储器区域中访问的行用位向量表示，相邻的位表示相邻的行。位值告诉行是否被访问（“1”）或不被访问（“0”）。我们忽略了页面边界的影响，只考虑长访问流的稳定状态。</p>
-<h2 id="3-1-Example-1-sequential-stream"><a href="#3-1-Example-1-sequential-stream" class="headerlink" title="3.1 Example 1: sequential stream"></a>3.1 Example 1: sequential stream</h2><p>考虑下面的顺序流：111111111111111111…</p>
-<p>也就是说，程序访问的行是X、X+1、X+2，等等。在这个示例中，下一行预取器产生100%的预取覆盖率和准确性。但是，在访问X之后为X+1发出预取可能太迟，无法覆盖从最后一级缓存或内存中获取X+1的全部延迟，从而导致延迟预取。延迟预取可能会加快执行速度，但不如及时预取快。偏移量预取器在顺序流上产生100%的预取覆盖率和准确性，就像下一行预取器一样，但是如果偏移量足够大，可以提供及时的预取。</p>
-<p>另一个可能降低预取覆盖率的因素是scrambling（乱序访存），即内存访问的时间顺序可能与程序顺序不完全匹配[11]。</p>
-<p>一般来说，在长序列流上，对scrambling的容忍度随着偏移量的增大而提高。</p>
-<h2 id="3-2-Example-2-strided-stream"><a href="#3-2-Example-2-strided-stream" class="headerlink" title="3.2 Example 2: strided stream"></a>3.2 Example 2: strided stream</h2><p>考虑一个加载指令访问一个常量步长为+96字节的数组。对于64字节的缓存行，在内存区域中访问的行是：110110110110110110…</p>
-<p>如果在L1处没有步进预取器（或者如果它发出延迟预取），则观察L2访问（如AC&#x2F;DC[22]）的增量相关预取器将在这里完美地工作，因为行步进序列是周期性的（1,2,1,2，…）。尽管如此，在这个例子中，一个简单的偏移量预取器以3的倍数作为偏移量，可以获得100%的覆盖率和准确性。</p>
-<p>通过将偏移量设置为一个周期内跨步的总和或该数字的倍数，理论上，偏移量预取可以在任何周期的行跨步序列上提供100%的覆盖率和准确性。</p>
-<h2 id="3-3-Example-3-interleaved-streams"><a href="#3-3-Example-3-interleaved-streams" class="headerlink" title="3.3 Example 3: interleaved streams"></a>3.3 Example 3: interleaved streams</h2><p>考虑两个交错的流S1和S2访问不同的内存区域，并具有不同的行为：S1: 101010101010101010…</p>
-<p>S2: 110110110110110110…</p>
-<p>流S1单独可以用2的倍数作为偏移量完美地预取。流S2单独可以用3的倍数作为偏移量完美地预取。两个流都可以用6的倍数作为偏移量完美地预取。</p>
-<h1 id="BEST-OFFSET-BO-PREFETCHING"><a href="#BEST-OFFSET-BO-PREFETCHING" class="headerlink" title="BEST-OFFSET (BO) PREFETCHING"></a>BEST-OFFSET (BO) PREFETCHING</h1><p><img src="/2025/02/05/BOP%E9%A2%84%E5%8F%96%E5%99%A8/1731049049568.png" alt="1731049049568"></p>
-<p>图1显示了BO预取器的示意图。</p>
-<p>图1中的符号D表示当前预取偏移量，即当前用于预取的偏移量。当对行X的读请求访问L2缓存时，如果这是一个未命中或预取命中（即，设置了预取位），并且如果X和X +D位于同一内存页，则对行X +D的预取请求被发送到L3缓存。</p>
-<h2 id="4-1-Best-offset-learning"><a href="#4-1-Best-offset-learning" class="headerlink" title="4.1 Best-offset learning"></a>4.1 Best-offset learning</h2><p>预取偏移量D是自动动态设置的，试图适应应用程序的行为，这些行为可能会随着时间的推移而变化。</p>
-<p>最佳偏移学习算法试图通过测试几个不同的偏移来找到最佳的预取偏移量。如果在访问行X时，行X - d最近有一次访问，那么偏移量d可能是一个很好的预取偏移量。然而，X - d最近被访问的事实并不足以保证行X会及时预取。我们希望预取在任何可能的情况下都是及时的。也就是说，对于行X来说，d是一个很好的预取偏移量，行X - d必须最近被访问过，但不是太近。</p>
-<p>理想情况下，访问行X - d和X之间的时间应该大于完成预取请求的延迟。</p>
-<p>我们的解决方案是在最近的请求（RR）表中记录已完成的预取请求的基址。</p>
-<p>基址为触发预取请求的地址：预取行为X +D，则基址为X。从插入L2的预取行地址减去当前预取偏移量得到基址。</p>
-<p>如果行X−d在RR表中，则表示最近下发了对行X−d + D的预取请求，并且已经完成。因此，如果一个预取请求发出的偏移量是d而不是D，那么它将是当前访问的行X的预取，并且这个预取将是及时的（假设取行X的延迟等于取行X - d + D的延迟）。</p>
-<blockquote>
-<p>注：这句话的意思就是偏移量为d的已经预取到X了，也就是D&#x3D;d</p>
-</blockquote>
-<p>对于RR表有几种可能的实现。在本研究中，我们选择最简单的实现：直接映射RR表，通过哈希函数访问，每个表项都包含一个标签（tag）。标签不需要是完整的地址，部分标签就足够了</p>
-<p>除了RR表之外，BO预取器还具有<strong>偏移列表</strong>和<strong>分数表</strong>。分数表将分数与偏移列表中的每个偏移量关联起来。分数值在0到SCOREMAX之间（例如，SCOREMAX&#x3D;31表示5位分数）。</p>
-<p>预取偏移量在每个学习阶段结束时更新。一个学习阶段包括几个回合。在学习阶段开始时，所有分数都重置为0。对于每个符合条件的L2读访问（<strong>未命中或预取命中</strong>），我们从列表中测试偏移量di。如果X−di命中RR表，则增加偏移量di的分数。在一轮中，列表中的每个偏移都测试一次：我们在一轮中第一次访问时测试d1，在下一次访问时测试d2，然后是d3，以此类推。当列表中的所有偏移量都测试完后，当前一轮结束，从偏移量d1再次开始新一轮。</p>
-<blockquote>
-<p>注：预取命中就是命中了预取来的块</p>
-</blockquote>
-<p>当前的学习阶段在一轮结束时，当以下两个事件中的任何一个首先发生：其中一个分数等于SCOREMAX，或者轮数等于ROUNDMAX（一个固定参数）。当学习阶段结束时，我们搜索最佳偏移量，即得分最高的偏移量。这个偏移量成为新的预取偏移量，开始一个新的学习阶段。</p>
-<h2 id="4-2-Offset-list"><a href="#4-2-Offset-list" class="headerlink" title="4.2 Offset list"></a>4.2 Offset list</h2><p>没有什么可以阻止BO预取器使用负偏移值。虽然一些应用程序可能从负偏移中受益，但我们在实验中没有观察到任何好处。因此，我们在本研究中只考虑<strong>正偏移</strong>。有用的偏移量值取决于内存页大小，因为BO预取器不会跨页边界预取。例如，假设4KB页和64B行，一个页包含64行，并且没有必要考虑大于63的偏移值。但是，对于具有超级页面的系统，考虑大于63的偏移量可能是有用的。在偏移列表中包含的偏移量的选择有些随意。例如，一种可能性是包含从1到最大偏移量之间的所有偏移量。然而，这个最大偏移量不能太大，因为较大的偏移量列表意味着较大的分数表和较长的学习阶段。如果我们想让列表包含较大的偏移量，但又不想让列表太大，我们必须采样1和最大偏移量之间的偏移量（这需要将偏移量列表实现为ROM）。使用数千个代表性基准测试的微架构师可能希望对要放在列表中的偏移量进行广泛的探索。我们没有足够的基准来进行这样的探索。</p>
-<p>我们提出了一种偏移采样的方法，它是算法的，不是完全任意的：我们在我们的列表中包括所有在1到256之间的偏移，其质因数分解不包含大于5的质数。这给出了以下52个偏移量的列表：12 3 45 6 8 9 10 12 15 16 18 20 24 25 27 30 32 36 40 45 48 50 54 60 64 72 75 80 81 90 96 100 108 120 125 128 135 144 150 160 162 180 192 200 216 225 240 243 250 256。</p>
-<p>仅考虑具有小质数因子的偏移量有两个好处：</p>
-<p>•小偏移量比大偏移量更具代表性（小偏移量更可能有用）。</p>
-<p>•偏移列表比全偏移范围小得多。</p>
-<p>此外，这种方法与3.3节的例子是一致的：如果列表中有两个偏移量，那么它们的最小公倍数也是如此（前提是它不是太大）。</p>
-<h2 id="4-3-Prefetch-throttling"><a href="#4-3-Prefetch-throttling" class="headerlink" title="4.3 Prefetch throttling"></a>4.3 Prefetch throttling</h2><p>BO预取器是一级预取器：每次访问最多发出一次预取。</p>
-<p>可以想象一个预取度大于1的偏移预取器。例如，二级偏移量预取器将同时预取两个不同的偏移量，最佳偏移量和次最佳偏移量。这可能会为具有不规则访问模式的应用程序带来一些额外的性能。但是，这将增加预取请求的数量，给内存带宽和缓存标签带来更大的压力，除非实现预取过滤器。不需要带有一级BO预取器的预取过滤器。此外，使用两个偏移量的预取可能会在不规则的内存访问模式下产生许多无用的预取。</p>
-<blockquote>
-<p>举例：With two different prefetch offsets D1 and D2, redundant prefetch requests are issued when accessing lines X and X +D1 −D2.</p>
-</blockquote>
-<p>尽管如此，与其他一些预取方法（如跨步预取）相比，BO预取是相对积极的。对不规则访问模式发出的无用预取浪费了能量和内存带宽。在学习阶段结束时获得的最佳分数给出了关于预取准确性的一些信息。如果分数很低，这可能意味着偏移预取失败，我们可能决定关闭预取。我们定义了一个固定的阈值<strong>BADSCORE</strong>，这样当最佳分数不大于BADSCORE时，就会关闭预取。然而，最佳偏移学习永远不会停止，即使在预取关闭时也会继续，因此当应用程序行为发生变化并需要预取时，可以再次打开预取。</p>
-<p>图1说明了预取打开的情况：对于插入L2的每个预取行Y，我们写入地址Y−D 4。这将是一个过拟合的情况。由于D1和D2两个不同的预取偏移量，访问线路X和X +D1−D2时会发出冗余预取请求。到RR表中（如果Y和Y−D在同一页）。在预取关闭的学习阶段，在RR表中的插入被修改：对于每个提取的行Y，我们将地址Y写入RR表（即D &#x3D; 0）。</p>
-<blockquote>
-<p>这里也就是预取关闭D一定为0，所以将Y写入D</p>
-</blockquote>
-<h2 id="4-4-Implementation-details"><a href="#4-4-Implementation-details" class="headerlink" title="4.4 Implementation details"></a>4.4 Implementation details</h2><p>BO预取器具有3个加法器，如图1所示。这些加法器只需要生成页面内一行的位置。例如，对于4MB页面和64B行，每个加法器的宽度为22−6 &#x3D; 16位。页码位只是简单地从基址X或从预取的行地址Y复制（参见图1）。通过简单的哈希函数访问RR表。例如，对于一个包含256个条目的RR表，我们将最低8位行地址位与次低的8位进行异或，以获得表索引。对于12位标签，我们跳过8个最低有效行地址位并提取接下来的12位。</p>
-<h1 id="BASELINE-MICROARCHITECTURE"><a href="#BASELINE-MICROARCHITECTURE" class="headerlink" title="BASELINE MICROARCHITECTURE"></a>BASELINE MICROARCHITECTURE</h1><p>预取不是独立模型，需要考虑其他微结构影响</p>
-<p><img src="/2025/02/05/BOP%E9%A2%84%E5%8F%96%E5%99%A8/1731054466977.png" alt="1731054466977"></p>
-<p>首先这是基线模型，然后测试了1，2，4核工作对core0的影响，462程序会大大降低core0 的ipc</p>
-<p><img src="/2025/02/05/BOP%E9%A2%84%E5%8F%96%E5%99%A8/1731054598236.png" alt="1731054598236"></p>
-<p><img src="/2025/02/05/BOP%E9%A2%84%E5%8F%96%E5%99%A8/1731055018638.png" alt="1731055018638"></p>
-<p>他之后的实验工作就是通过固定offset测试BOP的偏移表是否含在内部，同时对比性能</p>
-]]></content>
-      <categories>
-        <category>论文阅读</category>
-      </categories>
-  </entry>
-  <entry>
-    <title>CDC_DESIGN</title>
-    <url>/2025/03/31/CDC-DESIGN/</url>
-    <content><![CDATA[]]></content>
-  </entry>
-  <entry>
-    <title>DNN 加速器</title>
-    <url>/2025/02/05/DNN-%E5%8A%A0%E9%80%9F%E5%99%A8/</url>
-    <content><![CDATA[<h1 id="DNN加速器综述"><a href="#DNN加速器综述" class="headerlink" title="DNN加速器综述"></a>DNN加速器综述</h1><h2 id="硬件方案"><a href="#硬件方案" class="headerlink" title="硬件方案"></a>硬件方案</h2><p>两种架构:temporal and spatial architectures<br><img src="/2025/02/05/DNN-%E5%8A%A0%E9%80%9F%E5%99%A8/image00.png" alt="alt text"><br>其中asic和fpga主要为spatial结构,而CPU和GPU主要为temporal结构<br><strong>本次主要介绍空间架构</strong><br>这种结构有相当一部分能耗在存储上,故数据重用是研究重点<br><img src="/2025/02/05/DNN-%E5%8A%A0%E9%80%9F%E5%99%A8/image-1.png" alt="基本结构"><br>一些重用名词<br>input reuse:FC层<br>weight reuse:CONV层<br>conv reuse:卷积层的滑窗每次都有重复的<br><strong>Weight Stationary</strong><br>所有使用相同weight的mac必须映射到同一PE上进行串行处理。这最大限度地提高了RF中权重的卷积和滤波器重用，从而最大限度地减少了访问权重的能量消耗<br><img src="/2025/02/05/DNN-%E5%8A%A0%E9%80%9F%E5%99%A8/image-2.png" alt="alt text"><br>这是一个3x3的矩阵2x2的卷积核,最后生成2x2的输出<br><img src="/2025/02/05/DNN-%E5%8A%A0%E9%80%9F%E5%99%A8/image-3.png" alt="alt text"><br>先说上面那一种<br>仅介绍一个输出元素如何产生的,<br>T1:I0XW0<br>T2:I0XW0+I1XW1<br>T3:将结果移入PE2<br>T4:I0XW0+I1XW1+I2XW2<br>T5:I0XW0+I1XW1+I2XW2+I3XW3,完成一次卷积操作<br>下面哪一种和上面类似,不过是再次分块了<br><strong>Output Stationary</strong><br>映射规则是对相同的输出像素的所有mac必须依次映射到同一PE上。<br><img src="/2025/02/05/DNN-%E5%8A%A0%E9%80%9F%E5%99%A8/image-4.png" alt="alt text"><br><strong>Row Stationary</strong><br><img src="/2025/02/05/DNN-%E5%8A%A0%E9%80%9F%E5%99%A8/image-5.png" alt="alt text"><br><strong>No Local Reuse</strong><br><img src="/2025/02/05/DNN-%E5%8A%A0%E9%80%9F%E5%99%A8/image-6.png" alt="alt text"></p>
-]]></content>
-      <categories>
-        <category>论文阅读</category>
-      </categories>
-  </entry>
-  <entry>
-    <title>FDIP</title>
-    <url>/2025/05/07/FDIP/</url>
-    <content><![CDATA[<h1 id="具体微结构"><a href="#具体微结构" class="headerlink" title="具体微结构"></a><strong>具体微结构</strong></h1><p>首先先翻译一下：</p>
-<p>在[14]中，我们研究了分支预测器与指令缓存的解耦。为了提供解耦的前端，提取目标队列(FTQ)用于桥接分支预测器和指令高速缓存之间的间隙。每个周期，分支预测器都会产生一个提取目标块预测，并将其存储在FTQ中，最终由指令缓存使用。FTQ提供允许分支预测器和指令高速缓存自主操作所需的缓冲。当分支预测器由于高速缓存未命中或指令缓冲区已满而暂停时，FTQ允许分支预测器在指令高速缓存之前工作。如果指令高速缓存是多端口的，则可以在单个周期内消耗多个有效的FTQ条目，直到端口耗尽。</p>
-<p>任何分支预测器(基本块目标缓冲器[22]、提前两个块预测器[15]或提取目标缓冲器[14])都可以放在FTQ之前，并产生要由指令高速缓存消耗的提取块地址。正是FTQ允许分支预测器在指令缓存之前运行。</p>
-<p><img src="/2025/05/07/FDIP/image-20250507155259388.png" alt="image-20250507155259388"></p>
-<p>FTQ包含一个提取块，当数据缓存或者指令缓存未命中，从PIQ开始预取。</p>
-<h3 id="Prefetch-Buffer-的工作机制"><a href="#Prefetch-Buffer-的工作机制" class="headerlink" title="Prefetch Buffer 的工作机制"></a><strong>Prefetch Buffer 的工作机制</strong></h3><p>在论文提出的 <strong>Fetch Directed Prefetching (FDP)</strong> 架构中，<strong>Prefetch Buffer</strong> 是一个关键组件，用于临时存储通过分支预测器前瞻生成的指令缓存块。以下是其具体工作原理和设计细节的详细解析：</p>
-<hr>
-<h4 id="1-Prefetch-Buffer-的核心作用"><a href="#1-Prefetch-Buffer-的核心作用" class="headerlink" title="1. Prefetch Buffer 的核心作用"></a><strong>1. Prefetch Buffer 的核心作用</strong></h4><ul>
-<li><strong>目标</strong>：通过提前将未来可能需要的指令缓存块加载到缓冲区，减少指令缓存未命中带来的延迟。</li>
-<li><strong>数据来源</strong>：由 <strong>Fetch Target Queue (FTQ)</strong> 中的候选预取地址生成。</li>
-<li><strong>与指令缓存的协作</strong>：在指令缓存查询时，Prefetch Buffer 并行查找；若命中，则直接将缓存块插入指令缓存。</li>
-</ul>
-<hr>
-<h4 id="2-Prefetch-Buffer-的结构设计"><a href="#2-Prefetch-Buffer-的结构设计" class="headerlink" title="2. Prefetch Buffer 的结构设计"></a><strong>2. Prefetch Buffer 的结构设计</strong></h4><p>- </p>
-<p>  FIFO 队列结构</p>
-<p>  ：</p>
-<ul>
-<li><p>采用先进先出（FIFO）的队列结构，新预取的缓存块插入队尾，最旧的块在队首。</p>
-</li>
-<li><p><strong>容量</strong>：论文中未明确指定具体条目数，但提及使用类似流式缓冲区的设计（例如 4 条目或更多）。</p>
-</li>
-<li><p><strong>条目内容</strong>：每个条目存储一个完整的指令缓存块（如 32 字节）及其地址标签。</p>
-</li>
-<li><p><strong>替换策略</strong>：当缓冲区满时，新预取请求需等待旧条目被消费或替换。</p>
-</li>
-</ul>
-<hr>
-<h4 id="3-预取流程的触发与管理"><a href="#3-预取流程的触发与管理" class="headerlink" title="3. 预取流程的触发与管理"></a><strong>3. 预取流程的触发与管理</strong></h4><p>- </p>
-<p>  预取地址的生成</p>
-<p>  ：</p>
-<ul>
-<li><p>FTQ 中的每个条目包含多个候选预取地址（每个地址对应一个缓存块）。</p>
-</li>
-<li><p>这些地址通过分支预测器生成，并标记为“候选预取位”（Candidate Bit）。</p>
-</li>
-<li></li>
-</ul>
-<p>  Prefetch Instruction Queue (PIQ)</p>
-<p>  ：</p>
-<ul>
-<li>候选地址首先进入 PIQ 等待调度。</li>
-<li>优先级：指令缓存未命中 &gt; 数据缓存未命中 &gt; 预取请求。</li>
-<li>当 L2 总线空闲时，从 PIQ 中取出地址发起预取请求。</li>
-</ul>
-<hr>
-<h4 id="4-预取缓冲区的操作流程"><a href="#4-预取缓冲区的操作流程" class="headerlink" title="4. 预取缓冲区的操作流程"></a><strong>4. 预取缓冲区的操作流程</strong></h4><p>1. </p>
-<p>   预取填充</p>
-<p>   ：</p>
-<ul>
-<li>从 PIQ 获取地址后，向 L2 缓存发起预取请求。</li>
-<li>预取的数据块存入 Prefetch Buffer 队尾。</li>
-</ul>
-<p>2. </p>
-<p>   指令缓存查询时的并行查找</p>
-<p>   ：</p>
-<ul>
-<li>当指令缓存需要访问某个地址时，同时查询指令缓存和 Prefetch Buffer。</li>
-<li>若在 Prefetch Buffer 中找到匹配项（命中）：<ul>
-<li>命中条目（通常是最旧条目）被移出缓冲区。</li>
-<li>该缓存块直接插入指令缓存，替换原有未命中的块。</li>
-</ul>
-</li>
-</ul>
-<p>3. </p>
-<p>   分支误预测的处理</p>
-<p>   ：</p>
-<ul>
-<li>发生分支误预测时，FTQ 和 Prefetch Buffer 会被清空（Flush），确保预取路径与正确执行路径一致。</li>
-</ul>
-<p><strong>如果cache未命中，且预取缓冲区有数据，此时如何解决？</strong></p>
-<p>论文并未提出，不过如果命中可以直接从缓冲区取出数据，类似于压缩队列</p>
-]]></content>
-  </entry>
-  <entry>
-    <title>Goals in this year</title>
-    <url>/2025/04/24/Goals-in-this-year/</url>
-    <content><![CDATA[<ul>
-<li><input checked disabled type="checkbox"> 写一个超标量处理器</li>
-</ul>
-<p>目前通过官方的测试，但并未进行性能调优。</p>
-<ul>
-<li><input disabled type="checkbox"> nemu启动linux（低优先级）（7-8月目标）</li>
-</ul>
-<p>目前可以启动on mmu linux ，以及opensbi</p>
-<ul>
-<li><p><input disabled type="checkbox"> 
-gem5加入data prefetcher，并评估性能（5-6月目标）</p>
-</li>
-<li><p><input disabled type="checkbox"> 
-boom加入data prefetcher，并评估性能（6-7月目标）</p>
-</li>
-<li><p><input disabled type="checkbox"> 
-MEEK改进，并参与流片工作（最高优先级，持续推进）</p>
-</li>
-</ul>
-]]></content>
-  </entry>
-  <entry>
     <title>IPCP</title>
     <url>/2025/04/11/IPCP/</url>
     <content><![CDATA[<p>IPCP算是一个混合架构的预取器</p>
@@ -993,11 +993,6 @@ MEEK改进，并参与流片工作（最高优先级，持续推进）</p>
       </categories>
   </entry>
   <entry>
-    <title>PDIP</title>
-    <url>/2025/05/07/PDIP/</url>
-    <content><![CDATA[]]></content>
-  </entry>
-  <entry>
     <title>MLOP</title>
     <url>/2025/02/13/MLOP/</url>
     <content><![CDATA[<h1 id="Multi-Lookahead-Offset-Prefetching"><a href="#Multi-Lookahead-Offset-Prefetching" class="headerlink" title="Multi-Lookahead Offset Prefetching"></a>Multi-Lookahead Offset Prefetching</h1><h2 id="摘要"><a href="#摘要" class="headerlink" title="摘要"></a>摘要</h2><p>讲的就是MLOP集timelineness和coverage于一体，并且可以弥补BOP只能预测一个offset，MLOP使用一个轻量级的硬件结构，由一个小存储器和一个简单的逻辑组成，用于识别在不同预测前瞻下可以覆盖特定缓存未命中的预取偏移量。基于此，MLOP为预取偏移量分配分数，并为每个前瞻选择分数最高的偏移量来发出预取请求。我们评估并比较了MLOP与各种最近的先进数据预取器，并表明我们的提议比没有数据预取器的系统提高了30%的系统性能，比之前性能最好的数据预取器提高了4%。</p>
@@ -1008,6 +1003,127 @@ MEEK改进，并参与流片工作（最高优先级，持续推进）</p>
 <p>为了在前瞻级别1更新偏移量分数，每当发生访问时，我们找到其对应的位向量（使用其高位来搜索AMT），然后根据位向量信息，识别可以预取该访问的偏移量，并相应地增加这些偏移量在第一前瞻级别的分数。最后，我们在AMT中设置当前访问块对应的位。更新高位的分数需要先屏蔽低位的访问</p>
 <p>说实话他这个论文比较空，建议读ppt</p>
 ]]></content>
+  </entry>
+  <entry>
+    <title>PDIP</title>
+    <url>/2025/05/07/PDIP/</url>
+    <content><![CDATA[]]></content>
+  </entry>
+  <entry>
+    <title>SMS预取</title>
+    <url>/2025/02/05/SMS%E9%A2%84%E5%8F%96/</url>
+    <content><![CDATA[<h1 id="摘要"><a href="#摘要" class="headerlink" title="摘要"></a>摘要</h1><p>识别编码相关的空间访问模式，然后将这些块预取到Cache</p>
+<h1 id="介绍"><a href="#介绍" class="headerlink" title="介绍"></a>介绍</h1><h1 id="摘要-1"><a href="#摘要-1" class="headerlink" title="摘要"></a>摘要</h1><p>识别编码相关的空间访问模式，然后将这些块预取到Cache</p>
+<h1 id="介绍-1"><a href="#介绍-1" class="headerlink" title="介绍"></a>介绍</h1><p>首先得出结论：增加并行性和隐藏访问延迟才是提高服务器性能的关键，商业程序使用重复布局和访问模式的数据结构，例如数据块缓存池页面，或者网络数据包头。当程序访问数据集，访问数据的偏移会出现重复模式，但这些访问通常不连续，并且stride不一，我们使用空间相关性而不思空间局部性来描述访问之间的关系</p>
+<pre><code>SMS可以减少多处理器服务器的主缓存缺失和片外缺失，他利用重复访问模式来预测并预取
+</code></pre>
+<p>这份工作的特点：</p>
+<ol>
+<li>高效的空间相关性预测：预测商业负载访问流不需要基于地址的相关性。SMS利用代码和访问模式的相关性来预测模式，甚至是之前没访问的地址，SMS提供的预测覆盖率是其他基于地址的4倍</li>
+<li>精确跟踪空间相关性：以前的缓存耦合结构观察空间相关性是次优的，比如交错的访问模式，之前的检测会引起冲突，我们提出解耦结构，可以识别更少更密集的模式，将预测器存储需求减半</li>
+<li>增加性能：主要讲了SMS在商业负载的优秀</li>
+</ol>
+<p>之后第二节描述SMS，第三节给出硬件细节，第四节评估性能，第五节讨论相关工作</p>
+<h1 id="Spatial-Memory-Streaming"><a href="#Spatial-Memory-Streaming" class="headerlink" title="Spatial Memory Streaming"></a>Spatial Memory Streaming</h1><p>在选择Cache block，设计者在各种因素中取出最优解，通常最佳的缓存块大小牺牲了利用密集数据结构的空间局部性，以避稀疏结构带来的过多带宽开销，对于简单的数据结构，如数组，空间关系可以通过简单的预取实现，如stride prefetching</p>
+<p>商业负载访问模式较为复杂，不适合用 simple prefetching or streaming schemes，然而，这些应用程序中的数据结构经常显示缓存块之间的空间关系。例如，在数据库中，缓冲池中的页面共享公共结构元素，例如页头中的日志序列号和指示页脚中元组偏移量的槽索引，这些元素总是在扫描&#x2F;修改页面之前被访问。在web服务器中，包头和包尾具有任意复杂但固定的结构。图1（左）显示了更多的示例。尽管这些结构中的访问可能是不连续的，但它们在相对地址中仍然表现出重复的模式。我们称这些访问之间的关系为<strong>空间相关性</strong></p>
+<p><img src="/2025/02/05/SMS%E9%A2%84%E5%8F%96/1729853439799.png" alt="1729853439799"></p>
+<p>SMS在运行时提取空间相关访问模式，并使用这些模式预测，他在可用带宽和资源允许情况尽快将预测的缓存块放入Cache，从而增加内存并行性并隐藏低级缓存和片外访存延迟</p>
+<h2 id="Spatial-Patterns-and-Generations"><a href="#Spatial-Patterns-and-Generations" class="headerlink" title="Spatial Patterns and Generations"></a>Spatial Patterns and Generations</h2><p>我们形式化了空间相关性的概念，类似于先前的空间足迹研究[4,17]。我们将空间区域定义为系统地址空间中固定大小的部分，由多个连续的缓存块组成。A spatial region generation is the time interval over which SMS records accesses within a spatial region，我们把第一次访问这个空间区域称为触发访问，空间模式是表示在a spatial region generation期间访问区域的blocks集合的位向量？？？</p>
+<p>定义a spatial region generation精确间隔会显著影响空间格局的精度和覆盖范围，a spatial region generation必须定义以确保，当SMS流在未来触发访问时进入缓存，没有预测的块在使用前被驱除或无效，</p>
+<p>因此，我们选择从触发访问到在生成期间访问的任何块通过替换或失效从处理器的主缓存中删除的间隔。对该区域中任何块的后续访问都是对新一代的触发访问。</p>
+<p>此定义确保在生成过程中访问的块集同时存在于缓存中。</p>
+<h2 id="Identifying-Recurring-Spatial-Patterns"><a href="#Identifying-Recurring-Spatial-Patterns" class="headerlink" title="Identifying Recurring Spatial Patterns"></a>Identifying Recurring Spatial Patterns</h2><p>在触发访问时，SMS预测区域内相关性块子集，于是其关键问题就是找到一个与重复出现的空间模式强相关的预测指数</p>
+<p>空间相关性由于数据结构布局和访问模式重复和规律性产生，例如聚合的几个变量经常被一起访问，因此出现空间相关性，<strong>这种情况，空间模式与触发器访问地址相关</strong>，地址标识数据结构，还有一种就是数据结构遍历重复出现或者具有规则结构，在这种情况，空间模式将与执行遍历的代码（pc）相关联，文献中研究了多种预测指标，先前的研究发现当相关表存储无界？？，结合地址和PC构建索引可以提供最准确的预测，也就是PC+addr indexing，当多个代码序列对同一数据结构进行不同遍历，预测器会生成不同的模式，然而，该预测索引需要随数据集大小缩放预测期存储，而且预测覆盖率会随着存储限制而急剧下降</p>
+<p>对于SPEC CPU 2000程序，PC+addr可以通过pc+a spatial region offset实现，这个偏移是cache block中与空间区域起始位置的相对地址，也就是相当于这个区域的哪个block，这个偏移允许预测器区分由相同代码片段生成的重复模式，这些重复模式不同支出就是他们相对空间区域边界对其，大大减少预测表存储需求，applications have far fewer distinct miss PCs than miss addresses.</p>
+<p>我们观察到这种索引，除了节省内存，还可以消除cold misses，当代码序列在大型数据集重复相同的访问模式，访问序列刚开始时学习的PC相关空间模式为以前从未访问的数据提供准确预测。Database scan and join operations, which dominate the execution of decision support queries 包含着只访问数据以此的唱重复访问模式，这些应用适合这种index方式</p>
+<h1 id="设计"><a href="#设计" class="headerlink" title="设计"></a>设计</h1><p>(终于到自己的SMS设计了)</p>
+<p>我们的设计目标是多处理器环境下的高性能商业服务器应用程序，区别：之前的设计针对<strong>decoupled sectored</strong> [22] or <strong>sub-blocked caches.</strong></p>
+<p>预测和缓存集成简化硬件设计，因为空间区域访问的结构可以2和sub-blocks的tag集成，然而，不同空间区域交错访问导致标签冲突，桃枝空间区域碎片化1，降低准确性，所以SMS不使用子块</p>
+<p>他包括两个结构</p>
+<blockquote>
+<p>The pattern history table stores previously-observed spatial patterns, and is accessed at the start of each spatial region generation to predict the pattern of future accesses.</p>
+</blockquote>
+<h2 id="Observing-Spatial-Patterns"><a href="#Observing-Spatial-Patterns" class="headerlink" title="Observing Spatial Patterns"></a>Observing Spatial Patterns</h2><p>SMS通过记录在AGT空间区域生成过程中访问的块来学习空间模式，当空间区域生成开始时，SMS在AGT分配一个条目，当cache block被访问，更新AGT记录的模式，当eviction&#x2F;invalidation of any block accessed during the generation)，AGT将空间模式转移到PHT，然后释放条目</p>
+<p>实际AGT有两个内容表，积累表和过滤表，减少搜索难度和总体大小，AGT处理L1数据访问，所以两个表必须都能匹配数据访问带宽</p>
+<p>空间模式记录在累积表，累计表条目由空间区域标记来标记，即区域及地址高位，每个条目存储触发访问的PC和空间区域偏移量，以及指示在生成期间访问了哪些块的空间模式位向量</p>
+<p>新的空间区域最初在过滤表，过滤表记录tag，pc和offset，用于在当次只有一次访问的空间区域，有很少的区域永远不会访问第二个快，预测这些没有好处，因为唯一的访问是触发访问，将这些限制在过滤表，减少了累计表的空间占用</p>
+<p><img src="/2025/02/05/SMS%E9%A2%84%E5%8F%96/1729857733789.png" alt="1729857733789"></p>
+<p>上图描述了AGT详细操作，每个L1访问，首先搜索累计表，如果匹配，设置所访问块的空间模式位，否则，在筛选表找，如果没找到，这次访问就是触发访问，并在筛选表重新分配条目，如果在筛选表匹配，则比较偏移，如果不同，该快是区域访问的第二个快，将这个条目移到累计表，对该区域其他访问将在模式中设置相应位，这个位代表一个区域有几个block，当有的快被驱除或无效，则结束生成，这时在过滤表和累积表搜索标签，过滤表的条目将被抛弃，累积表的放入模式历史表，如果其中一个表满了，选择一个表项，终止生成，即，从过滤表中删除该表项或从累积表转移到模式历史表中</p>
+<h2 id="Predicting-Spatial-Patterns"><a href="#Predicting-Spatial-Patterns" class="headerlink" title="Predicting Spatial Patterns"></a>Predicting Spatial Patterns</h2><p>SMS使用模式历史表对空间模式进行存储，并预测在每个区域将访问块的模式，PHT实现和预测如下，其被组织为类似cache的组相连结构，其由预测索引访问，这个索引是PC和空间区域偏移组成，PHT每个条目存储AGT积累的访问模式</p>
+<p><img src="/2025/02/05/SMS%E9%A2%84%E5%8F%96/1729864558517.png" alt="1729864558517"></p>
+<p>在触发访问是,SMS查询PHT来预测访问哪些块，如果找到一个条目，空间区域的基地址和空间模式将被复制到几个预测寄存器的一个，当SMS将模式预测的每个块传输到主缓存，他会清除预测寄存器的位，当预测寄存器整个模式被清除，寄存器释放，如果多个预测寄存器活动，SMS轮训操作，这个流请求类似于缓存一致性协议的读请求</p>
+<h1 id="结果"><a href="#结果" class="headerlink" title="结果"></a>结果</h1><h2 id="访问密度"><a href="#访问密度" class="headerlink" title="访问密度"></a><strong>访问密度</strong></h2><p><img src="/2025/02/05/SMS%E9%A2%84%E5%8F%96/1729867839321.png" alt="1729867839321"></p>
+<h2 id="indexing"><a href="#indexing" class="headerlink" title="indexing"></a>indexing</h2><p><img src="/2025/02/05/SMS%E9%A2%84%E5%8F%96/1729867930971.png" alt="1729867930971"></p>
+<p>名词：<strong>覆盖率</strong>表示通过SMS消除的L1读错误的比例。</p>
+<p>过度预测表示在取出或无效前已获取但未使用的块，也就是一些无用的预取</p>
+<p>在OLTP和web应用，大多数空间相关访问都来自频繁访问的代码序列和数据结构，因此数据地址和PC都和空间模式相关，所以除了PC寻址，其他的覆盖率相似，PC不准确，他不能区分相同代码对不同数据结构的访问模式，PC+偏移索引可以根据空间区域偏移量来区分模式，足以捕捉到常见的情况</p>
+<p>而DSS基于程序上下文，PC和PC+off较好</p>
+<p>对于科学应用，pc+off接近pc+addr</p>
+<p>pc+off的第二个优点就是：他的存储需求与代码大小成正比而不是数据集大小，</p>
+<h2 id="4-3-Decoupled-Training"><a href="#4-3-Decoupled-Training" class="headerlink" title="4.3. Decoupled Training"></a>4.3. Decoupled Training</h2><p>训练十分重要，过早终止空间区域生成，可能导致PHT被污染</p>
+<p><img src="/2025/02/05/SMS%E9%A2%84%E5%8F%96/1729868738111.png" alt="1729868738111"></p>
+<p>可以看到AGT覆盖率最高</p>
+<h2 id="4-4-Spatial-Region-Size"><a href="#4-4-Spatial-Region-Size" class="headerlink" title="4.4. Spatial Region Size"></a>4.4. Spatial Region Size</h2><blockquote>
+<p>Choosing a spatial region size involves a tradeoff between coverage and storage requirements.</p>
+</blockquote>
+<h2 id="4-5-Active-Generation-Table"><a href="#4-5-Active-Generation-Table" class="headerlink" title="4.5. Active Generation Table"></a>4.5. Active Generation Table</h2><p>a 32-entry filter table and a 64-entry accumulation table are sufficient.</p>
+<p>首先得出结论：增加并行性和隐藏访问延迟才是提高服务器性能的关键，商业程序使用重复布局和访问模式的数据结构，例如数据块缓存池页面，或者网络数据包头。当程序访问数据集，访问数据的偏移会出现重复模式，但这些访问通常不连续，并且stride不一，我们使用空间相关性而不思空间局部性来描述访问之间的关系</p>
+<pre><code>SMS可以减少多处理器服务器的主缓存缺失和片外缺失，他利用重复访问模式来预测并预取
+</code></pre>
+<p>这份工作的特点：</p>
+<ol>
+<li>高效的空间相关性预测：预测商业负载访问流不需要基于地址的相关性。SMS利用代码和访问模式的相关性来预测模式，甚至是之前没访问的地址，SMS提供的预测覆盖率是其他基于地址的4倍</li>
+<li>精确跟踪空间相关性：以前的缓存耦合结构观察空间相关性是次优的，比如交错的访问模式，之前的检测会引起冲突，我们提出解耦结构，可以识别更少更密集的模式，将预测器存储需求减半</li>
+<li>增加性能：主要讲了SMS在商业负载的优秀</li>
+</ol>
+<p>之后第二节描述SMS，第三节给出硬件细节，第四节评估性能，第五节讨论相关工作</p>
+<h1 id="Spatial-Memory-Streaming-1"><a href="#Spatial-Memory-Streaming-1" class="headerlink" title="Spatial Memory Streaming"></a>Spatial Memory Streaming</h1><p>在选择Cache block，设计者在各种因素中取出最优解，通常最佳的缓存块大小牺牲了利用密集数据结构的空间局部性，以避稀疏结构带来的过多带宽开销，对于简单的数据结构，如数组，空间关系可以通过简单的预取实现，如stride prefetching</p>
+<p>商业负载访问模式较为复杂，不适合用 simple prefetching or streaming schemes，然而，这些应用程序中的数据结构经常显示缓存块之间的空间关系。例如，在数据库中，缓冲池中的页面共享公共结构元素，例如页头中的日志序列号和指示页脚中元组偏移量的槽索引，这些元素总是在扫描&#x2F;修改页面之前被访问。在web服务器中，包头和包尾具有任意复杂但固定的结构。图1（左）显示了更多的示例。尽管这些结构中的访问可能是不连续的，但它们在相对地址中仍然表现出重复的模式。我们称这些访问之间的关系为<strong>空间相关性</strong></p>
+<p><img src="/2025/02/05/SMS%E9%A2%84%E5%8F%96/1729853439799.png" alt="1729853439799"></p>
+<p>SMS在运行时提取空间相关访问模式，并使用这些模式预测，他在可用带宽和资源允许情况尽快将预测的缓存块放入Cache，从而增加内存并行性并隐藏低级缓存和片外访存延迟</p>
+<h2 id="Spatial-Patterns-and-Generations-1"><a href="#Spatial-Patterns-and-Generations-1" class="headerlink" title="Spatial Patterns and Generations"></a>Spatial Patterns and Generations</h2><p>我们形式化了空间相关性的概念，类似于先前的空间足迹研究[4,17]。我们将空间区域定义为系统地址空间中固定大小的部分，由多个连续的缓存块组成。A spatial region generation is the time interval over which SMS records accesses within a spatial region，我们把第一次访问这个空间区域称为触发访问，空间模式是表示在a spatial region generation期间访问区域的blocks集合的位向量？？？</p>
+<p>定义a spatial region generation精确间隔会显著影响空间格局的精度和覆盖范围，a spatial region generation必须定义以确保，当SMS流在未来触发访问时进入缓存，没有预测的块在使用前被驱除或无效，</p>
+<p>因此，我们选择从触发访问到在生成期间访问的任何块通过替换或失效从处理器的主缓存中删除的间隔。对该区域中任何块的后续访问都是对新一代的触发访问。</p>
+<p>此定义确保在生成过程中访问的块集同时存在于缓存中。</p>
+<h2 id="Identifying-Recurring-Spatial-Patterns-1"><a href="#Identifying-Recurring-Spatial-Patterns-1" class="headerlink" title="Identifying Recurring Spatial Patterns"></a>Identifying Recurring Spatial Patterns</h2><p>在触发访问时，SMS预测区域内相关性块子集，于是其关键问题就是找到一个与重复出现的空间模式强相关的预测指数</p>
+<p>空间相关性由于数据结构布局和访问模式重复和规律性产生，例如聚合的几个变量经常被一起访问，因此出现空间相关性，<strong>这种情况，空间模式与触发器访问地址相关</strong>，地址标识数据结构，还有一种就是数据结构遍历重复出现或者具有规则结构，在这种情况，空间模式将与执行遍历的代码（pc）相关联，文献中研究了多种预测指标，先前的研究发现当相关表存储无界？？，结合地址和PC构建索引可以提供最准确的预测，也就是PC+addr indexing，当多个代码序列对同一数据结构进行不同遍历，预测器会生成不同的模式，然而，该预测索引需要随数据集大小缩放预测期存储，而且预测覆盖率会随着存储限制而急剧下降</p>
+<p>对于SPEC CPU 2000程序，PC+addr可以通过pc+a spatial region offset实现，这个偏移是cache block中与空间区域起始位置的相对地址，也就是相当于这个区域的哪个block，这个偏移允许预测器区分由相同代码片段生成的重复模式，这些重复模式不同支出就是他们相对空间区域边界对其，大大减少预测表存储需求，applications have far fewer distinct miss PCs than miss addresses.</p>
+<p>我们观察到这种索引，除了节省内存，还可以消除cold misses，当代码序列在大型数据集重复相同的访问模式，访问序列刚开始时学习的PC相关空间模式为以前从未访问的数据提供准确预测。Database scan and join operations, which dominate the execution of decision support queries 包含着只访问数据以此的唱重复访问模式，这些应用适合这种index方式</p>
+<h1 id="设计-1"><a href="#设计-1" class="headerlink" title="设计"></a>设计</h1><p>(终于到自己的SMS设计了)</p>
+<p>我们的设计目标是多处理器环境下的高性能商业服务器应用程序，区别：之前的设计针对<strong>decoupled sectored</strong> [22] or <strong>sub-blocked caches.</strong></p>
+<p>预测和缓存集成简化硬件设计，因为空间区域访问的结构可以2和sub-blocks的tag集成，然而，不同空间区域交错访问导致标签冲突，桃枝空间区域碎片化1，降低准确性，所以SMS不使用子块</p>
+<p>他包括两个结构</p>
+<blockquote>
+<p>The pattern history table stores previously-observed spatial patterns, and is accessed at the start of each spatial region generation to predict the pattern of future accesses.</p>
+</blockquote>
+<h2 id="Observing-Spatial-Patterns-1"><a href="#Observing-Spatial-Patterns-1" class="headerlink" title="Observing Spatial Patterns"></a>Observing Spatial Patterns</h2><p>SMS通过记录在AGT空间区域生成过程中访问的块来学习空间模式，当空间区域生成开始时，SMS在AGT分配一个条目，当cache block被访问，更新AGT记录的模式，当eviction&#x2F;invalidation of any block accessed during the generation)，AGT将空间模式转移到PHT，然后释放条目</p>
+<p>实际AGT有两个内容表，积累表和过滤表，减少搜索难度和总体大小，AGT处理L1数据访问，所以两个表必须都能匹配数据访问带宽</p>
+<p>空间模式记录在累积表，累计表条目由空间区域标记来标记，即区域及地址高位，每个条目存储触发访问的PC和空间区域偏移量，以及指示在生成期间访问了哪些块的空间模式位向量</p>
+<p>新的空间区域最初在过滤表，过滤表记录tag，pc和offset，用于在当次只有一次访问的空间区域，有很少的区域永远不会访问第二个快，预测这些没有好处，因为唯一的访问是触发访问，将这些限制在过滤表，减少了累计表的空间占用</p>
+<p><img src="/2025/02/05/SMS%E9%A2%84%E5%8F%96/1729857733789.png" alt="1729857733789"></p>
+<p>上图描述了AGT详细操作，每个L1访问，首先搜索累计表，如果匹配，设置所访问块的空间模式位，否则，在筛选表找，如果没找到，这次访问就是触发访问，并在筛选表重新分配条目，如果在筛选表匹配，则比较偏移，如果不同，该快是区域访问的第二个快，将这个条目移到累计表，对该区域其他访问将在模式中设置相应位，这个位代表一个区域有几个block，当有的快被驱除或无效，则结束生成，这时在过滤表和累积表搜索标签，过滤表的条目将被抛弃，累积表的放入模式历史表，如果其中一个表满了，选择一个表项，终止生成，即，从过滤表中删除该表项或从累积表转移到模式历史表中</p>
+<h2 id="Predicting-Spatial-Patterns-1"><a href="#Predicting-Spatial-Patterns-1" class="headerlink" title="Predicting Spatial Patterns"></a>Predicting Spatial Patterns</h2><p>SMS使用模式历史表对空间模式进行存储，并预测在每个区域将访问块的模式，PHT实现和预测如下，其被组织为类似cache的组相连结构，其由预测索引访问，这个索引是PC和空间区域偏移组成，PHT每个条目存储AGT积累的访问模式</p>
+<p><img src="/2025/02/05/SMS%E9%A2%84%E5%8F%96/1729864558517.png" alt="1729864558517"></p>
+<p>在触发访问是,SMS查询PHT来预测访问哪些块，如果找到一个条目，空间区域的基地址和空间模式将被复制到几个预测寄存器的一个，当SMS将模式预测的每个块传输到主缓存，他会清除预测寄存器的位，当预测寄存器整个模式被清除，寄存器释放，如果多个预测寄存器活动，SMS轮训操作，这个流请求类似于缓存一致性协议的读请求</p>
+<h1 id="结果-1"><a href="#结果-1" class="headerlink" title="结果"></a>结果</h1><h2 id="访问密度-1"><a href="#访问密度-1" class="headerlink" title="访问密度"></a><strong>访问密度</strong></h2><p><img src="/2025/02/05/SMS%E9%A2%84%E5%8F%96/1729867839321.png" alt="1729867839321"></p>
+<h2 id="indexing-1"><a href="#indexing-1" class="headerlink" title="indexing"></a>indexing</h2><p><img src="/2025/02/05/SMS%E9%A2%84%E5%8F%96/1729867930971.png" alt="1729867930971"></p>
+<p>名词：<strong>覆盖率</strong>表示通过SMS消除的L1读错误的比例。</p>
+<p>过度预测表示在取出或无效前已获取但未使用的块，也就是一些无用的预取</p>
+<p>在OLTP和web应用，大多数空间相关访问都来自频繁访问的代码序列和数据结构，因此数据地址和PC都和空间模式相关，所以除了PC寻址，其他的覆盖率相似，PC不准确，他不能区分相同代码对不同数据结构的访问模式，PC+偏移索引可以根据空间区域偏移量来区分模式，足以捕捉到常见的情况</p>
+<p>而DSS基于程序上下文，PC和PC+off较好</p>
+<p>对于科学应用，pc+off接近pc+addr</p>
+<p>pc+off的第二个优点就是：他的存储需求与代码大小成正比而不是数据集大小，</p>
+<h2 id="4-3-Decoupled-Training-1"><a href="#4-3-Decoupled-Training-1" class="headerlink" title="4.3. Decoupled Training"></a>4.3. Decoupled Training</h2><p>训练十分重要，过早终止空间区域生成，可能导致PHT被污染</p>
+<p><img src="/2025/02/05/SMS%E9%A2%84%E5%8F%96/1729868738111.png" alt="1729868738111"></p>
+<p>可以看到AGT覆盖率最高</p>
+<h2 id="4-4-Spatial-Region-Size-1"><a href="#4-4-Spatial-Region-Size-1" class="headerlink" title="4.4. Spatial Region Size"></a>4.4. Spatial Region Size</h2><blockquote>
+<p>Choosing a spatial region size involves a tradeoff between coverage and storage requirements.</p>
+</blockquote>
+<h2 id="4-5-Active-Generation-Table-1"><a href="#4-5-Active-Generation-Table-1" class="headerlink" title="4.5. Active Generation Table"></a>4.5. Active Generation Table</h2><p>a 32-entry filter table and a 64-entry accumulation table are sufficient.</p>
+]]></content>
+      <categories>
+        <category>论文阅读</category>
+      </categories>
   </entry>
   <entry>
     <title>MEEK 代码阅读</title>
@@ -2403,6 +2519,66 @@ CDC入队条件比较弱,考虑更改</p>
 <p><img src="/2025/02/21/MEEK-%E4%BB%A3%E7%A0%81%E9%98%85%E8%AF%BB/core.png" alt="core"></p>
 <p><img src="/2025/02/21/MEEK-%E4%BB%A3%E7%A0%81%E9%98%85%E8%AF%BB/image-20250506165037770.png" alt="image-20250506165037770"></p>
 <p><img src="/2025/02/21/MEEK-%E4%BB%A3%E7%A0%81%E9%98%85%E8%AF%BB/4core_no.png" alt="4core_no"></p>
+<p><strong>firesim代码调试</strong></p>
+<p>出错的地方小核执行的片段很少，应该是进入异常了，并且此时小核并未去写入2号寄存器，所以怀疑ECP转发有问题</p>
+<p>根本问题：</p>
+<p>在进入syscall时，需要退出检查模式，所以此时需要去给出相应的ecp</p>
+<p> <img src="/2025/02/21/MEEK-%E4%BB%A3%E7%A0%81%E9%98%85%E8%AF%BB/image-20250512231309943.png" alt="image-20250512231309943"></p>
+<p>syscall只会持续12个周期左右，之后如果ECP没传过去，很有可能就是ECP出错（被异常程序复写）</p>
+<p>这里发了两次ECP</p>
+<p><img src="/2025/02/21/MEEK-%E4%BB%A3%E7%A0%81%E9%98%85%E8%AF%BB/image-20250513101314068.png" alt="image-20250513101314068"></p>
+<p>这个trans阶段直接跳到fsm_presch暂时不清楚？</p>
+<p>CYCLE:   2109544445 C1:  377667396 [1] pc&#x3D;[00000000000a84c4] W[r 1&#x3D;0000000000107990][1] R[r 2&#x3D;0000003fd64c7a00] R[r 0&#x3D;0000000000000000] inst&#x3D;[000070a2] DASM(000070a2)</p>
+<p><strong>异常处理程序好像会写入寄存器，导致寄存器SCP发送出错？</strong></p>
+<blockquote>
+<p>应该是上下文恢复，但看了之前的a0寄存器值为1，但恢复上下文写入了31？</p>
+</blockquote>
+<p>根本原因就是异常处理程序一开始也会去更新寄存器，之后才是进入保存上下文</p>
+<p>比如他会先执行csrrw x4, sscratch, x4，导致x4被修改</p>
+<p>所以修改状态机是最合理的方法，</p>
+<p><strong>一个做法：</strong></p>
+<ul>
+<li><input checked disabled type="checkbox"> 正常模式传ECP是SCP和ECP一块传，而进入异常需要只传ECP，需要立即传输，否则会遇到ECP不正确，</li>
+</ul>
+<blockquote>
+<p>感觉得去独立SCP和ECP，但可能面积剧增</p>
+</blockquote>
+<p>或者就是进异常处理后直接停止stall，直到ECP发出去</p>
+<p><strong>GHE的PID——CFG是什么意思，U模式的satp不一定一成不变吧，如果页表修改了，那么会触发什么呢，如何处理跨页的？</strong></p>
+<p>发现核1，2，4无响应，只有核3在</p>
+<p>CYCLE:   1325299707 C1:  376960845 [1] pc&#x3D;[00000000000139a4] W[r10&#x3D;0000000000000000][1] R[r 0&#x3D;0000000000000000] R[r 0&#x3D;0000000000000000] inst&#x3D;[c200452b] priv[0]，没有正确进入检查模式</p>
+<p>CYCLE:   1325294905 [C1] Paste PC [0000084aca]</p>
+<p>CYCLE:   1325295441 [C1] ECP idx[1f] arfs 0000000000000003 farfs 0000000000000000</p>
+<p>这个bug就是在处理异常中ECP发了过来，导致RCU status变为3，退不出循环</p>
+<blockquote>
+<p>想到一个问题，小核心的信号会去修改大核</p>
+</blockquote>
+<p><strong>在ctrl c时，可能造成FPGA板子断开连接，具体原因是linux把PCI对应口给卸载了，可以让他重新扫描一遍</strong></p>
+<p>echo 1 | sudo tee &#x2F;sys&#x2F;bus&#x2F;pci&#x2F;rescan</p>
+<p><strong>无法跑多个workload</strong></p>
+<p>需要在退出时清空CDC，但reset信号或上自己的信号是否为一个正确的做法？</p>
+<p><strong>dcacheArbPorts具体含义？是否影响整体</strong></p>
+<p>Chisel exception caught when instantiating ghm within DigitalTop at  (generators&#x2F;rocket-chip&#x2F;src&#x2F;main&#x2F;scala&#x2F;guardiancouncil&#x2F;GHM.scala:393:28)<br>Chisel exception caught when instantiating system within ChipTop at  (generators&#x2F;chipyard&#x2F;src&#x2F;main&#x2F;scala&#x2F;ChipTop.scala:27:35)<br>Caused by: chisel3.package$ChiselException: Error: No implicit clock.</p>
+<p>新版本的chipyard必须加入wrapper，要不会显示没有隐式时钟</p>
+<p>diplomacy赋值node时，必须用val，使用var会导致node错误赋值，或者多次赋值</p>
+<p><strong>Could not find or load main class chipyard.Generator</strong></p>
+<p>将.classpath_cache文件夹删除</p>
+<p><strong>new chipyard.config.WithTileFrequency(500, Some(4)) ++</strong></p>
+<p>这个单纯只是把tile加入了id后缀，如果你的tile不是tile结尾，这里会出错的</p>
+<p>这个和你的tile的 val baseName &#x3D; “rockettile”</p>
+<p> val uniqueName &#x3D; s”${baseName}_$tileId”</p>
+<p>有关，建议直接改为tile，这样就不用去修改WithTileFrequency函数</p>
+<p>GHM会接入gemini的核心，导致小核的核心+1，从而需要修改GHM的配置</p>
+<p><img src="/2025/02/21/MEEK-%E4%BB%A3%E7%A0%81%E9%98%85%E8%AF%BB/image-20250518235815459.png" alt="image-20250518235815459"></p>
+<p>这个遇到bug，准备先停止，<strong>完成</strong></p>
+<p><img src="/2025/02/21/MEEK-%E4%BB%A3%E7%A0%81%E9%98%85%E8%AF%BB/image-20250523214217505.png" alt="image-20250523214217505"></p>
+<p>global配置meek不太行，必须得上cde了，所有的node都得改</p>
+<p>1.13.0必须挂代理才可以进去</p>
+<p>新版本的不能和旧版本的使用同一个仿真文件夹，否则打不开blk——dev——log</p>
+<p><img src="/2025/02/21/MEEK-%E4%BB%A3%E7%A0%81%E9%98%85%E8%AF%BB/image-20250525113140188.png" alt="image-20250525113140188"></p>
+<p>目前感觉gcc的bug是因为没有正确给出ecp的target，</p>
+<p><img src="/2025/02/21/MEEK-%E4%BB%A3%E7%A0%81%E9%98%85%E8%AF%BB/image-20250526103718090.png" alt="image-20250526103718090"></p>
+<p>这里应该把ecp发到3，而不是2</p>
 ]]></content>
       <categories>
         <category>代码阅读</category>
@@ -2453,122 +2629,6 @@ CDC入队条件比较弱,考虑更改</p>
 <p>其中足迹的获取是第一次访问这个页面就记录，然后结束后把足迹送入，类似于SMS生成方式</p>
 <h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><p>该论文创新点在于结合了PC+addr和PC+offset，并且将二者存在一个表内，pc+offset索引，pc+addr作为tag</p>
 ]]></content>
-  </entry>
-  <entry>
-    <title>SMS预取</title>
-    <url>/2025/02/05/SMS%E9%A2%84%E5%8F%96/</url>
-    <content><![CDATA[<h1 id="摘要"><a href="#摘要" class="headerlink" title="摘要"></a>摘要</h1><p>识别编码相关的空间访问模式，然后将这些块预取到Cache</p>
-<h1 id="介绍"><a href="#介绍" class="headerlink" title="介绍"></a>介绍</h1><h1 id="摘要-1"><a href="#摘要-1" class="headerlink" title="摘要"></a>摘要</h1><p>识别编码相关的空间访问模式，然后将这些块预取到Cache</p>
-<h1 id="介绍-1"><a href="#介绍-1" class="headerlink" title="介绍"></a>介绍</h1><p>首先得出结论：增加并行性和隐藏访问延迟才是提高服务器性能的关键，商业程序使用重复布局和访问模式的数据结构，例如数据块缓存池页面，或者网络数据包头。当程序访问数据集，访问数据的偏移会出现重复模式，但这些访问通常不连续，并且stride不一，我们使用空间相关性而不思空间局部性来描述访问之间的关系</p>
-<pre><code>SMS可以减少多处理器服务器的主缓存缺失和片外缺失，他利用重复访问模式来预测并预取
-</code></pre>
-<p>这份工作的特点：</p>
-<ol>
-<li>高效的空间相关性预测：预测商业负载访问流不需要基于地址的相关性。SMS利用代码和访问模式的相关性来预测模式，甚至是之前没访问的地址，SMS提供的预测覆盖率是其他基于地址的4倍</li>
-<li>精确跟踪空间相关性：以前的缓存耦合结构观察空间相关性是次优的，比如交错的访问模式，之前的检测会引起冲突，我们提出解耦结构，可以识别更少更密集的模式，将预测器存储需求减半</li>
-<li>增加性能：主要讲了SMS在商业负载的优秀</li>
-</ol>
-<p>之后第二节描述SMS，第三节给出硬件细节，第四节评估性能，第五节讨论相关工作</p>
-<h1 id="Spatial-Memory-Streaming"><a href="#Spatial-Memory-Streaming" class="headerlink" title="Spatial Memory Streaming"></a>Spatial Memory Streaming</h1><p>在选择Cache block，设计者在各种因素中取出最优解，通常最佳的缓存块大小牺牲了利用密集数据结构的空间局部性，以避稀疏结构带来的过多带宽开销，对于简单的数据结构，如数组，空间关系可以通过简单的预取实现，如stride prefetching</p>
-<p>商业负载访问模式较为复杂，不适合用 simple prefetching or streaming schemes，然而，这些应用程序中的数据结构经常显示缓存块之间的空间关系。例如，在数据库中，缓冲池中的页面共享公共结构元素，例如页头中的日志序列号和指示页脚中元组偏移量的槽索引，这些元素总是在扫描&#x2F;修改页面之前被访问。在web服务器中，包头和包尾具有任意复杂但固定的结构。图1（左）显示了更多的示例。尽管这些结构中的访问可能是不连续的，但它们在相对地址中仍然表现出重复的模式。我们称这些访问之间的关系为<strong>空间相关性</strong></p>
-<p><img src="/2025/02/05/SMS%E9%A2%84%E5%8F%96/1729853439799.png" alt="1729853439799"></p>
-<p>SMS在运行时提取空间相关访问模式，并使用这些模式预测，他在可用带宽和资源允许情况尽快将预测的缓存块放入Cache，从而增加内存并行性并隐藏低级缓存和片外访存延迟</p>
-<h2 id="Spatial-Patterns-and-Generations"><a href="#Spatial-Patterns-and-Generations" class="headerlink" title="Spatial Patterns and Generations"></a>Spatial Patterns and Generations</h2><p>我们形式化了空间相关性的概念，类似于先前的空间足迹研究[4,17]。我们将空间区域定义为系统地址空间中固定大小的部分，由多个连续的缓存块组成。A spatial region generation is the time interval over which SMS records accesses within a spatial region，我们把第一次访问这个空间区域称为触发访问，空间模式是表示在a spatial region generation期间访问区域的blocks集合的位向量？？？</p>
-<p>定义a spatial region generation精确间隔会显著影响空间格局的精度和覆盖范围，a spatial region generation必须定义以确保，当SMS流在未来触发访问时进入缓存，没有预测的块在使用前被驱除或无效，</p>
-<p>因此，我们选择从触发访问到在生成期间访问的任何块通过替换或失效从处理器的主缓存中删除的间隔。对该区域中任何块的后续访问都是对新一代的触发访问。</p>
-<p>此定义确保在生成过程中访问的块集同时存在于缓存中。</p>
-<h2 id="Identifying-Recurring-Spatial-Patterns"><a href="#Identifying-Recurring-Spatial-Patterns" class="headerlink" title="Identifying Recurring Spatial Patterns"></a>Identifying Recurring Spatial Patterns</h2><p>在触发访问时，SMS预测区域内相关性块子集，于是其关键问题就是找到一个与重复出现的空间模式强相关的预测指数</p>
-<p>空间相关性由于数据结构布局和访问模式重复和规律性产生，例如聚合的几个变量经常被一起访问，因此出现空间相关性，<strong>这种情况，空间模式与触发器访问地址相关</strong>，地址标识数据结构，还有一种就是数据结构遍历重复出现或者具有规则结构，在这种情况，空间模式将与执行遍历的代码（pc）相关联，文献中研究了多种预测指标，先前的研究发现当相关表存储无界？？，结合地址和PC构建索引可以提供最准确的预测，也就是PC+addr indexing，当多个代码序列对同一数据结构进行不同遍历，预测器会生成不同的模式，然而，该预测索引需要随数据集大小缩放预测期存储，而且预测覆盖率会随着存储限制而急剧下降</p>
-<p>对于SPEC CPU 2000程序，PC+addr可以通过pc+a spatial region offset实现，这个偏移是cache block中与空间区域起始位置的相对地址，也就是相当于这个区域的哪个block，这个偏移允许预测器区分由相同代码片段生成的重复模式，这些重复模式不同支出就是他们相对空间区域边界对其，大大减少预测表存储需求，applications have far fewer distinct miss PCs than miss addresses.</p>
-<p>我们观察到这种索引，除了节省内存，还可以消除cold misses，当代码序列在大型数据集重复相同的访问模式，访问序列刚开始时学习的PC相关空间模式为以前从未访问的数据提供准确预测。Database scan and join operations, which dominate the execution of decision support queries 包含着只访问数据以此的唱重复访问模式，这些应用适合这种index方式</p>
-<h1 id="设计"><a href="#设计" class="headerlink" title="设计"></a>设计</h1><p>(终于到自己的SMS设计了)</p>
-<p>我们的设计目标是多处理器环境下的高性能商业服务器应用程序，区别：之前的设计针对<strong>decoupled sectored</strong> [22] or <strong>sub-blocked caches.</strong></p>
-<p>预测和缓存集成简化硬件设计，因为空间区域访问的结构可以2和sub-blocks的tag集成，然而，不同空间区域交错访问导致标签冲突，桃枝空间区域碎片化1，降低准确性，所以SMS不使用子块</p>
-<p>他包括两个结构</p>
-<blockquote>
-<p>The pattern history table stores previously-observed spatial patterns, and is accessed at the start of each spatial region generation to predict the pattern of future accesses.</p>
-</blockquote>
-<h2 id="Observing-Spatial-Patterns"><a href="#Observing-Spatial-Patterns" class="headerlink" title="Observing Spatial Patterns"></a>Observing Spatial Patterns</h2><p>SMS通过记录在AGT空间区域生成过程中访问的块来学习空间模式，当空间区域生成开始时，SMS在AGT分配一个条目，当cache block被访问，更新AGT记录的模式，当eviction&#x2F;invalidation of any block accessed during the generation)，AGT将空间模式转移到PHT，然后释放条目</p>
-<p>实际AGT有两个内容表，积累表和过滤表，减少搜索难度和总体大小，AGT处理L1数据访问，所以两个表必须都能匹配数据访问带宽</p>
-<p>空间模式记录在累积表，累计表条目由空间区域标记来标记，即区域及地址高位，每个条目存储触发访问的PC和空间区域偏移量，以及指示在生成期间访问了哪些块的空间模式位向量</p>
-<p>新的空间区域最初在过滤表，过滤表记录tag，pc和offset，用于在当次只有一次访问的空间区域，有很少的区域永远不会访问第二个快，预测这些没有好处，因为唯一的访问是触发访问，将这些限制在过滤表，减少了累计表的空间占用</p>
-<p><img src="/2025/02/05/SMS%E9%A2%84%E5%8F%96/1729857733789.png" alt="1729857733789"></p>
-<p>上图描述了AGT详细操作，每个L1访问，首先搜索累计表，如果匹配，设置所访问块的空间模式位，否则，在筛选表找，如果没找到，这次访问就是触发访问，并在筛选表重新分配条目，如果在筛选表匹配，则比较偏移，如果不同，该快是区域访问的第二个快，将这个条目移到累计表，对该区域其他访问将在模式中设置相应位，这个位代表一个区域有几个block，当有的快被驱除或无效，则结束生成，这时在过滤表和累积表搜索标签，过滤表的条目将被抛弃，累积表的放入模式历史表，如果其中一个表满了，选择一个表项，终止生成，即，从过滤表中删除该表项或从累积表转移到模式历史表中</p>
-<h2 id="Predicting-Spatial-Patterns"><a href="#Predicting-Spatial-Patterns" class="headerlink" title="Predicting Spatial Patterns"></a>Predicting Spatial Patterns</h2><p>SMS使用模式历史表对空间模式进行存储，并预测在每个区域将访问块的模式，PHT实现和预测如下，其被组织为类似cache的组相连结构，其由预测索引访问，这个索引是PC和空间区域偏移组成，PHT每个条目存储AGT积累的访问模式</p>
-<p><img src="/2025/02/05/SMS%E9%A2%84%E5%8F%96/1729864558517.png" alt="1729864558517"></p>
-<p>在触发访问是,SMS查询PHT来预测访问哪些块，如果找到一个条目，空间区域的基地址和空间模式将被复制到几个预测寄存器的一个，当SMS将模式预测的每个块传输到主缓存，他会清除预测寄存器的位，当预测寄存器整个模式被清除，寄存器释放，如果多个预测寄存器活动，SMS轮训操作，这个流请求类似于缓存一致性协议的读请求</p>
-<h1 id="结果"><a href="#结果" class="headerlink" title="结果"></a>结果</h1><h2 id="访问密度"><a href="#访问密度" class="headerlink" title="访问密度"></a><strong>访问密度</strong></h2><p><img src="/2025/02/05/SMS%E9%A2%84%E5%8F%96/1729867839321.png" alt="1729867839321"></p>
-<h2 id="indexing"><a href="#indexing" class="headerlink" title="indexing"></a>indexing</h2><p><img src="/2025/02/05/SMS%E9%A2%84%E5%8F%96/1729867930971.png" alt="1729867930971"></p>
-<p>名词：<strong>覆盖率</strong>表示通过SMS消除的L1读错误的比例。</p>
-<p>过度预测表示在取出或无效前已获取但未使用的块，也就是一些无用的预取</p>
-<p>在OLTP和web应用，大多数空间相关访问都来自频繁访问的代码序列和数据结构，因此数据地址和PC都和空间模式相关，所以除了PC寻址，其他的覆盖率相似，PC不准确，他不能区分相同代码对不同数据结构的访问模式，PC+偏移索引可以根据空间区域偏移量来区分模式，足以捕捉到常见的情况</p>
-<p>而DSS基于程序上下文，PC和PC+off较好</p>
-<p>对于科学应用，pc+off接近pc+addr</p>
-<p>pc+off的第二个优点就是：他的存储需求与代码大小成正比而不是数据集大小，</p>
-<h2 id="4-3-Decoupled-Training"><a href="#4-3-Decoupled-Training" class="headerlink" title="4.3. Decoupled Training"></a>4.3. Decoupled Training</h2><p>训练十分重要，过早终止空间区域生成，可能导致PHT被污染</p>
-<p><img src="/2025/02/05/SMS%E9%A2%84%E5%8F%96/1729868738111.png" alt="1729868738111"></p>
-<p>可以看到AGT覆盖率最高</p>
-<h2 id="4-4-Spatial-Region-Size"><a href="#4-4-Spatial-Region-Size" class="headerlink" title="4.4. Spatial Region Size"></a>4.4. Spatial Region Size</h2><blockquote>
-<p>Choosing a spatial region size involves a tradeoff between coverage and storage requirements.</p>
-</blockquote>
-<h2 id="4-5-Active-Generation-Table"><a href="#4-5-Active-Generation-Table" class="headerlink" title="4.5. Active Generation Table"></a>4.5. Active Generation Table</h2><p>a 32-entry filter table and a 64-entry accumulation table are sufficient.</p>
-<p>首先得出结论：增加并行性和隐藏访问延迟才是提高服务器性能的关键，商业程序使用重复布局和访问模式的数据结构，例如数据块缓存池页面，或者网络数据包头。当程序访问数据集，访问数据的偏移会出现重复模式，但这些访问通常不连续，并且stride不一，我们使用空间相关性而不思空间局部性来描述访问之间的关系</p>
-<pre><code>SMS可以减少多处理器服务器的主缓存缺失和片外缺失，他利用重复访问模式来预测并预取
-</code></pre>
-<p>这份工作的特点：</p>
-<ol>
-<li>高效的空间相关性预测：预测商业负载访问流不需要基于地址的相关性。SMS利用代码和访问模式的相关性来预测模式，甚至是之前没访问的地址，SMS提供的预测覆盖率是其他基于地址的4倍</li>
-<li>精确跟踪空间相关性：以前的缓存耦合结构观察空间相关性是次优的，比如交错的访问模式，之前的检测会引起冲突，我们提出解耦结构，可以识别更少更密集的模式，将预测器存储需求减半</li>
-<li>增加性能：主要讲了SMS在商业负载的优秀</li>
-</ol>
-<p>之后第二节描述SMS，第三节给出硬件细节，第四节评估性能，第五节讨论相关工作</p>
-<h1 id="Spatial-Memory-Streaming-1"><a href="#Spatial-Memory-Streaming-1" class="headerlink" title="Spatial Memory Streaming"></a>Spatial Memory Streaming</h1><p>在选择Cache block，设计者在各种因素中取出最优解，通常最佳的缓存块大小牺牲了利用密集数据结构的空间局部性，以避稀疏结构带来的过多带宽开销，对于简单的数据结构，如数组，空间关系可以通过简单的预取实现，如stride prefetching</p>
-<p>商业负载访问模式较为复杂，不适合用 simple prefetching or streaming schemes，然而，这些应用程序中的数据结构经常显示缓存块之间的空间关系。例如，在数据库中，缓冲池中的页面共享公共结构元素，例如页头中的日志序列号和指示页脚中元组偏移量的槽索引，这些元素总是在扫描&#x2F;修改页面之前被访问。在web服务器中，包头和包尾具有任意复杂但固定的结构。图1（左）显示了更多的示例。尽管这些结构中的访问可能是不连续的，但它们在相对地址中仍然表现出重复的模式。我们称这些访问之间的关系为<strong>空间相关性</strong></p>
-<p><img src="/2025/02/05/SMS%E9%A2%84%E5%8F%96/1729853439799.png" alt="1729853439799"></p>
-<p>SMS在运行时提取空间相关访问模式，并使用这些模式预测，他在可用带宽和资源允许情况尽快将预测的缓存块放入Cache，从而增加内存并行性并隐藏低级缓存和片外访存延迟</p>
-<h2 id="Spatial-Patterns-and-Generations-1"><a href="#Spatial-Patterns-and-Generations-1" class="headerlink" title="Spatial Patterns and Generations"></a>Spatial Patterns and Generations</h2><p>我们形式化了空间相关性的概念，类似于先前的空间足迹研究[4,17]。我们将空间区域定义为系统地址空间中固定大小的部分，由多个连续的缓存块组成。A spatial region generation is the time interval over which SMS records accesses within a spatial region，我们把第一次访问这个空间区域称为触发访问，空间模式是表示在a spatial region generation期间访问区域的blocks集合的位向量？？？</p>
-<p>定义a spatial region generation精确间隔会显著影响空间格局的精度和覆盖范围，a spatial region generation必须定义以确保，当SMS流在未来触发访问时进入缓存，没有预测的块在使用前被驱除或无效，</p>
-<p>因此，我们选择从触发访问到在生成期间访问的任何块通过替换或失效从处理器的主缓存中删除的间隔。对该区域中任何块的后续访问都是对新一代的触发访问。</p>
-<p>此定义确保在生成过程中访问的块集同时存在于缓存中。</p>
-<h2 id="Identifying-Recurring-Spatial-Patterns-1"><a href="#Identifying-Recurring-Spatial-Patterns-1" class="headerlink" title="Identifying Recurring Spatial Patterns"></a>Identifying Recurring Spatial Patterns</h2><p>在触发访问时，SMS预测区域内相关性块子集，于是其关键问题就是找到一个与重复出现的空间模式强相关的预测指数</p>
-<p>空间相关性由于数据结构布局和访问模式重复和规律性产生，例如聚合的几个变量经常被一起访问，因此出现空间相关性，<strong>这种情况，空间模式与触发器访问地址相关</strong>，地址标识数据结构，还有一种就是数据结构遍历重复出现或者具有规则结构，在这种情况，空间模式将与执行遍历的代码（pc）相关联，文献中研究了多种预测指标，先前的研究发现当相关表存储无界？？，结合地址和PC构建索引可以提供最准确的预测，也就是PC+addr indexing，当多个代码序列对同一数据结构进行不同遍历，预测器会生成不同的模式，然而，该预测索引需要随数据集大小缩放预测期存储，而且预测覆盖率会随着存储限制而急剧下降</p>
-<p>对于SPEC CPU 2000程序，PC+addr可以通过pc+a spatial region offset实现，这个偏移是cache block中与空间区域起始位置的相对地址，也就是相当于这个区域的哪个block，这个偏移允许预测器区分由相同代码片段生成的重复模式，这些重复模式不同支出就是他们相对空间区域边界对其，大大减少预测表存储需求，applications have far fewer distinct miss PCs than miss addresses.</p>
-<p>我们观察到这种索引，除了节省内存，还可以消除cold misses，当代码序列在大型数据集重复相同的访问模式，访问序列刚开始时学习的PC相关空间模式为以前从未访问的数据提供准确预测。Database scan and join operations, which dominate the execution of decision support queries 包含着只访问数据以此的唱重复访问模式，这些应用适合这种index方式</p>
-<h1 id="设计-1"><a href="#设计-1" class="headerlink" title="设计"></a>设计</h1><p>(终于到自己的SMS设计了)</p>
-<p>我们的设计目标是多处理器环境下的高性能商业服务器应用程序，区别：之前的设计针对<strong>decoupled sectored</strong> [22] or <strong>sub-blocked caches.</strong></p>
-<p>预测和缓存集成简化硬件设计，因为空间区域访问的结构可以2和sub-blocks的tag集成，然而，不同空间区域交错访问导致标签冲突，桃枝空间区域碎片化1，降低准确性，所以SMS不使用子块</p>
-<p>他包括两个结构</p>
-<blockquote>
-<p>The pattern history table stores previously-observed spatial patterns, and is accessed at the start of each spatial region generation to predict the pattern of future accesses.</p>
-</blockquote>
-<h2 id="Observing-Spatial-Patterns-1"><a href="#Observing-Spatial-Patterns-1" class="headerlink" title="Observing Spatial Patterns"></a>Observing Spatial Patterns</h2><p>SMS通过记录在AGT空间区域生成过程中访问的块来学习空间模式，当空间区域生成开始时，SMS在AGT分配一个条目，当cache block被访问，更新AGT记录的模式，当eviction&#x2F;invalidation of any block accessed during the generation)，AGT将空间模式转移到PHT，然后释放条目</p>
-<p>实际AGT有两个内容表，积累表和过滤表，减少搜索难度和总体大小，AGT处理L1数据访问，所以两个表必须都能匹配数据访问带宽</p>
-<p>空间模式记录在累积表，累计表条目由空间区域标记来标记，即区域及地址高位，每个条目存储触发访问的PC和空间区域偏移量，以及指示在生成期间访问了哪些块的空间模式位向量</p>
-<p>新的空间区域最初在过滤表，过滤表记录tag，pc和offset，用于在当次只有一次访问的空间区域，有很少的区域永远不会访问第二个快，预测这些没有好处，因为唯一的访问是触发访问，将这些限制在过滤表，减少了累计表的空间占用</p>
-<p><img src="/2025/02/05/SMS%E9%A2%84%E5%8F%96/1729857733789.png" alt="1729857733789"></p>
-<p>上图描述了AGT详细操作，每个L1访问，首先搜索累计表，如果匹配，设置所访问块的空间模式位，否则，在筛选表找，如果没找到，这次访问就是触发访问，并在筛选表重新分配条目，如果在筛选表匹配，则比较偏移，如果不同，该快是区域访问的第二个快，将这个条目移到累计表，对该区域其他访问将在模式中设置相应位，这个位代表一个区域有几个block，当有的快被驱除或无效，则结束生成，这时在过滤表和累积表搜索标签，过滤表的条目将被抛弃，累积表的放入模式历史表，如果其中一个表满了，选择一个表项，终止生成，即，从过滤表中删除该表项或从累积表转移到模式历史表中</p>
-<h2 id="Predicting-Spatial-Patterns-1"><a href="#Predicting-Spatial-Patterns-1" class="headerlink" title="Predicting Spatial Patterns"></a>Predicting Spatial Patterns</h2><p>SMS使用模式历史表对空间模式进行存储，并预测在每个区域将访问块的模式，PHT实现和预测如下，其被组织为类似cache的组相连结构，其由预测索引访问，这个索引是PC和空间区域偏移组成，PHT每个条目存储AGT积累的访问模式</p>
-<p><img src="/2025/02/05/SMS%E9%A2%84%E5%8F%96/1729864558517.png" alt="1729864558517"></p>
-<p>在触发访问是,SMS查询PHT来预测访问哪些块，如果找到一个条目，空间区域的基地址和空间模式将被复制到几个预测寄存器的一个，当SMS将模式预测的每个块传输到主缓存，他会清除预测寄存器的位，当预测寄存器整个模式被清除，寄存器释放，如果多个预测寄存器活动，SMS轮训操作，这个流请求类似于缓存一致性协议的读请求</p>
-<h1 id="结果-1"><a href="#结果-1" class="headerlink" title="结果"></a>结果</h1><h2 id="访问密度-1"><a href="#访问密度-1" class="headerlink" title="访问密度"></a><strong>访问密度</strong></h2><p><img src="/2025/02/05/SMS%E9%A2%84%E5%8F%96/1729867839321.png" alt="1729867839321"></p>
-<h2 id="indexing-1"><a href="#indexing-1" class="headerlink" title="indexing"></a>indexing</h2><p><img src="/2025/02/05/SMS%E9%A2%84%E5%8F%96/1729867930971.png" alt="1729867930971"></p>
-<p>名词：<strong>覆盖率</strong>表示通过SMS消除的L1读错误的比例。</p>
-<p>过度预测表示在取出或无效前已获取但未使用的块，也就是一些无用的预取</p>
-<p>在OLTP和web应用，大多数空间相关访问都来自频繁访问的代码序列和数据结构，因此数据地址和PC都和空间模式相关，所以除了PC寻址，其他的覆盖率相似，PC不准确，他不能区分相同代码对不同数据结构的访问模式，PC+偏移索引可以根据空间区域偏移量来区分模式，足以捕捉到常见的情况</p>
-<p>而DSS基于程序上下文，PC和PC+off较好</p>
-<p>对于科学应用，pc+off接近pc+addr</p>
-<p>pc+off的第二个优点就是：他的存储需求与代码大小成正比而不是数据集大小，</p>
-<h2 id="4-3-Decoupled-Training-1"><a href="#4-3-Decoupled-Training-1" class="headerlink" title="4.3. Decoupled Training"></a>4.3. Decoupled Training</h2><p>训练十分重要，过早终止空间区域生成，可能导致PHT被污染</p>
-<p><img src="/2025/02/05/SMS%E9%A2%84%E5%8F%96/1729868738111.png" alt="1729868738111"></p>
-<p>可以看到AGT覆盖率最高</p>
-<h2 id="4-4-Spatial-Region-Size-1"><a href="#4-4-Spatial-Region-Size-1" class="headerlink" title="4.4. Spatial Region Size"></a>4.4. Spatial Region Size</h2><blockquote>
-<p>Choosing a spatial region size involves a tradeoff between coverage and storage requirements.</p>
-</blockquote>
-<h2 id="4-5-Active-Generation-Table-1"><a href="#4-5-Active-Generation-Table-1" class="headerlink" title="4.5. Active Generation Table"></a>4.5. Active Generation Table</h2><p>a 32-entry filter table and a 64-entry accumulation table are sufficient.</p>
-]]></content>
-      <categories>
-        <category>论文阅读</category>
-      </categories>
   </entry>
   <entry>
     <title>PGC</title>
@@ -3019,6 +3079,29 @@ CDC入队条件比较弱,考虑更改</p>
 </ol>
 <p>这是存储指令执行过程中将数据写入存储队列的关键步骤，后续的写回阶段会根据存储队列中的数据将其写入内存或缓存。</p>
 <p><strong>write函数将数据写入STQ，等待提交时写入Cache</strong></p>
+<h1 id="问题"><a href="#问题" class="headerlink" title="问题"></a>问题</h1><p><strong>gem5如何取出一条指令的？</strong></p>
+<p>目前已知gem5是通过构建pkt来发送请求的，发送的函数为send_timing</p>
+<p><img src="/2025/02/05/gem5/image-20250513143147906.png" alt="image-20250513143147906"></p>
+<p>这个函数是在processSendEvent调用的，processSendEvent函数为一个回调函数，主要就是去返回发送请求得到的数据，最后会把他调度到event事件中</p>
+<blockquote>
+<p>这些函数可能是icache端的，因为他是返回的信号</p>
+</blockquote>
+<p>这个resp的流程：</p>
+<p>首先cache得到recvTimingReq，该函数会访问cache</p>
+<p>如果hit，会调用handleTimingReqHit</p>
+<p>如果这个packet需要回复，调用cpuSidePort.schedTimingResp(pkt, request_time);，</p>
+<p>这个函数调用respqueue，最后会调用回调函数processSendEvent，一步步到fetch的resp</p>
+<p><img src="/2025/02/05/gem5/image-20250513145902769.png" alt="image-20250513145902769"></p>
+<p>真相大白，在finishTranslation函数发出取指令</p>
+<p><strong>PC在哪更新？</strong></p>
+<p>在fetch函数，当取指令请求生成完成后，会去更新pc，</p>
+<p><strong>gem5实现FDIP的思路</strong></p>
+<p>1.单独实现FTQ</p>
+<p>2.实现一个可以将fetch阶段和l2阶段连接的模块，或者就是预取模块，</p>
+<p>3.实现一个分支预测管理模块，需要有预测，更新回滚结构</p>
+<h2 id="如何实现FTQ"><a href="#如何实现FTQ" class="headerlink" title="如何实现FTQ"></a>如何实现FTQ</h2><p><strong>FTQ需要包含的表项</strong></p>
+<p><strong>gem5是以什么粒度取指令</strong>？</p>
+<p>mininstsize，也就是指令大小长度，而不是以fetchblock为粒度，一次只取出一条</p>
 ]]></content>
       <categories>
         <category>计算机体系结构</category>
@@ -3064,98 +3147,6 @@ CDC入队条件比较弱,考虑更改</p>
       <categories>
         <category>计算机体系结构</category>
       </categories>
-  </entry>
-  <entry>
-    <title>grvcore_debug</title>
-    <url>/2025/03/14/grvcore-debug/</url>
-    <content><![CDATA[]]></content>
-  </entry>
-  <entry>
-    <title>Hello World</title>
-    <url>/2025/02/03/hello-world/</url>
-    <content><![CDATA[<p>Welcome to <a href="https://hexo.io/">Hexo</a>! This is your very first post. Check <a href="https://hexo.io/docs/">documentation</a> for more info. If you get any problems when using Hexo, you can find the answer in <a href="https://hexo.io/docs/troubleshooting.html">troubleshooting</a> or you can ask me on <a href="https://github.com/hexojs/hexo/issues">GitHub</a>.</p>
-<h2 id="Quick-Start"><a href="#Quick-Start" class="headerlink" title="Quick Start"></a>Quick Start</h2><h3 id="Create-a-new-post"><a href="#Create-a-new-post" class="headerlink" title="Create a new post"></a>Create a new post</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">$ hexo new <span class="string">&quot;My New Post&quot;</span></span><br></pre></td></tr></table></figure>
-
-<p>More info: <a href="https://hexo.io/docs/writing.html">Writing</a></p>
-<h3 id="Run-server"><a href="#Run-server" class="headerlink" title="Run server"></a>Run server</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">$ hexo server</span><br></pre></td></tr></table></figure>
-
-<p>More info: <a href="https://hexo.io/docs/server.html">Server</a></p>
-<h3 id="Generate-static-files"><a href="#Generate-static-files" class="headerlink" title="Generate static files"></a>Generate static files</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">$ hexo generate</span><br></pre></td></tr></table></figure>
-
-<p>More info: <a href="https://hexo.io/docs/generating.html">Generating</a></p>
-<h3 id="Deploy-to-remote-sites"><a href="#Deploy-to-remote-sites" class="headerlink" title="Deploy to remote sites"></a>Deploy to remote sites</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">$ hexo deploy</span><br></pre></td></tr></table></figure>
-
-<p>More info: <a href="https://hexo.io/docs/one-command-deployment.html">Deployment</a></p>
-<h1 id="今日踩坑"><a href="#今日踩坑" class="headerlink" title="今日踩坑"></a>今日踩坑</h1><p>1.Champsim  最新版本2024-12即使报错也会生成bin文件,这个感觉是他的编译选项问题</p>
-<p>2.firesim 在使用au280时,应该使用BaseXilinxAlveoConfig替换PLATFORM_CONFIG&#x3D;BaseXilinxAlveoU280Config,直接加入一個BaseXilinxAlveoU280Config也可以</p>
-<h1 id="2025-2-5"><a href="#2025-2-5" class="headerlink" title="2025-2-5"></a>2025-2-5</h1><p>今日发现dcache的写dirty有问题：目前这个写逻辑有问题，只有当写数据，或者写miss才会设定dirty位，读miss读出的数据是不会设置dirty位的，但不影响功能，</p>
-<p>而且之后可能会加入mshr合并机制：mshr不合并？</p>
-]]></content>
-  </entry>
-  <entry>
-    <title>nemu linux</title>
-    <url>/2025/02/19/nemu-linux/</url>
-    <content><![CDATA[<h1 id="Difftest-适配"><a href="#Difftest-适配" class="headerlink" title="Difftest 适配"></a>Difftest 适配</h1><p>在跑linux需要加入csr的检查,以测出特权指令执行的结果是否正确</p>
-<p>首先需要做的就是维护一套csr寄存器,我个人做法就是设置一个csr_map结构体,然后查询这个结构体来找到csr是否实现</p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">nemu_csr_t csr_map[] = &#123; </span><br><span class="line">    &#123;0x100, &quot;sstatus&quot; ,true&#125;, </span><br><span class="line">    &#123;0x104, &quot;sie&quot;     ,true&#125;, </span><br><span class="line">    &#123;0x105, &quot;stvec&quot;   ,true&#125;, </span><br><span class="line">    &#123;0x140, &quot;sscratch&quot;,true&#125;, </span><br><span class="line">    &#123;0x141, &quot;sepc&quot;    ,true&#125;, </span><br><span class="line">    &#123;0x142, &quot;scause&quot;  ,true&#125;, </span><br><span class="line">    &#123;0x143, &quot;stval&quot;   ,true&#125;, </span><br><span class="line">    &#123;0x144, &quot;sip&quot;     ,true&#125;, </span><br><span class="line">    &#123;0x180, &quot;satp&quot;    ,true&#125;, </span><br><span class="line">    &#123;0x300, &quot;mstatus&quot; ,true&#125;,</span><br><span class="line">    &#123;0x301, &quot;misa&quot;    ,false&#125;,</span><br><span class="line">    &#123;0x302, &quot;medeleg&quot; ,true&#125;, </span><br><span class="line">    &#123;0x303, &quot;mideleg&quot; ,true&#125;,  </span><br><span class="line">    &#123;0x304, &quot;mie&quot;     ,true&#125;,  </span><br><span class="line">    &#123;0x305, &quot;mtvec&quot;   ,true&#125;,  </span><br><span class="line">    &#123;0x310, &quot;mstatush&quot;,true&#125;,</span><br><span class="line">    // &#123;0x312, &quot;medelegh&quot;,true&#125;,////2024 standard  </span><br><span class="line">    &#123;0x340, &quot;mscratch&quot;,true&#125;,</span><br><span class="line">    &#123;0x341, &quot;mepc&quot;    ,true&#125;,</span><br><span class="line">    &#123;0x342, &quot;mcause&quot;  ,true&#125;,</span><br><span class="line">    &#123;0x343, &quot;mtval&quot;   ,true&#125;,  </span><br><span class="line">    &#123;0x344, &quot;mip&quot;     ,true&#125;,  </span><br><span class="line">    &#123;0xf11, &quot;mvendorid&quot;,true&#125;,   </span><br><span class="line">    &#123;0xf14, &quot;mhartid&quot; ,true&#125;   </span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<p>然后每次增加一个csr寄存器,只需在difftest.cc和inst.c同时将寄存器加入map即可</p>
-<p>之后我们需要实现非法指令异常,可以参考yield在nemu实现,当遇到一些没实现的csr时,就可以触发异常,然后sbi会自己处理这些没实现的csr,我们此时也要去将这个非法指令访问异常同步到spike中,具体可以参考spike的get_csr</p>
-<p>完成上述,基本difftest改造完成</p>
-<h1 id="移植opensbi"><a href="#移植opensbi" class="headerlink" title="移植opensbi"></a>移植opensbi</h1><p>首先下载opensbi</p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">git clone https://github.com/riscv-software-src/opensbi</span><br></pre></td></tr></table></figure>
-
-<p>然后复制一份platform&#x2F;templete,将这个改为适配nemu的平台,具体改动:</p>
-<p>先设置objects.mk,然后</p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">PLATFORM_RISCV_XLEN = 32</span><br><span class="line">PLATFORM_RISCV_ABI = ilp32</span><br><span class="line">PLATFORM_RISCV_ISA = rv32ima_zicsr_zifencei</span><br><span class="line">PLATFORM_RISCV_CODE_MODEL = medany</span><br><span class="line">FW_TEXT_START=0x80000000//如果这个不行,可以直接修改链接脚本,具体在firmware/fw_jump.elf.ldS</span><br><span class="line">FW_JUMP=y</span><br><span class="line">ifeq ($(PLATFORM_RISCV_XLEN), 32)</span><br><span class="line">FW_JUMP_ADDR=0x0</span><br><span class="line">else</span><br><span class="line">FW_JUMP_ADDR=0x80200000</span><br><span class="line">endif</span><br><span class="line"></span><br></pre></td></tr></table></figure>
-
-<p>然后设置platform.c,主要就是设置timer,uart的地址,这里可以根据自己的想法去设置设备地址,也可以使用nemu内部的地址,建议uart使用nemu的,只需稍微改动即可,改动可参考uart8250手册</p>
-<p>之后就是debug过程,最后由于跳转到0x0,所以会直接段错误退出,注意最好看19年的手册,24年新出的手册会增加一些csr,从而导致spike触发非法指令</p>
-<p>运行结果如下</p>
-<p><img src="/2025/02/19/nemu-linux/nemu-linux/1740061516016.png" alt="1740061516016"></p>
-<p>如果不确定需要实现哪些寄存器,可以先抛出非法指令异常,之后opensbi会告诉你要设置哪些寄存器</p>
-<h1 id="移植linux"><a href="#移植linux" class="headerlink" title="移植linux"></a>移植linux</h1><p><strong>为什么执行到relocate_enable_mmu会访问无效地址？</strong></p>
-<p>因为指第一次写入satp并没有去执行sfence，所以导致系统仍然使用之前的映射关系</p>
-<ul>
-<li><input disabled type="checkbox"> 需要去为ref传递异常号</li>
-<li><input disabled type="checkbox"> 为什么会跳转到c000098，这里可能发生了嵌套异常（错误的行为）</li>
-</ul>
-<p>终于可以跑起来一部分页表了：</p>
-<p>发现之前的问题是因为自己的pte解析出错了</p>
-<p>目前的问题是：</p>
-<p>会访问0x80040000的数据，这个就是j指令</p>
-]]></content>
-      <categories>
-        <category>计算机体系结构</category>
-      </categories>
-  </entry>
-  <entry>
-    <title>runahead</title>
-    <url>/2025/02/05/runahead/</url>
-    <content><![CDATA[<h1 id="runahead"><a href="#runahead" class="headerlink" title="runahead"></a>runahead</h1><p>(又是Onur Mutlu写的文章)</p>
-<h2 id="要解决的问题-摘要"><a href="#要解决的问题-摘要" class="headerlink" title="要解决的问题(摘要)"></a>要解决的问题(摘要)</h2><p>现如今高性能处理器都通过OoO来中和一些高延迟操作(如cache miss,中断异常,设备访问),之前做法都是增大指令窗口(个人理解为rob中可存储指令个数),现在可以提前执行,也即是runahead,在相同的机器上,runahead结合128个Instruction Windows与在没有提前执行和384个Instruction Windows相比性能几乎没有差异</p>
-<h2 id="相关工作"><a href="#相关工作" class="headerlink" title="相关工作"></a>相关工作</h2><p>mem access对CPU的性能影响很大,故之前有人提出了cache,no-blocking cache,硬件预取,软件预取,基于线程预取<br>Balasubramonian提出了长延迟指令阻塞退役时执行未来指令的机制。它们的机制动态地将寄存器文件的一部分分配给“未来线程”，该线程在“主线程”停止时启动。这种机制需要对两种不同上下文的部分硬件支持。<br>缺点:两模式都无法全部享用处理器资源<br>在运行提前执行中，普通模式和运行提前模式都可以利用机器的全部资源，这有助于机器在运行提前模式中获得进一步的领先。<br>Lebeck提出，将依赖于长延迟操作的指令从(相对较小的)调度窗口中移除，放入(相对较大的)等待指令缓冲区(WIB)中，直到操作完成，然后将指令移回调度窗口。这结合了大指令窗口的延迟容忍优势和小调度窗口的快速周期时间优势。(类似于超标量发射队列的推测唤醒那一节)</p>
-<h2 id="IW和SW-和超标量哪一本的含义不同"><a href="#IW和SW-和超标量哪一本的含义不同" class="headerlink" title="IW和SW(和超标量哪一本的含义不同)"></a>IW和SW(和超标量哪一本的含义不同)</h2><p>An out-of-order execution machine<br>accomplishes this using two windows: the instruction window and the scheduling window.</p>
-<p>指令窗口是已经解码的指令但还没退休,也即是在rob的指令,调度窗口是指令窗口的一个子集,其主要作用就是找到可以执行的指令<br><img src="/2025/02/05/runahead/image.png" alt="alt text"><br>可以看到runahead+128表项的IW的停顿百分比与IPC(每个条顶部为IPC),其消除full window<br>stalls获得了20%的IPC提升</p>
-<h2 id="runahead-1"><a href="#runahead-1" class="headerlink" title="runahead"></a>runahead</h2><p>CPU任何时候都可以进入runahead,本论文在l2cache miss,并且该内存操作到达指令窗口的头部时(也就是最老的指令)进入提前执行.提前执行时的pc得存起来,以便退出runahead恢复archstate,IW中所有指令都被标记为runahead inst,在这个模式中取到的指令也是No updates to the checkpointed register file are allowed during runahead mode.runahead的执行与内存通信和无效结果的传播有关,一些规则:</p>
-<ol>
-<li>Invalid bits and instructions.</li>
-<li>Propagation of INV values.<br>进入runahead的第一条无效指令为load或者store(引起这个问题的原因),若为load,则rf的INV拉高,若为store,则runahead cache分配一个表项,并且将dest 的byte置为无效Any invalid instruction that writes to a register marks that<br>register as INV after it is scheduled or executed. Any valid<br>operation that writes to a register resets the INV bit ofits<br>destination register.</li>
-<li>Runahead store operations and runahead cache.之前的工作runahead load之前有runahead store(raw)被视为无效指令并被删除我们认为转发是必要的,如果两个指令都在IW中,直接通过store buffer获取指令,如果指令伪退休了,<br>我们将其存入runahead cache,其目的是转发数据和状态,被替换的dirty行不会存入下一级存储器,而是会直接删除(正常模式的指令无法访问该cache)store buffer 和runahead cache的每个字节都有对应的INV,而runahead cache 中还有STO为,指示store是否写入该字节,只有访问该cache中的STO和valid 之高的line,才不会miss,规则如下:<ol>
-<li>当有效runahead store执行-&gt;拉低cache的INV,若datacache中该数据缺失,则进行预取</li>
-<li>当无效runahead store被选中-&gt;将store buffer对应位置拉高INV</li>
-<li>当有效runahead store退休,写入cache,重置INV,设置写入字节的STO</li>
-<li>当无效的runahead store执行,cache的INV升高,设置STO</li>
-<li>runahead store不会将数据写入data cache<br>但store地址无效时,其操作将会被视为NOP,这时与之相关的load可能无法获得正确的值,可以使用memory dependence predictors解决</li>
-</ol>
-</li>
-<li>Runahead load operations.Runahead load操作可能因三种不同原因而无效它可能源于一个 INV 物理寄存器。（寄存器的INV位）它可能依赖于store buffer中标记为 INV 的存储。（store buffer的INV位）它可能依赖于一个已经伪退休的 INV 存储器。（runahead cache的INV位）Runahead load 执行时会<strong>并行</strong>访问data cache,store buffer和runahead cache访问store buffer和runahead cache:只有访问的line的INV置低,(STO置为高),才能获取数据,若无效,则该指令的dst reg 置为INV如果store buffer和runahead cache 都miss,但data cache hit,使用该数据,但实际这时数据可能是无效的-&gt;依赖于之前的store,但之前的store 的line是INV的或者被驱逐出cache(这种很罕见,故不会影响性能),如果三个都miss,则访问l2cache,如果访问l2cache miss,则驱除该指令,然后当作正常模式的指令运行,(个人理解这个可能会形成嵌套runahead)</li>
-<li>Execution and prediction of branches.<strong>在runahead模式的分支指令预测失败后不会恢复****训练策略</strong>runahead 时就训练BHT,这样其训练效果好不能再runahead训练BHT,这样可能导致分支预测不太行,导致runahead遇见分支性能下降只能在runahead训练BHT,正常模式通过fifo访问BHT两种模式有不同的表</li>
-<li>Instruction pseudo-retirement during runahead mode.<br>runahead模式退休和正常差不多,区别在于:runahead如果检测ROB有inv指令,直接退休,两种模式均会更新RAT</li>
-</ol>
-<h2 id="Exiting-runahead-mode"><a href="#Exiting-runahead-mode" class="headerlink" title="Exiting runahead mode"></a>Exiting runahead mode</h2><p>退出也是可以随时退出,本文使用和分支预测失误后恢复的方法相似<br>本文使用的是当blocking的数据返回后退出runahead,</p>
-<h2 id="一些名词"><a href="#一些名词" class="headerlink" title="一些名词"></a>一些名词</h2><p>BHT,FIFO,ROB,RAT,store buffer</p>
-]]></content>
   </entry>
   <entry>
     <title>diplomacy&amp;boom</title>
@@ -4715,6 +4706,70 @@ CDC入队条件比较弱,考虑更改</p>
       </categories>
   </entry>
   <entry>
+    <title>Hello World</title>
+    <url>/2025/02/05/hello-world/</url>
+    <content><![CDATA[<p>Welcome to <a href="https://hexo.io/">Hexo</a>! This is your very first post. Check <a href="https://hexo.io/docs/">documentation</a> for more info. If you get any problems when using Hexo, you can find the answer in <a href="https://hexo.io/docs/troubleshooting.html">troubleshooting</a> or you can ask me on <a href="https://github.com/hexojs/hexo/issues">GitHub</a>.</p>
+<h2 id="Quick-Start"><a href="#Quick-Start" class="headerlink" title="Quick Start"></a>Quick Start</h2><h3 id="Create-a-new-post"><a href="#Create-a-new-post" class="headerlink" title="Create a new post"></a>Create a new post</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">$ hexo new <span class="string">&quot;My New Post&quot;</span></span><br></pre></td></tr></table></figure>
+
+<p>More info: <a href="https://hexo.io/docs/writing.html">Writing</a></p>
+<h3 id="Run-server"><a href="#Run-server" class="headerlink" title="Run server"></a>Run server</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">$ hexo server</span><br></pre></td></tr></table></figure>
+
+<p>More info: <a href="https://hexo.io/docs/server.html">Server</a></p>
+<h3 id="Generate-static-files"><a href="#Generate-static-files" class="headerlink" title="Generate static files"></a>Generate static files</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">$ hexo generate</span><br></pre></td></tr></table></figure>
+
+<p>More info: <a href="https://hexo.io/docs/generating.html">Generating</a></p>
+<h3 id="Deploy-to-remote-sites"><a href="#Deploy-to-remote-sites" class="headerlink" title="Deploy to remote sites"></a>Deploy to remote sites</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">$ hexo deploy</span><br></pre></td></tr></table></figure>
+
+<p>More info: <a href="https://hexo.io/docs/one-command-deployment.html">Deployment</a></p>
+<h1 id="今日踩坑"><a href="#今日踩坑" class="headerlink" title="今日踩坑"></a>今日踩坑</h1><p>1.Champsim  最新版本2024-12即使报错也会生成bin文件,这个感觉是他的编译选项问题</p>
+<p>2.firesim 在使用au280时,应该使用BaseXilinxAlveoConfig替换PLATFORM_CONFIG&#x3D;BaseXilinxAlveoU280Config,直接加入一個BaseXilinxAlveoU280Config也可以</p>
+<h1 id="2025-2-5"><a href="#2025-2-5" class="headerlink" title="2025-2-5"></a>2025-2-5</h1><p>今日发现dcache的写dirty有问题：目前这个写逻辑有问题，只有当写数据，或者写miss才会设定dirty位，读miss读出的数据是不会设置dirty位的，但不影响功能，</p>
+<p>而且之后可能会加入mshr合并机制：mshr不合并？</p>
+]]></content>
+  </entry>
+  <entry>
+    <title>nemu linux</title>
+    <url>/2025/02/19/nemu-linux/</url>
+    <content><![CDATA[<h1 id="Difftest-适配"><a href="#Difftest-适配" class="headerlink" title="Difftest 适配"></a>Difftest 适配</h1><p>在跑linux需要加入csr的检查,以测出特权指令执行的结果是否正确</p>
+<p>首先需要做的就是维护一套csr寄存器,我个人做法就是设置一个csr_map结构体,然后查询这个结构体来找到csr是否实现</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">nemu_csr_t csr_map[] = &#123; </span><br><span class="line">    &#123;0x100, &quot;sstatus&quot; ,true&#125;, </span><br><span class="line">    &#123;0x104, &quot;sie&quot;     ,true&#125;, </span><br><span class="line">    &#123;0x105, &quot;stvec&quot;   ,true&#125;, </span><br><span class="line">    &#123;0x140, &quot;sscratch&quot;,true&#125;, </span><br><span class="line">    &#123;0x141, &quot;sepc&quot;    ,true&#125;, </span><br><span class="line">    &#123;0x142, &quot;scause&quot;  ,true&#125;, </span><br><span class="line">    &#123;0x143, &quot;stval&quot;   ,true&#125;, </span><br><span class="line">    &#123;0x144, &quot;sip&quot;     ,true&#125;, </span><br><span class="line">    &#123;0x180, &quot;satp&quot;    ,true&#125;, </span><br><span class="line">    &#123;0x300, &quot;mstatus&quot; ,true&#125;,</span><br><span class="line">    &#123;0x301, &quot;misa&quot;    ,false&#125;,</span><br><span class="line">    &#123;0x302, &quot;medeleg&quot; ,true&#125;, </span><br><span class="line">    &#123;0x303, &quot;mideleg&quot; ,true&#125;,  </span><br><span class="line">    &#123;0x304, &quot;mie&quot;     ,true&#125;,  </span><br><span class="line">    &#123;0x305, &quot;mtvec&quot;   ,true&#125;,  </span><br><span class="line">    &#123;0x310, &quot;mstatush&quot;,true&#125;,</span><br><span class="line">    // &#123;0x312, &quot;medelegh&quot;,true&#125;,////2024 standard  </span><br><span class="line">    &#123;0x340, &quot;mscratch&quot;,true&#125;,</span><br><span class="line">    &#123;0x341, &quot;mepc&quot;    ,true&#125;,</span><br><span class="line">    &#123;0x342, &quot;mcause&quot;  ,true&#125;,</span><br><span class="line">    &#123;0x343, &quot;mtval&quot;   ,true&#125;,  </span><br><span class="line">    &#123;0x344, &quot;mip&quot;     ,true&#125;,  </span><br><span class="line">    &#123;0xf11, &quot;mvendorid&quot;,true&#125;,   </span><br><span class="line">    &#123;0xf14, &quot;mhartid&quot; ,true&#125;   </span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>然后每次增加一个csr寄存器,只需在difftest.cc和inst.c同时将寄存器加入map即可</p>
+<p>之后我们需要实现非法指令异常,可以参考yield在nemu实现,当遇到一些没实现的csr时,就可以触发异常,然后sbi会自己处理这些没实现的csr,我们此时也要去将这个非法指令访问异常同步到spike中,具体可以参考spike的get_csr</p>
+<p>完成上述,基本difftest改造完成</p>
+<h1 id="移植opensbi"><a href="#移植opensbi" class="headerlink" title="移植opensbi"></a>移植opensbi</h1><p>首先下载opensbi</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">git clone https://github.com/riscv-software-src/opensbi</span><br></pre></td></tr></table></figure>
+
+<p>然后复制一份platform&#x2F;templete,将这个改为适配nemu的平台,具体改动:</p>
+<p>先设置objects.mk,然后</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">PLATFORM_RISCV_XLEN = 32</span><br><span class="line">PLATFORM_RISCV_ABI = ilp32</span><br><span class="line">PLATFORM_RISCV_ISA = rv32ima_zicsr_zifencei</span><br><span class="line">PLATFORM_RISCV_CODE_MODEL = medany</span><br><span class="line">FW_TEXT_START=0x80000000//如果这个不行,可以直接修改链接脚本,具体在firmware/fw_jump.elf.ldS</span><br><span class="line">FW_JUMP=y</span><br><span class="line">ifeq ($(PLATFORM_RISCV_XLEN), 32)</span><br><span class="line">FW_JUMP_ADDR=0x0</span><br><span class="line">else</span><br><span class="line">FW_JUMP_ADDR=0x80200000</span><br><span class="line">endif</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<p>然后设置platform.c,主要就是设置timer,uart的地址,这里可以根据自己的想法去设置设备地址,也可以使用nemu内部的地址,建议uart使用nemu的,只需稍微改动即可,改动可参考uart8250手册</p>
+<p>之后就是debug过程,最后由于跳转到0x0,所以会直接段错误退出,注意最好看19年的手册,24年新出的手册会增加一些csr,从而导致spike触发非法指令</p>
+<p>运行结果如下</p>
+<p><img src="/2025/02/19/nemu-linux/nemu-linux/1740061516016.png" alt="1740061516016"></p>
+<p>如果不确定需要实现哪些寄存器,可以先抛出非法指令异常,之后opensbi会告诉你要设置哪些寄存器</p>
+<h1 id="移植linux"><a href="#移植linux" class="headerlink" title="移植linux"></a>移植linux</h1><p><strong>为什么执行到relocate_enable_mmu会访问无效地址？</strong></p>
+<p>因为指第一次写入satp并没有去执行sfence，所以导致系统仍然使用之前的映射关系</p>
+<ul>
+<li><input disabled type="checkbox"> 需要去为ref传递异常号</li>
+<li><input disabled type="checkbox"> 为什么会跳转到c000098，这里可能发生了嵌套异常（错误的行为）</li>
+</ul>
+<p>终于可以跑起来一部分页表了：</p>
+<p>发现之前的问题是因为自己的pte解析出错了</p>
+<p>目前的问题是：</p>
+<p>会访问0x80040000的数据，这个就是j指令</p>
+]]></content>
+      <categories>
+        <category>计算机体系结构</category>
+      </categories>
+  </entry>
+  <entry>
+    <title>grvcore_debug</title>
+    <url>/2025/03/14/grvcore-debug/</url>
+    <content><![CDATA[]]></content>
+  </entry>
+  <entry>
     <title>regfile_prefetch</title>
     <url>/2025/04/25/regfile-prefetch/</url>
     <content><![CDATA[<p><img src="/2025/04/25/regfile-prefetch/image-20250425144739509.png" alt="image-20250425144739509"></p>
@@ -4746,6 +4801,34 @@ CDC入队条件比较弱,考虑更改</p>
 <p>为了保证正确性，RFP考虑了所有可能修改负载数据的存储。当一个RFP被发送到L1和LSQ时，它会扫描所有较旧的商店(按照先老后小的顺序)，并将其地址与商店地址进行匹配。匹配时，它等待存储完成，并使用存储数据而不是缓存数据进行预取。如果存储的地址不可用(意味着存储还没有执行)，我们依靠内存歧义消除(MD) [14]机制来决定RFP是需要等待存储还是跳过它</p>
 <p><strong>流水线简化</strong></p>
 <p>如果一个RFP请求未命中L1，我们允许它继续处理，并从较低级别的缓存中获取数据，类似于常规的按需加载。在DTLB未命中的情况下，我们为了流水线简化而丢弃RFP，因为TLB未命中需要很长的延迟，并且在这种情况下RFP将没有足够的剩余运行时间。</p>
+]]></content>
+  </entry>
+  <entry>
+    <title>runahead</title>
+    <url>/2025/02/05/runahead/</url>
+    <content><![CDATA[<h1 id="runahead"><a href="#runahead" class="headerlink" title="runahead"></a>runahead</h1><p>(又是Onur Mutlu写的文章)</p>
+<h2 id="要解决的问题-摘要"><a href="#要解决的问题-摘要" class="headerlink" title="要解决的问题(摘要)"></a>要解决的问题(摘要)</h2><p>现如今高性能处理器都通过OoO来中和一些高延迟操作(如cache miss,中断异常,设备访问),之前做法都是增大指令窗口(个人理解为rob中可存储指令个数),现在可以提前执行,也即是runahead,在相同的机器上,runahead结合128个Instruction Windows与在没有提前执行和384个Instruction Windows相比性能几乎没有差异</p>
+<h2 id="相关工作"><a href="#相关工作" class="headerlink" title="相关工作"></a>相关工作</h2><p>mem access对CPU的性能影响很大,故之前有人提出了cache,no-blocking cache,硬件预取,软件预取,基于线程预取<br>Balasubramonian提出了长延迟指令阻塞退役时执行未来指令的机制。它们的机制动态地将寄存器文件的一部分分配给“未来线程”，该线程在“主线程”停止时启动。这种机制需要对两种不同上下文的部分硬件支持。<br>缺点:两模式都无法全部享用处理器资源<br>在运行提前执行中，普通模式和运行提前模式都可以利用机器的全部资源，这有助于机器在运行提前模式中获得进一步的领先。<br>Lebeck提出，将依赖于长延迟操作的指令从(相对较小的)调度窗口中移除，放入(相对较大的)等待指令缓冲区(WIB)中，直到操作完成，然后将指令移回调度窗口。这结合了大指令窗口的延迟容忍优势和小调度窗口的快速周期时间优势。(类似于超标量发射队列的推测唤醒那一节)</p>
+<h2 id="IW和SW-和超标量哪一本的含义不同"><a href="#IW和SW-和超标量哪一本的含义不同" class="headerlink" title="IW和SW(和超标量哪一本的含义不同)"></a>IW和SW(和超标量哪一本的含义不同)</h2><p>An out-of-order execution machine<br>accomplishes this using two windows: the instruction window and the scheduling window.</p>
+<p>指令窗口是已经解码的指令但还没退休,也即是在rob的指令,调度窗口是指令窗口的一个子集,其主要作用就是找到可以执行的指令<br><img src="/2025/02/05/runahead/image.png" alt="alt text"><br>可以看到runahead+128表项的IW的停顿百分比与IPC(每个条顶部为IPC),其消除full window<br>stalls获得了20%的IPC提升</p>
+<h2 id="runahead-1"><a href="#runahead-1" class="headerlink" title="runahead"></a>runahead</h2><p>CPU任何时候都可以进入runahead,本论文在l2cache miss,并且该内存操作到达指令窗口的头部时(也就是最老的指令)进入提前执行.提前执行时的pc得存起来,以便退出runahead恢复archstate,IW中所有指令都被标记为runahead inst,在这个模式中取到的指令也是No updates to the checkpointed register file are allowed during runahead mode.runahead的执行与内存通信和无效结果的传播有关,一些规则:</p>
+<ol>
+<li>Invalid bits and instructions.</li>
+<li>Propagation of INV values.<br>进入runahead的第一条无效指令为load或者store(引起这个问题的原因),若为load,则rf的INV拉高,若为store,则runahead cache分配一个表项,并且将dest 的byte置为无效Any invalid instruction that writes to a register marks that<br>register as INV after it is scheduled or executed. Any valid<br>operation that writes to a register resets the INV bit ofits<br>destination register.</li>
+<li>Runahead store operations and runahead cache.之前的工作runahead load之前有runahead store(raw)被视为无效指令并被删除我们认为转发是必要的,如果两个指令都在IW中,直接通过store buffer获取指令,如果指令伪退休了,<br>我们将其存入runahead cache,其目的是转发数据和状态,被替换的dirty行不会存入下一级存储器,而是会直接删除(正常模式的指令无法访问该cache)store buffer 和runahead cache的每个字节都有对应的INV,而runahead cache 中还有STO为,指示store是否写入该字节,只有访问该cache中的STO和valid 之高的line,才不会miss,规则如下:<ol>
+<li>当有效runahead store执行-&gt;拉低cache的INV,若datacache中该数据缺失,则进行预取</li>
+<li>当无效runahead store被选中-&gt;将store buffer对应位置拉高INV</li>
+<li>当有效runahead store退休,写入cache,重置INV,设置写入字节的STO</li>
+<li>当无效的runahead store执行,cache的INV升高,设置STO</li>
+<li>runahead store不会将数据写入data cache<br>但store地址无效时,其操作将会被视为NOP,这时与之相关的load可能无法获得正确的值,可以使用memory dependence predictors解决</li>
+</ol>
+</li>
+<li>Runahead load operations.Runahead load操作可能因三种不同原因而无效它可能源于一个 INV 物理寄存器。（寄存器的INV位）它可能依赖于store buffer中标记为 INV 的存储。（store buffer的INV位）它可能依赖于一个已经伪退休的 INV 存储器。（runahead cache的INV位）Runahead load 执行时会<strong>并行</strong>访问data cache,store buffer和runahead cache访问store buffer和runahead cache:只有访问的line的INV置低,(STO置为高),才能获取数据,若无效,则该指令的dst reg 置为INV如果store buffer和runahead cache 都miss,但data cache hit,使用该数据,但实际这时数据可能是无效的-&gt;依赖于之前的store,但之前的store 的line是INV的或者被驱逐出cache(这种很罕见,故不会影响性能),如果三个都miss,则访问l2cache,如果访问l2cache miss,则驱除该指令,然后当作正常模式的指令运行,(个人理解这个可能会形成嵌套runahead)</li>
+<li>Execution and prediction of branches.<strong>在runahead模式的分支指令预测失败后不会恢复****训练策略</strong>runahead 时就训练BHT,这样其训练效果好不能再runahead训练BHT,这样可能导致分支预测不太行,导致runahead遇见分支性能下降只能在runahead训练BHT,正常模式通过fifo访问BHT两种模式有不同的表</li>
+<li>Instruction pseudo-retirement during runahead mode.<br>runahead模式退休和正常差不多,区别在于:runahead如果检测ROB有inv指令,直接退休,两种模式均会更新RAT</li>
+</ol>
+<h2 id="Exiting-runahead-mode"><a href="#Exiting-runahead-mode" class="headerlink" title="Exiting runahead mode"></a>Exiting runahead mode</h2><p>退出也是可以随时退出,本文使用和分支预测失误后恢复的方法相似<br>本文使用的是当blocking的数据返回后退出runahead,</p>
+<h2 id="一些名词"><a href="#一些名词" class="headerlink" title="一些名词"></a>一些名词</h2><p>BHT,FIFO,ROB,RAT,store buffer</p>
 ]]></content>
   </entry>
   <entry>
@@ -4796,6 +4879,195 @@ CDC入队条件比较弱,考虑更改</p>
 <p>SPP总是先检查PF，然后再发出预取，如果PF已经包含一个缓存行，说明这个缓存行已经被预取，预取请求会被丢弃，当缓存行被替换，会重置有效位来清除条目</p>
 <p>通过在每个过滤器条目中添加一个有用位，PF 还可以近似预取精度。SPP 有两个全局计数器，一个用于跟踪预取请求的总数 (Ctotal)，另一个用于跟踪有用预取的数量 (Cuseful)。每当 SPP 发出未被过滤器丢弃的预取时，Ctotal 计数器就会增加。有用的预取由 PF 中命中的实际 L2 缓存需求请求检测到，这会增加 Cuseful 计数器。为了避免每个有用的预取行增加 Cuseful 超过一次，我们在 PF 条目中设置了一个已用位，以防止重复计算。此过滤器跟踪的全局预取精度用于公式 3 中的 α，以限制路径置信度值。</p>
 <p><img src="/2025/02/13/spp/1739460638587.png" alt="1739460638587"></p>
+]]></content>
+  </entry>
+  <entry>
+    <title>topdown analysis</title>
+    <url>/2025/03/19/topdown-analysis/</url>
+    <content><![CDATA[<h1 id="A-Top-Down-Method-for-Performance-Analysis-and-Counters-Architecture"><a href="#A-Top-Down-Method-for-Performance-Analysis-and-Counters-Architecture" class="headerlink" title="A Top-Down Method for Performance Analysis and Counters Architecture"></a>A Top-Down Method for Performance Analysis and Counters Architecture</h1><h2 id="为什么要提出这个方法学？"><a href="#为什么要提出这个方法学？" class="headerlink" title="为什么要提出这个方法学？"></a>为什么要提出这个方法学？</h2><p>传统的性能评估方法：</p>
+<p><img src="/2025/03/19/topdown-analysis/image-20250319103349042.png" alt="image-20250319103349042"></p>
+<p>其限制如下：</p>
+<ol>
+<li>Stalls overlap：OoO处理器许多模块都是并行计算，可能dcache miss惩罚会被overlap（即使miss也可以执行其他没有依赖的指令）</li>
+<li>Speculative execution：推测执行产生的错误结果不会影响提交，他们对性能实际影响较小（相对正确路径）</li>
+<li>Penalties are workloaddependent：性能惩罚的周期不定，而是和具体的工作负载相关，传统的性能评估方法认为所有惩罚周期一致</li>
+<li>Restriction to a pre-defined set of  miss-events：只有一些比较常见的会被评估，但比较细节的就可能被忽视（前端供指不足）</li>
+<li>Superscalar inaccuracy：超标量处理器可以一个周期执行退休多条指令，issue带宽可能会出现问题（其中一个例子）</li>
+</ol>
+<p>于是，intel提出了top-down的性能分析方法，该方法不仅可以应用于微结构探索，也可以去应用于软件分析</p>
+<p>他的分析方法就相当一个树，从跟节点到叶子节点一点点分析（选择占比大的事件分析），特点如下：</p>
+<ol>
+<li><p>引入错误预测的性能事件，并放在性能事件顶部</p>
+</li>
+<li><p>引入专门的计数器（12个）</p>
+</li>
+<li><p>确定关键的流水线阶段（issue）和计数时机</p>
+<blockquote>
+<p>比如，与其统计内存访问总时间，不如去观察由于mem access hang导致的执行单元利用率低的持续时间</p>
+</blockquote>
+</li>
+<li><p>使用通用的事件</p>
+</li>
+</ol>
+<p>其分析层次如下：</p>
+<p><img src="/2025/03/19/topdown-analysis/image-20250326171600522.png" alt="image-20250326171600522"></p>
+<p>我们选择issue阶段来进行事件分解</p>
+<p>将性能事件分为4类： Frontend Bound, Backend Bound, Bad Speculation and Retiring</p>
+<p><img src="/2025/03/19/topdown-analysis/image-20250326171657191.png" alt="image-20250326171657191"></p>
+<h2 id="前端-bound"><a href="#前端-bound" class="headerlink" title="前端 bound"></a>前端 bound</h2><p>前端分为Latency和Bandwidth，</p>
+<p>Latency：icache未命中等导致前端无法产生有效指令</p>
+<p>Frontend Bandwidth Bound：decoder效率低，其次就是取指令宽度不够（后端执行太快）</p>
+<blockquote>
+<p>boom很难产生Latency bound，后端执行单元少，无法利用OoO的并行</p>
+</blockquote>
+<h2 id="Bad-Speculation-category"><a href="#Bad-Speculation-category" class="headerlink" title="Bad Speculation category"></a>Bad Speculation category</h2><p>细分为br mispred和mechine clear</p>
+<h2 id="Backend-Bound-category"><a href="#Backend-Bound-category" class="headerlink" title="Backend Bound category"></a>Backend Bound category</h2><p>这里可能会有dcache miss divider执行等情况</p>
+<p>其进一步细分为Memory Bound 和Core Bound</p>
+<blockquote>
+<p>为了维持最大IPC，需要去在4-wide的机器上尽量让exu跑满</p>
+</blockquote>
+<p>Memory Bound：显而易见，就是lsu所造成的性能损失</p>
+<p>Core Bound ：执行端口利用率低，除法指令</p>
+<p>下面还展示了将Mem Bound细分</p>
+<p><img src="/2025/03/19/topdown-analysis/image-20250326173425211.png" alt="image-20250326173425211"></p>
+<h2 id="计数器结构"><a href="#计数器结构" class="headerlink" title="计数器结构"></a>计数器结构</h2><p><img src="/2025/03/19/topdown-analysis/image-20250326173528480.png" alt="image-20250326173528480"></p>
+<p>有*号代表现代的PMU含有该计数器，可以看到只需8个新的perf计数器就可以实现一级level的TMA，其计算公式如下：</p>
+<p><img src="/2025/03/19/topdown-analysis/image-20250326173651209.png" alt="image-20250326173651209"></p>
+<p><img src="/2025/03/19/topdown-analysis/image-20250326173659628.png" alt="image-20250326173659628"></p>
+<h2 id="Rocket-chip-性能计数器"><a href="#Rocket-chip-性能计数器" class="headerlink" title="Rocket  chip 性能计数器"></a>Rocket  chip 性能计数器</h2><p>RISCV只给出了性能计数器的标准，但并未给出性能计数器的具体实现，rocket chip 的实现方法如下：</p>
+<p>这里的EventSets，给出了三个EventSet，每个EventSets通过event选择</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">val perfEvents = new EventSets(Seq(</span><br><span class="line">  new EventSet((mask, hits) =&gt; Mux(wb_xcpt, mask(0), wb_valid &amp;&amp; pipelineIDToWB((mask &amp; hits).orR)), Seq(</span><br><span class="line">    (&quot;exception&quot;, () =&gt; false.B),</span><br><span class="line">    (&quot;load&quot;, () =&gt; id_ctrl.mem &amp;&amp; id_ctrl.mem_cmd === M_XRD &amp;&amp; !id_ctrl.fp),</span><br><span class="line">    (&quot;store&quot;, () =&gt; id_ctrl.mem &amp;&amp; id_ctrl.mem_cmd === M_XWR &amp;&amp; !id_ctrl.fp),</span><br><span class="line">    (&quot;amo&quot;, () =&gt; usingAtomics.B &amp;&amp; id_ctrl.mem &amp;&amp; (isAMO(id_ctrl.mem_cmd) || id_ctrl.mem_cmd.isOneOf(M_XLR, M_XSC))),</span><br><span class="line">    (&quot;system&quot;, () =&gt; id_ctrl.csr =/= CSR.N),</span><br><span class="line">    (&quot;arith&quot;, () =&gt; id_ctrl.wxd &amp;&amp; !(id_ctrl.jal || id_ctrl.jalr || id_ctrl.mem || id_ctrl.fp || id_ctrl.mul || id_ctrl.div || id_ctrl.csr =/= CSR.N)),</span><br><span class="line">    (&quot;branch&quot;, () =&gt; id_ctrl.branch),</span><br><span class="line">    (&quot;jal&quot;, () =&gt; id_ctrl.jal),</span><br><span class="line">    (&quot;jalr&quot;, () =&gt; id_ctrl.jalr))</span><br><span class="line">    ++ (if (!usingMulDiv) Seq() else Seq(</span><br><span class="line">      (&quot;mul&quot;, () =&gt; if (pipelinedMul) id_ctrl.mul else id_ctrl.div &amp;&amp; (id_ctrl.alu_fn &amp; aluFn.FN_DIV) =/= aluFn.FN_DIV),</span><br><span class="line">      (&quot;div&quot;, () =&gt; if (pipelinedMul) id_ctrl.div else id_ctrl.div &amp;&amp; (id_ctrl.alu_fn &amp; aluFn.FN_DIV) === aluFn.FN_DIV)))</span><br><span class="line">    ++ (if (!usingFPU) Seq() else Seq(</span><br><span class="line">      (&quot;fp load&quot;, () =&gt; id_ctrl.fp &amp;&amp; io.fpu.dec.ldst &amp;&amp; io.fpu.dec.wen),</span><br><span class="line">      (&quot;fp store&quot;, () =&gt; id_ctrl.fp &amp;&amp; io.fpu.dec.ldst &amp;&amp; !io.fpu.dec.wen),</span><br><span class="line">      (&quot;fp add&quot;, () =&gt; id_ctrl.fp &amp;&amp; io.fpu.dec.fma &amp;&amp; io.fpu.dec.swap23),</span><br><span class="line">      (&quot;fp mul&quot;, () =&gt; id_ctrl.fp &amp;&amp; io.fpu.dec.fma &amp;&amp; !io.fpu.dec.swap23 &amp;&amp; !io.fpu.dec.ren3),</span><br><span class="line">      (&quot;fp mul-add&quot;, () =&gt; id_ctrl.fp &amp;&amp; io.fpu.dec.fma &amp;&amp; io.fpu.dec.ren3),</span><br><span class="line">      (&quot;fp div/sqrt&quot;, () =&gt; id_ctrl.fp &amp;&amp; (io.fpu.dec.div || io.fpu.dec.sqrt)),</span><br><span class="line">      (&quot;fp other&quot;, () =&gt; id_ctrl.fp &amp;&amp; !(io.fpu.dec.ldst || io.fpu.dec.fma || io.fpu.dec.div || io.fpu.dec.sqrt))))),</span><br><span class="line">  new EventSet((mask, hits) =&gt; (mask &amp; hits).orR, Seq(</span><br><span class="line">    (&quot;load-use interlock&quot;, () =&gt; id_ex_hazard &amp;&amp; ex_ctrl.mem || id_mem_hazard &amp;&amp; mem_ctrl.mem || id_wb_hazard &amp;&amp; wb_ctrl.mem),</span><br><span class="line">    (&quot;long-latency interlock&quot;, () =&gt; id_sboard_hazard),</span><br><span class="line">    (&quot;csr interlock&quot;, () =&gt; id_ex_hazard &amp;&amp; ex_ctrl.csr =/= CSR.N || id_mem_hazard &amp;&amp; mem_ctrl.csr =/= CSR.N || id_wb_hazard &amp;&amp; wb_ctrl.csr =/= CSR.N),</span><br><span class="line">    (&quot;I$ blocked&quot;, () =&gt; icache_blocked),</span><br><span class="line">    (&quot;D$ blocked&quot;, () =&gt; id_ctrl.mem &amp;&amp; dcache_blocked),</span><br><span class="line">    (&quot;branch misprediction&quot;, () =&gt; take_pc_mem &amp;&amp; mem_direction_misprediction),</span><br><span class="line">    (&quot;control-flow target misprediction&quot;, () =&gt; take_pc_mem &amp;&amp; mem_misprediction &amp;&amp; mem_cfi &amp;&amp; !mem_direction_misprediction &amp;&amp; !icache_blocked),</span><br><span class="line">    (&quot;flush&quot;, () =&gt; wb_reg_flush_pipe),</span><br><span class="line">    (&quot;replay&quot;, () =&gt; replay_wb))</span><br><span class="line">    ++ (if (!usingMulDiv) Seq() else Seq(</span><br><span class="line">      (&quot;mul/div interlock&quot;, () =&gt; id_ex_hazard &amp;&amp; (ex_ctrl.mul || ex_ctrl.div) || id_mem_hazard &amp;&amp; (mem_ctrl.mul || mem_ctrl.div) || id_wb_hazard &amp;&amp; wb_ctrl.div)))</span><br><span class="line">    ++ (if (!usingFPU) Seq() else Seq(</span><br><span class="line">      (&quot;fp interlock&quot;, () =&gt; id_ex_hazard &amp;&amp; ex_ctrl.fp || id_mem_hazard &amp;&amp; mem_ctrl.fp || id_wb_hazard &amp;&amp; wb_ctrl.fp || id_ctrl.fp &amp;&amp; id_stall_fpu)))),</span><br><span class="line">  new EventSet((mask, hits) =&gt; (mask &amp; hits).orR, Seq(</span><br><span class="line">    (&quot;I$ miss&quot;, () =&gt; io.imem.perf.acquire),</span><br><span class="line">    (&quot;D$ miss&quot;, () =&gt; io.dmem.perf.acquire),</span><br><span class="line">    (&quot;D$ release&quot;, () =&gt; io.dmem.perf.release),</span><br><span class="line">    (&quot;ITLB miss&quot;, () =&gt; io.imem.perf.tlbMiss),</span><br><span class="line">    (&quot;DTLB miss&quot;, () =&gt; io.dmem.perf.tlbMiss),</span><br><span class="line">    (&quot;L2 TLB miss&quot;, () =&gt; io.ptw.perf.l2miss)))))</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<p>rocketchip的性能计数器需要写入hpmevent来给出对应的操作：</p>
+<p>具体的，hpmevent低8位选择不同的EventSet，其他位去选择具体的性能事件，比如向mhpmevent3写入0x4200，那么mhpmcounter在发生int load commit或 cond branch inst commit均会递增</p>
+<p><img src="/2025/03/19/topdown-analysis/image-20250324161603855.png" alt="image-20250324161603855"></p>
+<p>下面介绍一些函数的用法：该片段节选自CSR，这里主要就是去写入计数器（用于初始化）和event，注意在写入event时需要执行maskEventSelector，防止写入非法的区域</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">for (((e, c), i) &lt;- (reg_hpmevent zip reg_hpmcounter).zipWithIndex) &#123;</span><br><span class="line">  writeCounter(i + CSR.firstMHPC, c, wdata)//写入计数器</span><br><span class="line">  when (decoded_addr(i + CSR.firstHPE)) &#123; e := perfEventSets.maskEventSelector(wdata) &#125;//写入计数器使能</span><br><span class="line">&#125;</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<p>具体的,eventSetIdBits为8，set Mask是去mask不同的EventSet，maskMask是去mask一个EventSet不同的性能事件，然后执行eventSel &amp; (setMask | maskMask).U保证写入一定是合法的值</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">//这里低8位是用来选择模式的（也就是不同的性能计数器），setMask的意思就是给出此次选择哪个eventSet的Mask</span><br><span class="line">def maskEventSelector(eventSel: UInt): UInt = &#123;</span><br><span class="line">  // allow full associativity between counters and event sets (for now?)</span><br><span class="line">  val setMask = (BigInt(1) &lt;&lt; eventSetIdBits) - 1</span><br><span class="line">  val maskMask = ((BigInt(1) &lt;&lt; eventSets.map(_.size).max) - 1) &lt;&lt; maxEventSetIdBits</span><br><span class="line">  eventSel &amp; (setMask | maskMask).U</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>如何去触发性能事件并且使得相应的计数器增加呢？</p>
+<p>首先通过写入reg_hpmevent，配置好性能事件</p>
+<p>然后在rocketchip的核心中有</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">csr.io.counters foreach &#123; c =&gt; c.inc := RegNext(perfEvents.evaluate(c.eventSel)) &#125;</span><br></pre></td></tr></table></figure>
+
+<p>也就是遍历每个event是否触发了性能事件，并且给出增量，该增量会传入CSR，代码如下：</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">val reg_hpmcounter = io.counters.zipWithIndex.map &#123; case (c, i) =&gt;</span><br><span class="line">  WideCounter(CSR.hpmWidth, c.inc, reset = false, inhibit = reg_mcountinhibit(CSR.firstHPM+i)) &#125;</span><br></pre></td></tr></table></figure>
+
+<p>reg_mcountinhibit控制对应的计数器是否递增，为1禁止，（这里计数器最大为40位，因为64位会浪费bit）</p>
+<p>接下来讲解evaluate是如何工作的，下面代码是EventSets类的函数</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">private def decode(counter: UInt): (UInt, UInt) = &#123;</span><br><span class="line">  require(eventSets.size &lt;= (1 &lt;&lt; maxEventSetIdBits))</span><br><span class="line">  require(eventSetIdBits &gt; 0)</span><br><span class="line">  (counter(eventSetIdBits-1, 0), counter &gt;&gt; maxEventSetIdBits)</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">def evaluate(eventSel: UInt): Bool = &#123;</span><br><span class="line">  val (set, mask) = decode(eventSel)</span><br><span class="line">  val sets = for (e &lt;- eventSets) yield &#123;</span><br><span class="line">    require(e.hits.getWidth &lt;= mask.getWidth, s&quot;too many events $&#123;e.hits.getWidth&#125; wider than mask $&#123;mask.getWidth&#125;&quot;)</span><br><span class="line">    e check mask</span><br><span class="line">  &#125;</span><br><span class="line">  sets(set)</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>decode给出的是set（选择了哪个EventSet），mask（具体性能事件的选择），然后遍历了eventSets，对每个元素执行check函数</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">def size = events.size</span><br><span class="line">val hits = WireDefault(VecInit(Seq.fill(size)(false.B)))</span><br><span class="line">def check(mask: UInt) = &#123;</span><br><span class="line">  hits := events.map(_._2())</span><br><span class="line">  gate(mask, hits.asUInt)</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>check函数主要就是根据EventSet传入的函数，给出是否命中的信息，最后sets(set)就是选择对应的set，</p>
+<blockquote>
+<p>rocket chip的性能计数器设置每个周期只能+1，这样就无法去将该逻辑应用到BOOM中</p>
+</blockquote>
+<ul>
+<li><input checked disabled type="checkbox"> 兼容boom</li>
+</ul>
+<p>现在已经兼容boom，并添加了一级level的TMA</p>
+]]></content>
+  </entry>
+  <entry>
+    <title>简单的缓存一致性</title>
+    <url>/2025/02/05/%E7%AE%80%E5%8D%95%E7%9A%84%E7%BC%93%E5%AD%98%E4%B8%80%E8%87%B4%E6%80%A7/</url>
+    <content><![CDATA[<p>目录式协议(directory)—-物理存储器中数据块的共享状态被保存在一个称为目录的地方。目录式协议的实现开销比监听式协议的稍微大一些,但可用于实现更大规模的多处理机。<br>监听式协议(snooping)—-当物理存储器中的数据块被调入 Cache 时，其共享状态信息与该数据块一起放在该 Cache 中。系统中没有集中的状态表。这些 Cache 通常连在共享存储器的总线上。当某个 Cache 需要访问存储器时,它会把请求放到总线上广播出去,其他各个 Cache 控制器通过监听总线(它们一直在监听)来判断它们是否有总线上请求的数据块。如果有,就进行相应的操作。</p>
+<p>无论是MSI还是MESI,MOESI,都差不多按照以下思路分析:r_hit,r_miss,w_hit,w_miss讨论状态机实现,其中每个transaction对应3,4,5个状态(MSI-&gt;MESI-&gt;MOESI),且都要考虑本地cache和其他cache,如右图所示</p>
+<p><img src="/2025/02/05/%E7%AE%80%E5%8D%95%E7%9A%84%E7%BC%93%E5%AD%98%E4%B8%80%E8%87%B4%E6%80%A7/1729944912699.png" alt="1729944912699"></p>
+<ul>
+<li>M，modified，表示该数据已修改，即上述所说的“脏”数据，需要在合适的时机写回内存；</li>
+<li>E，Exclusive，表示该数据独占，意指此时该数据只存在某个核中，其他核没有该数据，于是就不需要所谓的广播给其他的核，也就没有缓存一致性的问题；</li>
+<li>S，Shared，表示数据共享，是从<strong>数据独占</strong>状态转移过来的。意指多个核中都有该数据，这个时候就会存在缓存一致性的问题；</li>
+<li>I，Invalidated，表示数据已失效，可以丢弃掉Cache Block的数据了（高并发情况下可能出现两个CPU同时修改变量a，并同时向总线发出将各自的缓存行更改为M状态的情况， <strong>此时总线会采用相应的裁决机制进行裁决</strong> ，将其中一个置为M状态，另一个置为I状态，且I状态的缓存行修改无效）；</li>
+</ul>
+<p>MESI四种状态标志是存储在Cache Line中的</p>
+<h1 id="内存模型"><a href="#内存模型" class="headerlink" title="内存模型"></a><strong>内存模型</strong></h1><h2 id="SC"><a href="#SC" class="headerlink" title="SC"></a>SC</h2><p>所有线程访存一定能构成全局序</p>
+<p><img src="/2025/02/05/%E7%AE%80%E5%8D%95%E7%9A%84%E7%BC%93%E5%AD%98%E4%B8%80%E8%87%B4%E6%80%A7/1730373908924.png" alt="1730373908924"></p>
+<p>所有load结果都是全局序中最近的同地址store值</p>
+<p>  <img src="/2025/02/05/%E7%AE%80%E5%8D%95%E7%9A%84%E7%BC%93%E5%AD%98%E4%B8%80%E8%87%B4%E6%80%A7/1730373977856.png" alt="1730373977856"></p>
+<h2 id="TSO"><a href="#TSO" class="headerlink" title="TSO"></a>TSO</h2><p><img src="/2025/02/05/%E7%AE%80%E5%8D%95%E7%9A%84%E7%BC%93%E5%AD%98%E4%B8%80%E8%87%B4%E6%80%A7/1730374094456.png" alt="1730374094456"><img src="/2025/02/05/%E7%AE%80%E5%8D%95%E7%9A%84%E7%BC%93%E5%AD%98%E4%B8%80%E8%87%B4%E6%80%A7/1730374216003.png" alt="1730374216003"></p>
+<h2 id="RVWMO"><a href="#RVWMO" class="headerlink" title="RVWMO"></a>RVWMO</h2><p><img src="/2025/02/05/%E7%AE%80%E5%8D%95%E7%9A%84%E7%BC%93%E5%AD%98%E4%B8%80%E8%87%B4%E6%80%A7/1730374321974.png" alt="1730374321974"></p>
+<p><img src="/2025/02/05/%E7%AE%80%E5%8D%95%E7%9A%84%E7%BC%93%E5%AD%98%E4%B8%80%E8%87%B4%E6%80%A7/1730374367495.png" alt="1730374367495"></p>
+<h2 id="香山乱序访存"><a href="#香山乱序访存" class="headerlink" title="香山乱序访存"></a>香山乱序访存</h2><p>数据也会存到SQ</p>
+<p><img src="/2025/02/05/%E7%AE%80%E5%8D%95%E7%9A%84%E7%BC%93%E5%AD%98%E4%B8%80%E8%87%B4%E6%80%A7/1730380794423.png" alt="1730380794423"></p>
+<p>设置一个SQ,在派遣时将进入SQ,FIFO结构,当指令</p>
+<p><img src="/2025/02/05/%E7%AE%80%E5%8D%95%E7%9A%84%E7%BC%93%E5%AD%98%E4%B8%80%E8%87%B4%E6%80%A7/1730380916400.png" alt="1730380916400"></p>
+<p><img src="/2025/02/05/%E7%AE%80%E5%8D%95%E7%9A%84%E7%BC%93%E5%AD%98%E4%B8%80%E8%87%B4%E6%80%A7/1730381086089.png" alt="1730381086089"></p>
+<p><img src="/2025/02/05/%E7%AE%80%E5%8D%95%E7%9A%84%E7%BC%93%E5%AD%98%E4%B8%80%E8%87%B4%E6%80%A7/1730381113849.png" alt="1730381113849"></p>
+<p>当<strong>sw遇到TLBmiss</strong> 让她退出流水,然后在SQ标记重发<img src="/2025/02/05/%E7%AE%80%E5%8D%95%E7%9A%84%E7%BC%93%E5%AD%98%E4%B8%80%E8%87%B4%E6%80%A7/1730381020649.png" alt="1730381020649"></p>
+<p><strong>load流水线</strong></p>
+<p>load指令一方面数据来自DCache,另一方面来自SQ,而且SQ优先级更高,在读数据要对SQ和DCache的数据合并</p>
+<p><strong>Store&#x2F;load违例:load先于store执行</strong></p>
+<p>1.阻塞,load得等,等到之前的store指令地址计算完,算是部分乱序</p>
+<p>2.检测:检测到了违例,直接从lw之后把指令刷掉,(一种是ROB,但ROB太大)</p>
+<p>所以可以设置一个LQ,FIFO,是ROB子集只用存LW指令,dispatch入队,sw指令会检测是否有比其更年轻的load(ROB地址值作为age)已经执行完了,从lw下面指令全部刷了.重新取</p>
+<p><img src="/2025/02/05/%E7%AE%80%E5%8D%95%E7%9A%84%E7%BC%93%E5%AD%98%E4%B8%80%E8%87%B4%E6%80%A7/1730381962804.png" alt="1730381962804"></p>
+<p>load异常事件:</p>
+<p>TLBmiss</p>
+<p><img src="/2025/02/05/%E7%AE%80%E5%8D%95%E7%9A%84%E7%BC%93%E5%AD%98%E4%B8%80%E8%87%B4%E6%80%A7/1730382130178.png" alt="1730382130178"></p>
+<p><img src="/2025/02/05/%E7%AE%80%E5%8D%95%E7%9A%84%E7%BC%93%E5%AD%98%E4%B8%80%E8%87%B4%E6%80%A7/1730382342283.png" alt="1730382342283"></p>
+<p>取回数据然后对唤醒LQ的指令</p>
+]]></content>
+      <categories>
+        <category>计算机体系结构</category>
+      </categories>
+  </entry>
+  <entry>
+    <title>vec runahead</title>
+    <url>/2025/03/25/vec-runahead/</url>
+    <content><![CDATA[<h1 id="Vector-Runahead"><a href="#Vector-Runahead" class="headerlink" title="Vector Runahead"></a>Vector Runahead</h1><p>为什么前面有个Vector？</p>
+<p>If runahead were instead to stall on cache misses to generate dependent chain loads, then it could regain performance if it could stall on many at once，传统的预取无法去预取间接访问内存的序列</p>
+<p>解决的就是runahead的load chain预取</p>
+<p>比如a[b[i]]</p>
+<p><img src="/2025/03/25/vec-runahead/image-20250325215328667.png" alt="image-20250325215328667"></p>
+<p>如图2(b)所示，假设所有存储器访问在高速缓存中未命中，PRE将发出对阵列a中第一个元素的访问的预取。依赖于该存储器访问的指令不能执行，因此对阵列B的访问和指针值不能被预取。当处理器在提前运行模式期间继续通过指令流时，它将命中对数组A中的第二个元素的访问，为此它将发出另一个预取；不幸的是，对B和数据值的相关访问不能被预取。接下来，对A中的第三个元素发出预取，依此类推。当启动提前运行模式的阻塞加载从主内存返回时，提前运行模式停止。此时，已经预取了对数组A的多次访问，但没有预取数组B的元素，也没有预取相关的数据值。</p>
+<p>一旦回到正常模式，由于阵列b的第一次缓存未命中，处理器将很快再次停止。</p>
+<p>现代处理器通常具有**硬件跨步预取器，**它应该能够预取对阵列A的跨步访问。如果是这样，当PRE访问阵列A中的元素时，它们将在缓存中命中，因此PRE能够发出对阵列B的第一级间接访问的预取请求，如图2(c)所示。在预运行模式下，PRE会将对阵列B的第一次访问(标记为“1”)转换为预取请求。但是不能预取从属数据值，因为它依赖于对B的访问。对A的下一次访问导致高速缓存中的命中，因为它被跨距预取器成功预取，因此处理器可以计算阵列B中的下一次访问的地址，并发出预取请求(标记为“2”)。同样，不能预取从属数据值。对A的下一次访问是高速缓存命中，然后处理器预取对B的第三次访问(标记为“3”)，依此类推。总之，即使跨距预取使提前运行执行能够预取多一级间接寻址，它仍然不能预取第二级(或更高级)</p>
+<p>而vec如图2(d)所示。</p>
+<p>当启动向量提前运行模式时，对阵列A的多次访问被矢量化，即，在多个感应变量偏移处并行地推测性地发出相同的存储器操作。我们对尽可能多的可用向量宽度进行矢量化，在本例中为8。依赖于数组A中的值的指令也被矢量化，包括对数组B和相关数据值的访问。在提前运行模式期间对相关指令流进行矢量化，同时保持提前运行模式直到发出最后一个相关加载，这使得能够推测性地预取整个相关加载链。向量化提前运行指令流具有在发出下一批并行的相关存储器访问之前，从循环的多次迭代中同时发出相同的存储器操作的效果，等等。与原始指令流相比，这种对存储器访问的有效重新排序使得向量提前运行能够首先向A发出一批访问，然后向B发出一批访问，最后向相关数据值发出一批访问。换句话说，即使独立的内存访问在原始动态指令流中可能相距很远，矢量提前运行也会并行发出它们</p>
+<p><strong>优点</strong></p>
+<p>矢量化具有两个主要优点:(1)它大大增加了提前运行模式期间的有效提取&#x2F;解码带宽，即我们一次提取&#x2F;解码多个循环迭代，以及(2)它需要非常少的后端硬件资源，即向量提前运行模式中的向量指令对应于原始代码中来自多个循环迭代的多个标量指令，同时仅占用单个发布队列槽</p>
+<h2 id="具体设计"><a href="#具体设计" class="headerlink" title="具体设计"></a>具体设计</h2><p><img src="/2025/03/25/vec-runahead/image-20250325222837702.png" alt="image-20250325222837702"></p>
+<p>跨距检测器<a href="%E7%AC%ACIII-B%E8%8A%82">19</a>用于查找代码中的常规访问模式，这些模式可用作“归纳变量”来生成代码的推测性矢量化副本。一旦我们进入向量提前运行模式(第III-C节)，依赖于这种矢量化步长模式的指令就被污点向量跟踪(第III-D节)，并被矢量化(第III-E节):地址计算算术运算被转换为向量单元运算，依赖者将自己加载到向量集合中。假设分支在每个矢量化副本上匹配，使用屏蔽来处理其他情况(第III-F节)。为了进一步将存储器级并行性提高到比单个向量加载所支持的水平更高的水平，我们设计了向量展开和流水线技术(第III-G节)来同时发出许多未来的加载。由于这导致旧标量指令和新向量指令之间的一对多关系，所以在前端引入向量寄存器分配表(VRAT)用于寄存器分配(第III-H节)，在后端引入寄存器解除分配队列(RDQ)(第III-I节)。</p>
+<h3 id="Detecting-Striding-Loads"><a href="#Detecting-Striding-Loads" class="headerlink" title="Detecting Striding Loads"></a>Detecting Striding Loads</h3><p>为了检测代码中的序列，我们可以从中生成归纳变量来对未来的内存访问进行矢量化，我们使用了一个简单的参考预测表[19，62]，它会在每个加载指令执行后进行更新。这由加载PC索引，并且每个条目维护四个字段:(1)最后访问的存储器地址；(2)负载的最后观察到的步幅；(3)指示置信度的2位饱和计数器；以及(4)来自跨步加载的指令链中的最终相关加载的终止符或PC。</p>
+<blockquote>
+<p>这里类似于分支预测器，学习stride，相当于一个简单的stride学习器</p>
+</blockquote>
+<p>最后一个字段(4)是新的，是在一轮矢量提前运行期间填充的，它允许我们在矢量提前运行模式下完成所有有用的工作后提前终止(第III-J节)。</p>
+<h3 id="Entering-Vector-Runahead"><a href="#Entering-Vector-Runahead" class="headerlink" title="Entering Vector Runahead"></a>Entering Vector Runahead</h3><p>在加载指令阻塞ROB的头部之后，当满足以下两个条件中的任何一个时，内核进入runahead模式:(1)ROB被指令填充；或者(2)发布队列被填充到其全部容量的80%。</p>
+<p>除了为从分支错误预测中恢复而存储的检查点之外，向量提前运行还通过为前端(RAT)的每个条目存储一个检查点来检查PC和前端RAT。这标志着进入提前运行模式。当我们返回正常模式时，处理器状态将恢复到该检查点。</p>
+<blockquote>
+<p>这里解释了如何进入runahead，以及进入runahead需要保存的状态</p>
+</blockquote>
+<p>我们访问每个加载指令的步距检测器。直到我们达到一个<strong>跨步负载</strong>，或者如果不存在这样的跨步负载，向量Runahead与PRE [64]类似地执行，但是不使用其完全关联的停止切片表，向量Runahead消除了对其的需要，以避免在没有这种模式的情况下损害工作负载，并捕获向量Runahead稍后使用的任何标量依赖关系。</p>
+<blockquote>
+<p>没stride load就和pre执行差不多</p>
+</blockquote>
+<p>当我们解码一个跨越负载(置信度&#x3D; 3)时，进入矢量提前运行模式开始。我们对跨越的负载进行矢量化，随后是依赖于它的指令序列。当检测到同一跨步负载的另一个动态实例时，或者从属链完成时，该过程终止(第III-J节)。我们称两个动态跨越负载实例之间的依赖指令为间接链。</p>
+<h3 id="Taint-Vector"><a href="#Taint-Vector" class="headerlink" title="Taint Vector"></a>Taint Vector</h3><p>为了跟踪哪些操作(传递地)依赖于指令流中新矢量化的跨负载，我们使用污点向量(TV)。</p>
+<p>这为每个架构整数寄存器提供了一个条目，并存储两个标志:(1)如果写入该寄存器的前一个指令是向量化操作(向量化位)；以及(2)如果先前写入该寄存器的指令无效(无效位)。TV在runahead开始时是空的，因为它在runahead终止时被清除。</p>
+<p>向量化位最初是为所发现的跨越式加载的目标体系结构寄存器设置的。无效位最初基于不支持的操作的目的地来设置，例如，那些将浮点操作作为输入的操作(其总是无效的，因此不需要TV条目)。</p>
+<p>如果任何一个指令的输入寄存器被标记，那么目标寄存器也被标记。如果没有输入寄存器被标记，则目标寄存器的标志被复位。</p>
+<p>没有设置位的指令作为传统的标量提前运行操作发出，并且在当前的矢量提前运行模式迭代中，相对于指令序列的矢量化副本被视为循环不变的。</p>
+<p>具有无效位组的指令被丢弃，只有矢量化位组的指令被矢量化。</p>
+<h3 id="Vectorizing-Instructions"><a href="#Vectorizing-Instructions" class="headerlink" title="Vectorizing Instructions"></a>Vectorizing Instructions</h3><p>在提前运行模式下执行的指令只在产生存储器访问时有用，它们的状态不在ROB中维护。因此，在runahead模式下不分配任何ROB条目。相反，我们使用更简单的寄存器解除分配队列[64] (RDQ，第III-I节)来处理寄存器可用性。由于浮点指令很少用于计算地址本身，我们忽略了这种指令(将它们和任何使用它们的指令标记为无效[57])，以及存储和任何已经在原始代码中矢量化的指令。</p>
+<h3 id="Control-Flow"><a href="#Control-Flow" class="headerlink" title="Control Flow"></a>Control Flow</h3><p>当向量化时，我们隐含地假设所有向量通道将遵循彼此相同的控制流模式。然而，当在向量提前运行模式下执行时，当通道遇到分支指令时，它们之间可能存在分歧。我们使用微操作将标量分支转换为八个向量通道的谓词掩码。由于向量提前运行不需要覆盖所有代码，因此我们仅使用第一个通道的结果来确定分支的方向，并屏蔽掉任何将采用不同控制路径的通道。这种屏蔽一直持续到我们终止vector-runahead的单次迭代。相比之下，单个向量提前间隔内的不同展开迭代(第III-G节)可以遵循独立的控制流</p>
+<h3 id="Vector-Unrolling-and-Pipelining"><a href="#Vector-Unrolling-and-Pipelining" class="headerlink" title="Vector Unrolling and Pipelining"></a>Vector Unrolling and Pipelining</h3><p>向量提前运行使用两种技术:向量展开和向量流水线，通过增加提前运行的程度来提高性能，以允许比指令集体系结构本身支持的向量更宽的向量。</p>
+<p><img src="/2025/03/25/vec-runahead/image-20250326155008172.png" alt="image-20250326155008172"></p>
+<h3 id="Vector-RAT"><a href="#Vector-RAT" class="headerlink" title="Vector RAT"></a>Vector RAT</h3><p>我们在架构标量寄存器和重命名的物理向量寄存器之间有一对多的关系。对于深度为4的流水线，我们需要将一个架构标量寄存器重命名为4个独立的向量物理寄存器(每个寄存器包含8个数据元素)。这意味着我们添加一个新的向量寄存器分配表(VRAT ),每个架构整数寄存器有P个条目，记录分配给指令的P个流水线副本的P个目标物理向量寄存器。当我们在VRAT中查找这些P寄存器时，新矢量化指令的P个副本中的每一个都使用P个条目中的一个作为自己的输入。这使我们能够区分向量流水线配置中的独立流水线迭代的输入和输出，从取指令的角度来看，它们都是同一指令的别名。16个整数寄存器中的每一个都需要P个条目，这通常是很小的</p>
+<h3 id="Managing-Pipeline-Resources-During-Runahead"><a href="#Managing-Pipeline-Resources-During-Runahead" class="headerlink" title="Managing Pipeline Resources During Runahead"></a>Managing Pipeline Resources During Runahead</h3><p>必须有足够数量的未使用的发布队列和物理(标量和向量)寄存器文件条目，用于推测性地执行导致间接加载的间接链。在矢量提前运行中，一条矢量指令从分派到执行占用一个issue入口。在执行时，发布队列条目被释放，并且可以被分配给更年轻的指令，类似于标准的OoO内核。</p>
+<p>如何去保存映射关系与释放映射关系？</p>
+<p>这是通过一个简单的有序寄存器解除分配队列(RDQ)来完成的，PRE [64]也使用这个队列。在VRAT中查找每条指令，以查看保存最后写入同一架构寄存器的指令的目的地的P(矢量流水线下)物理矢量寄存器，一旦新指令到达流水线的末端，该寄存器就会失效。</p>
+<blockquote>
+<p>这个相当于一个小rob</p>
+</blockquote>
+<h3 id="Terminating-Runahead"><a href="#Terminating-Runahead" class="headerlink" title="Terminating Runahead"></a>Terminating Runahead</h3><p>当满足以下四个条件中的任何一个时，矢量提前运行模式终止:(1)我们再次遇到相同跨越负载的动态实例；(2)我们遇到并发出终止符:由步幅检测器(第III-B节)识别为序列中最后一个相关加载的PC；(3)所有向量车道都已被标记为无效；或者(4)在沿着意外的代码路径行进的情况下，我们超时(在向量提前运行模式下执行了200个标量等价指令之后)。当U &gt; P(截面III-G)时，即展开长度大于管道深度时，我们立即重新进入矢量提前运行模式，加载下一个跨越负载</p>
+<p>再次发布矢量集合。重复这一过程，直到我们发出了U&#x3D;P个总回合，然后才恢复正常执行。如第六节所示，对整个间接链进行矢量化的好处远远超过内核处于提前运行模式的额外时间，因为矢量提前运行比典型的无序执行产生更高的内存级并行性。</p>
+<p>终止后，我们将前端RAT恢复到进入runahead模式的点，TV、VRAT和RDQ被清除。前端被重定向以从ROB中最后调度的指令之后的下一条指令获取。</p>
 ]]></content>
   </entry>
   <entry>
@@ -5042,195 +5314,6 @@ CDC入队条件比较弱,考虑更改</p>
 <li>PutFullData、PutPartialData、ArthmeticData、LogicalData隐式地将权限Cap为非Read+Write（主干或顶点），即None（Invalid）或Read（分支）。</li>
 </ul>
 <h3 id="TL-UL-and-TL-UH-messages-on-B-and-C"><a href="#TL-UL-and-TL-UH-messages-on-B-and-C" class="headerlink" title="TL-UL and TL-UH messages on B and C"></a>TL-UL and TL-UH messages on B and C</h3>]]></content>
-  </entry>
-  <entry>
-    <title>topdown analysis</title>
-    <url>/2025/03/19/topdown-analysis/</url>
-    <content><![CDATA[<h1 id="A-Top-Down-Method-for-Performance-Analysis-and-Counters-Architecture"><a href="#A-Top-Down-Method-for-Performance-Analysis-and-Counters-Architecture" class="headerlink" title="A Top-Down Method for Performance Analysis and Counters Architecture"></a>A Top-Down Method for Performance Analysis and Counters Architecture</h1><h2 id="为什么要提出这个方法学？"><a href="#为什么要提出这个方法学？" class="headerlink" title="为什么要提出这个方法学？"></a>为什么要提出这个方法学？</h2><p>传统的性能评估方法：</p>
-<p><img src="/2025/03/19/topdown-analysis/image-20250319103349042.png" alt="image-20250319103349042"></p>
-<p>其限制如下：</p>
-<ol>
-<li>Stalls overlap：OoO处理器许多模块都是并行计算，可能dcache miss惩罚会被overlap（即使miss也可以执行其他没有依赖的指令）</li>
-<li>Speculative execution：推测执行产生的错误结果不会影响提交，他们对性能实际影响较小（相对正确路径）</li>
-<li>Penalties are workloaddependent：性能惩罚的周期不定，而是和具体的工作负载相关，传统的性能评估方法认为所有惩罚周期一致</li>
-<li>Restriction to a pre-defined set of  miss-events：只有一些比较常见的会被评估，但比较细节的就可能被忽视（前端供指不足）</li>
-<li>Superscalar inaccuracy：超标量处理器可以一个周期执行退休多条指令，issue带宽可能会出现问题（其中一个例子）</li>
-</ol>
-<p>于是，intel提出了top-down的性能分析方法，该方法不仅可以应用于微结构探索，也可以去应用于软件分析</p>
-<p>他的分析方法就相当一个树，从跟节点到叶子节点一点点分析（选择占比大的事件分析），特点如下：</p>
-<ol>
-<li><p>引入错误预测的性能事件，并放在性能事件顶部</p>
-</li>
-<li><p>引入专门的计数器（12个）</p>
-</li>
-<li><p>确定关键的流水线阶段（issue）和计数时机</p>
-<blockquote>
-<p>比如，与其统计内存访问总时间，不如去观察由于mem access hang导致的执行单元利用率低的持续时间</p>
-</blockquote>
-</li>
-<li><p>使用通用的事件</p>
-</li>
-</ol>
-<p>其分析层次如下：</p>
-<p><img src="/2025/03/19/topdown-analysis/image-20250326171600522.png" alt="image-20250326171600522"></p>
-<p>我们选择issue阶段来进行事件分解</p>
-<p>将性能事件分为4类： Frontend Bound, Backend Bound, Bad Speculation and Retiring</p>
-<p><img src="/2025/03/19/topdown-analysis/image-20250326171657191.png" alt="image-20250326171657191"></p>
-<h2 id="前端-bound"><a href="#前端-bound" class="headerlink" title="前端 bound"></a>前端 bound</h2><p>前端分为Latency和Bandwidth，</p>
-<p>Latency：icache未命中等导致前端无法产生有效指令</p>
-<p>Frontend Bandwidth Bound：decoder效率低，其次就是取指令宽度不够（后端执行太快）</p>
-<blockquote>
-<p>boom很难产生Latency bound，后端执行单元少，无法利用OoO的并行</p>
-</blockquote>
-<h2 id="Bad-Speculation-category"><a href="#Bad-Speculation-category" class="headerlink" title="Bad Speculation category"></a>Bad Speculation category</h2><p>细分为br mispred和mechine clear</p>
-<h2 id="Backend-Bound-category"><a href="#Backend-Bound-category" class="headerlink" title="Backend Bound category"></a>Backend Bound category</h2><p>这里可能会有dcache miss divider执行等情况</p>
-<p>其进一步细分为Memory Bound 和Core Bound</p>
-<blockquote>
-<p>为了维持最大IPC，需要去在4-wide的机器上尽量让exu跑满</p>
-</blockquote>
-<p>Memory Bound：显而易见，就是lsu所造成的性能损失</p>
-<p>Core Bound ：执行端口利用率低，除法指令</p>
-<p>下面还展示了将Mem Bound细分</p>
-<p><img src="/2025/03/19/topdown-analysis/image-20250326173425211.png" alt="image-20250326173425211"></p>
-<h2 id="计数器结构"><a href="#计数器结构" class="headerlink" title="计数器结构"></a>计数器结构</h2><p><img src="/2025/03/19/topdown-analysis/image-20250326173528480.png" alt="image-20250326173528480"></p>
-<p>有*号代表现代的PMU含有该计数器，可以看到只需8个新的perf计数器就可以实现一级level的TMA，其计算公式如下：</p>
-<p><img src="/2025/03/19/topdown-analysis/image-20250326173651209.png" alt="image-20250326173651209"></p>
-<p><img src="/2025/03/19/topdown-analysis/image-20250326173659628.png" alt="image-20250326173659628"></p>
-<h2 id="Rocket-chip-性能计数器"><a href="#Rocket-chip-性能计数器" class="headerlink" title="Rocket  chip 性能计数器"></a>Rocket  chip 性能计数器</h2><p>RISCV只给出了性能计数器的标准，但并未给出性能计数器的具体实现，rocket chip 的实现方法如下：</p>
-<p>这里的EventSets，给出了三个EventSet，每个EventSets通过event选择</p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">val perfEvents = new EventSets(Seq(</span><br><span class="line">  new EventSet((mask, hits) =&gt; Mux(wb_xcpt, mask(0), wb_valid &amp;&amp; pipelineIDToWB((mask &amp; hits).orR)), Seq(</span><br><span class="line">    (&quot;exception&quot;, () =&gt; false.B),</span><br><span class="line">    (&quot;load&quot;, () =&gt; id_ctrl.mem &amp;&amp; id_ctrl.mem_cmd === M_XRD &amp;&amp; !id_ctrl.fp),</span><br><span class="line">    (&quot;store&quot;, () =&gt; id_ctrl.mem &amp;&amp; id_ctrl.mem_cmd === M_XWR &amp;&amp; !id_ctrl.fp),</span><br><span class="line">    (&quot;amo&quot;, () =&gt; usingAtomics.B &amp;&amp; id_ctrl.mem &amp;&amp; (isAMO(id_ctrl.mem_cmd) || id_ctrl.mem_cmd.isOneOf(M_XLR, M_XSC))),</span><br><span class="line">    (&quot;system&quot;, () =&gt; id_ctrl.csr =/= CSR.N),</span><br><span class="line">    (&quot;arith&quot;, () =&gt; id_ctrl.wxd &amp;&amp; !(id_ctrl.jal || id_ctrl.jalr || id_ctrl.mem || id_ctrl.fp || id_ctrl.mul || id_ctrl.div || id_ctrl.csr =/= CSR.N)),</span><br><span class="line">    (&quot;branch&quot;, () =&gt; id_ctrl.branch),</span><br><span class="line">    (&quot;jal&quot;, () =&gt; id_ctrl.jal),</span><br><span class="line">    (&quot;jalr&quot;, () =&gt; id_ctrl.jalr))</span><br><span class="line">    ++ (if (!usingMulDiv) Seq() else Seq(</span><br><span class="line">      (&quot;mul&quot;, () =&gt; if (pipelinedMul) id_ctrl.mul else id_ctrl.div &amp;&amp; (id_ctrl.alu_fn &amp; aluFn.FN_DIV) =/= aluFn.FN_DIV),</span><br><span class="line">      (&quot;div&quot;, () =&gt; if (pipelinedMul) id_ctrl.div else id_ctrl.div &amp;&amp; (id_ctrl.alu_fn &amp; aluFn.FN_DIV) === aluFn.FN_DIV)))</span><br><span class="line">    ++ (if (!usingFPU) Seq() else Seq(</span><br><span class="line">      (&quot;fp load&quot;, () =&gt; id_ctrl.fp &amp;&amp; io.fpu.dec.ldst &amp;&amp; io.fpu.dec.wen),</span><br><span class="line">      (&quot;fp store&quot;, () =&gt; id_ctrl.fp &amp;&amp; io.fpu.dec.ldst &amp;&amp; !io.fpu.dec.wen),</span><br><span class="line">      (&quot;fp add&quot;, () =&gt; id_ctrl.fp &amp;&amp; io.fpu.dec.fma &amp;&amp; io.fpu.dec.swap23),</span><br><span class="line">      (&quot;fp mul&quot;, () =&gt; id_ctrl.fp &amp;&amp; io.fpu.dec.fma &amp;&amp; !io.fpu.dec.swap23 &amp;&amp; !io.fpu.dec.ren3),</span><br><span class="line">      (&quot;fp mul-add&quot;, () =&gt; id_ctrl.fp &amp;&amp; io.fpu.dec.fma &amp;&amp; io.fpu.dec.ren3),</span><br><span class="line">      (&quot;fp div/sqrt&quot;, () =&gt; id_ctrl.fp &amp;&amp; (io.fpu.dec.div || io.fpu.dec.sqrt)),</span><br><span class="line">      (&quot;fp other&quot;, () =&gt; id_ctrl.fp &amp;&amp; !(io.fpu.dec.ldst || io.fpu.dec.fma || io.fpu.dec.div || io.fpu.dec.sqrt))))),</span><br><span class="line">  new EventSet((mask, hits) =&gt; (mask &amp; hits).orR, Seq(</span><br><span class="line">    (&quot;load-use interlock&quot;, () =&gt; id_ex_hazard &amp;&amp; ex_ctrl.mem || id_mem_hazard &amp;&amp; mem_ctrl.mem || id_wb_hazard &amp;&amp; wb_ctrl.mem),</span><br><span class="line">    (&quot;long-latency interlock&quot;, () =&gt; id_sboard_hazard),</span><br><span class="line">    (&quot;csr interlock&quot;, () =&gt; id_ex_hazard &amp;&amp; ex_ctrl.csr =/= CSR.N || id_mem_hazard &amp;&amp; mem_ctrl.csr =/= CSR.N || id_wb_hazard &amp;&amp; wb_ctrl.csr =/= CSR.N),</span><br><span class="line">    (&quot;I$ blocked&quot;, () =&gt; icache_blocked),</span><br><span class="line">    (&quot;D$ blocked&quot;, () =&gt; id_ctrl.mem &amp;&amp; dcache_blocked),</span><br><span class="line">    (&quot;branch misprediction&quot;, () =&gt; take_pc_mem &amp;&amp; mem_direction_misprediction),</span><br><span class="line">    (&quot;control-flow target misprediction&quot;, () =&gt; take_pc_mem &amp;&amp; mem_misprediction &amp;&amp; mem_cfi &amp;&amp; !mem_direction_misprediction &amp;&amp; !icache_blocked),</span><br><span class="line">    (&quot;flush&quot;, () =&gt; wb_reg_flush_pipe),</span><br><span class="line">    (&quot;replay&quot;, () =&gt; replay_wb))</span><br><span class="line">    ++ (if (!usingMulDiv) Seq() else Seq(</span><br><span class="line">      (&quot;mul/div interlock&quot;, () =&gt; id_ex_hazard &amp;&amp; (ex_ctrl.mul || ex_ctrl.div) || id_mem_hazard &amp;&amp; (mem_ctrl.mul || mem_ctrl.div) || id_wb_hazard &amp;&amp; wb_ctrl.div)))</span><br><span class="line">    ++ (if (!usingFPU) Seq() else Seq(</span><br><span class="line">      (&quot;fp interlock&quot;, () =&gt; id_ex_hazard &amp;&amp; ex_ctrl.fp || id_mem_hazard &amp;&amp; mem_ctrl.fp || id_wb_hazard &amp;&amp; wb_ctrl.fp || id_ctrl.fp &amp;&amp; id_stall_fpu)))),</span><br><span class="line">  new EventSet((mask, hits) =&gt; (mask &amp; hits).orR, Seq(</span><br><span class="line">    (&quot;I$ miss&quot;, () =&gt; io.imem.perf.acquire),</span><br><span class="line">    (&quot;D$ miss&quot;, () =&gt; io.dmem.perf.acquire),</span><br><span class="line">    (&quot;D$ release&quot;, () =&gt; io.dmem.perf.release),</span><br><span class="line">    (&quot;ITLB miss&quot;, () =&gt; io.imem.perf.tlbMiss),</span><br><span class="line">    (&quot;DTLB miss&quot;, () =&gt; io.dmem.perf.tlbMiss),</span><br><span class="line">    (&quot;L2 TLB miss&quot;, () =&gt; io.ptw.perf.l2miss)))))</span><br><span class="line"></span><br></pre></td></tr></table></figure>
-
-<p>rocketchip的性能计数器需要写入hpmevent来给出对应的操作：</p>
-<p>具体的，hpmevent低8位选择不同的EventSet，其他位去选择具体的性能事件，比如向mhpmevent3写入0x4200，那么mhpmcounter在发生int load commit或 cond branch inst commit均会递增</p>
-<p><img src="/2025/03/19/topdown-analysis/image-20250324161603855.png" alt="image-20250324161603855"></p>
-<p>下面介绍一些函数的用法：该片段节选自CSR，这里主要就是去写入计数器（用于初始化）和event，注意在写入event时需要执行maskEventSelector，防止写入非法的区域</p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">for (((e, c), i) &lt;- (reg_hpmevent zip reg_hpmcounter).zipWithIndex) &#123;</span><br><span class="line">  writeCounter(i + CSR.firstMHPC, c, wdata)//写入计数器</span><br><span class="line">  when (decoded_addr(i + CSR.firstHPE)) &#123; e := perfEventSets.maskEventSelector(wdata) &#125;//写入计数器使能</span><br><span class="line">&#125;</span><br><span class="line"></span><br></pre></td></tr></table></figure>
-
-<p>具体的,eventSetIdBits为8，set Mask是去mask不同的EventSet，maskMask是去mask一个EventSet不同的性能事件，然后执行eventSel &amp; (setMask | maskMask).U保证写入一定是合法的值</p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">//这里低8位是用来选择模式的（也就是不同的性能计数器），setMask的意思就是给出此次选择哪个eventSet的Mask</span><br><span class="line">def maskEventSelector(eventSel: UInt): UInt = &#123;</span><br><span class="line">  // allow full associativity between counters and event sets (for now?)</span><br><span class="line">  val setMask = (BigInt(1) &lt;&lt; eventSetIdBits) - 1</span><br><span class="line">  val maskMask = ((BigInt(1) &lt;&lt; eventSets.map(_.size).max) - 1) &lt;&lt; maxEventSetIdBits</span><br><span class="line">  eventSel &amp; (setMask | maskMask).U</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<p>如何去触发性能事件并且使得相应的计数器增加呢？</p>
-<p>首先通过写入reg_hpmevent，配置好性能事件</p>
-<p>然后在rocketchip的核心中有</p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">csr.io.counters foreach &#123; c =&gt; c.inc := RegNext(perfEvents.evaluate(c.eventSel)) &#125;</span><br></pre></td></tr></table></figure>
-
-<p>也就是遍历每个event是否触发了性能事件，并且给出增量，该增量会传入CSR，代码如下：</p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">val reg_hpmcounter = io.counters.zipWithIndex.map &#123; case (c, i) =&gt;</span><br><span class="line">  WideCounter(CSR.hpmWidth, c.inc, reset = false, inhibit = reg_mcountinhibit(CSR.firstHPM+i)) &#125;</span><br></pre></td></tr></table></figure>
-
-<p>reg_mcountinhibit控制对应的计数器是否递增，为1禁止，（这里计数器最大为40位，因为64位会浪费bit）</p>
-<p>接下来讲解evaluate是如何工作的，下面代码是EventSets类的函数</p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">private def decode(counter: UInt): (UInt, UInt) = &#123;</span><br><span class="line">  require(eventSets.size &lt;= (1 &lt;&lt; maxEventSetIdBits))</span><br><span class="line">  require(eventSetIdBits &gt; 0)</span><br><span class="line">  (counter(eventSetIdBits-1, 0), counter &gt;&gt; maxEventSetIdBits)</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">def evaluate(eventSel: UInt): Bool = &#123;</span><br><span class="line">  val (set, mask) = decode(eventSel)</span><br><span class="line">  val sets = for (e &lt;- eventSets) yield &#123;</span><br><span class="line">    require(e.hits.getWidth &lt;= mask.getWidth, s&quot;too many events $&#123;e.hits.getWidth&#125; wider than mask $&#123;mask.getWidth&#125;&quot;)</span><br><span class="line">    e check mask</span><br><span class="line">  &#125;</span><br><span class="line">  sets(set)</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<p>decode给出的是set（选择了哪个EventSet），mask（具体性能事件的选择），然后遍历了eventSets，对每个元素执行check函数</p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">def size = events.size</span><br><span class="line">val hits = WireDefault(VecInit(Seq.fill(size)(false.B)))</span><br><span class="line">def check(mask: UInt) = &#123;</span><br><span class="line">  hits := events.map(_._2())</span><br><span class="line">  gate(mask, hits.asUInt)</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<p>check函数主要就是根据EventSet传入的函数，给出是否命中的信息，最后sets(set)就是选择对应的set，</p>
-<blockquote>
-<p>rocket chip的性能计数器设置每个周期只能+1，这样就无法去将该逻辑应用到BOOM中</p>
-</blockquote>
-<ul>
-<li><input checked disabled type="checkbox"> 兼容boom</li>
-</ul>
-<p>现在已经兼容boom，并添加了一级level的TMA</p>
-]]></content>
-  </entry>
-  <entry>
-    <title>vec runahead</title>
-    <url>/2025/03/25/vec-runahead/</url>
-    <content><![CDATA[<h1 id="Vector-Runahead"><a href="#Vector-Runahead" class="headerlink" title="Vector Runahead"></a>Vector Runahead</h1><p>为什么前面有个Vector？</p>
-<p>If runahead were instead to stall on cache misses to generate dependent chain loads, then it could regain performance if it could stall on many at once，传统的预取无法去预取间接访问内存的序列</p>
-<p>解决的就是runahead的load chain预取</p>
-<p>比如a[b[i]]</p>
-<p><img src="/2025/03/25/vec-runahead/image-20250325215328667.png" alt="image-20250325215328667"></p>
-<p>如图2(b)所示，假设所有存储器访问在高速缓存中未命中，PRE将发出对阵列a中第一个元素的访问的预取。依赖于该存储器访问的指令不能执行，因此对阵列B的访问和指针值不能被预取。当处理器在提前运行模式期间继续通过指令流时，它将命中对数组A中的第二个元素的访问，为此它将发出另一个预取；不幸的是，对B和数据值的相关访问不能被预取。接下来，对A中的第三个元素发出预取，依此类推。当启动提前运行模式的阻塞加载从主内存返回时，提前运行模式停止。此时，已经预取了对数组A的多次访问，但没有预取数组B的元素，也没有预取相关的数据值。</p>
-<p>一旦回到正常模式，由于阵列b的第一次缓存未命中，处理器将很快再次停止。</p>
-<p>现代处理器通常具有**硬件跨步预取器，**它应该能够预取对阵列A的跨步访问。如果是这样，当PRE访问阵列A中的元素时，它们将在缓存中命中，因此PRE能够发出对阵列B的第一级间接访问的预取请求，如图2(c)所示。在预运行模式下，PRE会将对阵列B的第一次访问(标记为“1”)转换为预取请求。但是不能预取从属数据值，因为它依赖于对B的访问。对A的下一次访问导致高速缓存中的命中，因为它被跨距预取器成功预取，因此处理器可以计算阵列B中的下一次访问的地址，并发出预取请求(标记为“2”)。同样，不能预取从属数据值。对A的下一次访问是高速缓存命中，然后处理器预取对B的第三次访问(标记为“3”)，依此类推。总之，即使跨距预取使提前运行执行能够预取多一级间接寻址，它仍然不能预取第二级(或更高级)</p>
-<p>而vec如图2(d)所示。</p>
-<p>当启动向量提前运行模式时，对阵列A的多次访问被矢量化，即，在多个感应变量偏移处并行地推测性地发出相同的存储器操作。我们对尽可能多的可用向量宽度进行矢量化，在本例中为8。依赖于数组A中的值的指令也被矢量化，包括对数组B和相关数据值的访问。在提前运行模式期间对相关指令流进行矢量化，同时保持提前运行模式直到发出最后一个相关加载，这使得能够推测性地预取整个相关加载链。向量化提前运行指令流具有在发出下一批并行的相关存储器访问之前，从循环的多次迭代中同时发出相同的存储器操作的效果，等等。与原始指令流相比，这种对存储器访问的有效重新排序使得向量提前运行能够首先向A发出一批访问，然后向B发出一批访问，最后向相关数据值发出一批访问。换句话说，即使独立的内存访问在原始动态指令流中可能相距很远，矢量提前运行也会并行发出它们</p>
-<p><strong>优点</strong></p>
-<p>矢量化具有两个主要优点:(1)它大大增加了提前运行模式期间的有效提取&#x2F;解码带宽，即我们一次提取&#x2F;解码多个循环迭代，以及(2)它需要非常少的后端硬件资源，即向量提前运行模式中的向量指令对应于原始代码中来自多个循环迭代的多个标量指令，同时仅占用单个发布队列槽</p>
-<h2 id="具体设计"><a href="#具体设计" class="headerlink" title="具体设计"></a>具体设计</h2><p><img src="/2025/03/25/vec-runahead/image-20250325222837702.png" alt="image-20250325222837702"></p>
-<p>跨距检测器<a href="%E7%AC%ACIII-B%E8%8A%82">19</a>用于查找代码中的常规访问模式，这些模式可用作“归纳变量”来生成代码的推测性矢量化副本。一旦我们进入向量提前运行模式(第III-C节)，依赖于这种矢量化步长模式的指令就被污点向量跟踪(第III-D节)，并被矢量化(第III-E节):地址计算算术运算被转换为向量单元运算，依赖者将自己加载到向量集合中。假设分支在每个矢量化副本上匹配，使用屏蔽来处理其他情况(第III-F节)。为了进一步将存储器级并行性提高到比单个向量加载所支持的水平更高的水平，我们设计了向量展开和流水线技术(第III-G节)来同时发出许多未来的加载。由于这导致旧标量指令和新向量指令之间的一对多关系，所以在前端引入向量寄存器分配表(VRAT)用于寄存器分配(第III-H节)，在后端引入寄存器解除分配队列(RDQ)(第III-I节)。</p>
-<h3 id="Detecting-Striding-Loads"><a href="#Detecting-Striding-Loads" class="headerlink" title="Detecting Striding Loads"></a>Detecting Striding Loads</h3><p>为了检测代码中的序列，我们可以从中生成归纳变量来对未来的内存访问进行矢量化，我们使用了一个简单的参考预测表[19，62]，它会在每个加载指令执行后进行更新。这由加载PC索引，并且每个条目维护四个字段:(1)最后访问的存储器地址；(2)负载的最后观察到的步幅；(3)指示置信度的2位饱和计数器；以及(4)来自跨步加载的指令链中的最终相关加载的终止符或PC。</p>
-<blockquote>
-<p>这里类似于分支预测器，学习stride，相当于一个简单的stride学习器</p>
-</blockquote>
-<p>最后一个字段(4)是新的，是在一轮矢量提前运行期间填充的，它允许我们在矢量提前运行模式下完成所有有用的工作后提前终止(第III-J节)。</p>
-<h3 id="Entering-Vector-Runahead"><a href="#Entering-Vector-Runahead" class="headerlink" title="Entering Vector Runahead"></a>Entering Vector Runahead</h3><p>在加载指令阻塞ROB的头部之后，当满足以下两个条件中的任何一个时，内核进入runahead模式:(1)ROB被指令填充；或者(2)发布队列被填充到其全部容量的80%。</p>
-<p>除了为从分支错误预测中恢复而存储的检查点之外，向量提前运行还通过为前端(RAT)的每个条目存储一个检查点来检查PC和前端RAT。这标志着进入提前运行模式。当我们返回正常模式时，处理器状态将恢复到该检查点。</p>
-<blockquote>
-<p>这里解释了如何进入runahead，以及进入runahead需要保存的状态</p>
-</blockquote>
-<p>我们访问每个加载指令的步距检测器。直到我们达到一个<strong>跨步负载</strong>，或者如果不存在这样的跨步负载，向量Runahead与PRE [64]类似地执行，但是不使用其完全关联的停止切片表，向量Runahead消除了对其的需要，以避免在没有这种模式的情况下损害工作负载，并捕获向量Runahead稍后使用的任何标量依赖关系。</p>
-<blockquote>
-<p>没stride load就和pre执行差不多</p>
-</blockquote>
-<p>当我们解码一个跨越负载(置信度&#x3D; 3)时，进入矢量提前运行模式开始。我们对跨越的负载进行矢量化，随后是依赖于它的指令序列。当检测到同一跨步负载的另一个动态实例时，或者从属链完成时，该过程终止(第III-J节)。我们称两个动态跨越负载实例之间的依赖指令为间接链。</p>
-<h3 id="Taint-Vector"><a href="#Taint-Vector" class="headerlink" title="Taint Vector"></a>Taint Vector</h3><p>为了跟踪哪些操作(传递地)依赖于指令流中新矢量化的跨负载，我们使用污点向量(TV)。</p>
-<p>这为每个架构整数寄存器提供了一个条目，并存储两个标志:(1)如果写入该寄存器的前一个指令是向量化操作(向量化位)；以及(2)如果先前写入该寄存器的指令无效(无效位)。TV在runahead开始时是空的，因为它在runahead终止时被清除。</p>
-<p>向量化位最初是为所发现的跨越式加载的目标体系结构寄存器设置的。无效位最初基于不支持的操作的目的地来设置，例如，那些将浮点操作作为输入的操作(其总是无效的，因此不需要TV条目)。</p>
-<p>如果任何一个指令的输入寄存器被标记，那么目标寄存器也被标记。如果没有输入寄存器被标记，则目标寄存器的标志被复位。</p>
-<p>没有设置位的指令作为传统的标量提前运行操作发出，并且在当前的矢量提前运行模式迭代中，相对于指令序列的矢量化副本被视为循环不变的。</p>
-<p>具有无效位组的指令被丢弃，只有矢量化位组的指令被矢量化。</p>
-<h3 id="Vectorizing-Instructions"><a href="#Vectorizing-Instructions" class="headerlink" title="Vectorizing Instructions"></a>Vectorizing Instructions</h3><p>在提前运行模式下执行的指令只在产生存储器访问时有用，它们的状态不在ROB中维护。因此，在runahead模式下不分配任何ROB条目。相反，我们使用更简单的寄存器解除分配队列[64] (RDQ，第III-I节)来处理寄存器可用性。由于浮点指令很少用于计算地址本身，我们忽略了这种指令(将它们和任何使用它们的指令标记为无效[57])，以及存储和任何已经在原始代码中矢量化的指令。</p>
-<h3 id="Control-Flow"><a href="#Control-Flow" class="headerlink" title="Control Flow"></a>Control Flow</h3><p>当向量化时，我们隐含地假设所有向量通道将遵循彼此相同的控制流模式。然而，当在向量提前运行模式下执行时，当通道遇到分支指令时，它们之间可能存在分歧。我们使用微操作将标量分支转换为八个向量通道的谓词掩码。由于向量提前运行不需要覆盖所有代码，因此我们仅使用第一个通道的结果来确定分支的方向，并屏蔽掉任何将采用不同控制路径的通道。这种屏蔽一直持续到我们终止vector-runahead的单次迭代。相比之下，单个向量提前间隔内的不同展开迭代(第III-G节)可以遵循独立的控制流</p>
-<h3 id="Vector-Unrolling-and-Pipelining"><a href="#Vector-Unrolling-and-Pipelining" class="headerlink" title="Vector Unrolling and Pipelining"></a>Vector Unrolling and Pipelining</h3><p>向量提前运行使用两种技术:向量展开和向量流水线，通过增加提前运行的程度来提高性能，以允许比指令集体系结构本身支持的向量更宽的向量。</p>
-<p><img src="/2025/03/25/vec-runahead/image-20250326155008172.png" alt="image-20250326155008172"></p>
-<h3 id="Vector-RAT"><a href="#Vector-RAT" class="headerlink" title="Vector RAT"></a>Vector RAT</h3><p>我们在架构标量寄存器和重命名的物理向量寄存器之间有一对多的关系。对于深度为4的流水线，我们需要将一个架构标量寄存器重命名为4个独立的向量物理寄存器(每个寄存器包含8个数据元素)。这意味着我们添加一个新的向量寄存器分配表(VRAT ),每个架构整数寄存器有P个条目，记录分配给指令的P个流水线副本的P个目标物理向量寄存器。当我们在VRAT中查找这些P寄存器时，新矢量化指令的P个副本中的每一个都使用P个条目中的一个作为自己的输入。这使我们能够区分向量流水线配置中的独立流水线迭代的输入和输出，从取指令的角度来看，它们都是同一指令的别名。16个整数寄存器中的每一个都需要P个条目，这通常是很小的</p>
-<h3 id="Managing-Pipeline-Resources-During-Runahead"><a href="#Managing-Pipeline-Resources-During-Runahead" class="headerlink" title="Managing Pipeline Resources During Runahead"></a>Managing Pipeline Resources During Runahead</h3><p>必须有足够数量的未使用的发布队列和物理(标量和向量)寄存器文件条目，用于推测性地执行导致间接加载的间接链。在矢量提前运行中，一条矢量指令从分派到执行占用一个issue入口。在执行时，发布队列条目被释放，并且可以被分配给更年轻的指令，类似于标准的OoO内核。</p>
-<p>如何去保存映射关系与释放映射关系？</p>
-<p>这是通过一个简单的有序寄存器解除分配队列(RDQ)来完成的，PRE [64]也使用这个队列。在VRAT中查找每条指令，以查看保存最后写入同一架构寄存器的指令的目的地的P(矢量流水线下)物理矢量寄存器，一旦新指令到达流水线的末端，该寄存器就会失效。</p>
-<blockquote>
-<p>这个相当于一个小rob</p>
-</blockquote>
-<h3 id="Terminating-Runahead"><a href="#Terminating-Runahead" class="headerlink" title="Terminating Runahead"></a>Terminating Runahead</h3><p>当满足以下四个条件中的任何一个时，矢量提前运行模式终止:(1)我们再次遇到相同跨越负载的动态实例；(2)我们遇到并发出终止符:由步幅检测器(第III-B节)识别为序列中最后一个相关加载的PC；(3)所有向量车道都已被标记为无效；或者(4)在沿着意外的代码路径行进的情况下，我们超时(在向量提前运行模式下执行了200个标量等价指令之后)。当U &gt; P(截面III-G)时，即展开长度大于管道深度时，我们立即重新进入矢量提前运行模式，加载下一个跨越负载</p>
-<p>再次发布矢量集合。重复这一过程，直到我们发出了U&#x3D;P个总回合，然后才恢复正常执行。如第六节所示，对整个间接链进行矢量化的好处远远超过内核处于提前运行模式的额外时间，因为矢量提前运行比典型的无序执行产生更高的内存级并行性。</p>
-<p>终止后，我们将前端RAT恢复到进入runahead模式的点，TV、VRAT和RDQ被清除。前端被重定向以从ROB中最后调度的指令之后的下一条指令获取。</p>
-]]></content>
-  </entry>
-  <entry>
-    <title>简单的缓存一致性</title>
-    <url>/2025/02/05/%E7%AE%80%E5%8D%95%E7%9A%84%E7%BC%93%E5%AD%98%E4%B8%80%E8%87%B4%E6%80%A7/</url>
-    <content><![CDATA[<p>目录式协议(directory)—-物理存储器中数据块的共享状态被保存在一个称为目录的地方。目录式协议的实现开销比监听式协议的稍微大一些,但可用于实现更大规模的多处理机。<br>监听式协议(snooping)—-当物理存储器中的数据块被调入 Cache 时，其共享状态信息与该数据块一起放在该 Cache 中。系统中没有集中的状态表。这些 Cache 通常连在共享存储器的总线上。当某个 Cache 需要访问存储器时,它会把请求放到总线上广播出去,其他各个 Cache 控制器通过监听总线(它们一直在监听)来判断它们是否有总线上请求的数据块。如果有,就进行相应的操作。</p>
-<p>无论是MSI还是MESI,MOESI,都差不多按照以下思路分析:r_hit,r_miss,w_hit,w_miss讨论状态机实现,其中每个transaction对应3,4,5个状态(MSI-&gt;MESI-&gt;MOESI),且都要考虑本地cache和其他cache,如右图所示</p>
-<p><img src="/2025/02/05/%E7%AE%80%E5%8D%95%E7%9A%84%E7%BC%93%E5%AD%98%E4%B8%80%E8%87%B4%E6%80%A7/1729944912699.png" alt="1729944912699"></p>
-<ul>
-<li>M，modified，表示该数据已修改，即上述所说的“脏”数据，需要在合适的时机写回内存；</li>
-<li>E，Exclusive，表示该数据独占，意指此时该数据只存在某个核中，其他核没有该数据，于是就不需要所谓的广播给其他的核，也就没有缓存一致性的问题；</li>
-<li>S，Shared，表示数据共享，是从<strong>数据独占</strong>状态转移过来的。意指多个核中都有该数据，这个时候就会存在缓存一致性的问题；</li>
-<li>I，Invalidated，表示数据已失效，可以丢弃掉Cache Block的数据了（高并发情况下可能出现两个CPU同时修改变量a，并同时向总线发出将各自的缓存行更改为M状态的情况， <strong>此时总线会采用相应的裁决机制进行裁决</strong> ，将其中一个置为M状态，另一个置为I状态，且I状态的缓存行修改无效）；</li>
-</ul>
-<p>MESI四种状态标志是存储在Cache Line中的</p>
-<h1 id="内存模型"><a href="#内存模型" class="headerlink" title="内存模型"></a><strong>内存模型</strong></h1><h2 id="SC"><a href="#SC" class="headerlink" title="SC"></a>SC</h2><p>所有线程访存一定能构成全局序</p>
-<p><img src="/2025/02/05/%E7%AE%80%E5%8D%95%E7%9A%84%E7%BC%93%E5%AD%98%E4%B8%80%E8%87%B4%E6%80%A7/1730373908924.png" alt="1730373908924"></p>
-<p>所有load结果都是全局序中最近的同地址store值</p>
-<p>  <img src="/2025/02/05/%E7%AE%80%E5%8D%95%E7%9A%84%E7%BC%93%E5%AD%98%E4%B8%80%E8%87%B4%E6%80%A7/1730373977856.png" alt="1730373977856"></p>
-<h2 id="TSO"><a href="#TSO" class="headerlink" title="TSO"></a>TSO</h2><p><img src="/2025/02/05/%E7%AE%80%E5%8D%95%E7%9A%84%E7%BC%93%E5%AD%98%E4%B8%80%E8%87%B4%E6%80%A7/1730374094456.png" alt="1730374094456"><img src="/2025/02/05/%E7%AE%80%E5%8D%95%E7%9A%84%E7%BC%93%E5%AD%98%E4%B8%80%E8%87%B4%E6%80%A7/1730374216003.png" alt="1730374216003"></p>
-<h2 id="RVWMO"><a href="#RVWMO" class="headerlink" title="RVWMO"></a>RVWMO</h2><p><img src="/2025/02/05/%E7%AE%80%E5%8D%95%E7%9A%84%E7%BC%93%E5%AD%98%E4%B8%80%E8%87%B4%E6%80%A7/1730374321974.png" alt="1730374321974"></p>
-<p><img src="/2025/02/05/%E7%AE%80%E5%8D%95%E7%9A%84%E7%BC%93%E5%AD%98%E4%B8%80%E8%87%B4%E6%80%A7/1730374367495.png" alt="1730374367495"></p>
-<h2 id="香山乱序访存"><a href="#香山乱序访存" class="headerlink" title="香山乱序访存"></a>香山乱序访存</h2><p>数据也会存到SQ</p>
-<p><img src="/2025/02/05/%E7%AE%80%E5%8D%95%E7%9A%84%E7%BC%93%E5%AD%98%E4%B8%80%E8%87%B4%E6%80%A7/1730380794423.png" alt="1730380794423"></p>
-<p>设置一个SQ,在派遣时将进入SQ,FIFO结构,当指令</p>
-<p><img src="/2025/02/05/%E7%AE%80%E5%8D%95%E7%9A%84%E7%BC%93%E5%AD%98%E4%B8%80%E8%87%B4%E6%80%A7/1730380916400.png" alt="1730380916400"></p>
-<p><img src="/2025/02/05/%E7%AE%80%E5%8D%95%E7%9A%84%E7%BC%93%E5%AD%98%E4%B8%80%E8%87%B4%E6%80%A7/1730381086089.png" alt="1730381086089"></p>
-<p><img src="/2025/02/05/%E7%AE%80%E5%8D%95%E7%9A%84%E7%BC%93%E5%AD%98%E4%B8%80%E8%87%B4%E6%80%A7/1730381113849.png" alt="1730381113849"></p>
-<p>当<strong>sw遇到TLBmiss</strong> 让她退出流水,然后在SQ标记重发<img src="/2025/02/05/%E7%AE%80%E5%8D%95%E7%9A%84%E7%BC%93%E5%AD%98%E4%B8%80%E8%87%B4%E6%80%A7/1730381020649.png" alt="1730381020649"></p>
-<p><strong>load流水线</strong></p>
-<p>load指令一方面数据来自DCache,另一方面来自SQ,而且SQ优先级更高,在读数据要对SQ和DCache的数据合并</p>
-<p><strong>Store&#x2F;load违例:load先于store执行</strong></p>
-<p>1.阻塞,load得等,等到之前的store指令地址计算完,算是部分乱序</p>
-<p>2.检测:检测到了违例,直接从lw之后把指令刷掉,(一种是ROB,但ROB太大)</p>
-<p>所以可以设置一个LQ,FIFO,是ROB子集只用存LW指令,dispatch入队,sw指令会检测是否有比其更年轻的load(ROB地址值作为age)已经执行完了,从lw下面指令全部刷了.重新取</p>
-<p><img src="/2025/02/05/%E7%AE%80%E5%8D%95%E7%9A%84%E7%BC%93%E5%AD%98%E4%B8%80%E8%87%B4%E6%80%A7/1730381962804.png" alt="1730381962804"></p>
-<p>load异常事件:</p>
-<p>TLBmiss</p>
-<p><img src="/2025/02/05/%E7%AE%80%E5%8D%95%E7%9A%84%E7%BC%93%E5%AD%98%E4%B8%80%E8%87%B4%E6%80%A7/1730382130178.png" alt="1730382130178"></p>
-<p><img src="/2025/02/05/%E7%AE%80%E5%8D%95%E7%9A%84%E7%BC%93%E5%AD%98%E4%B8%80%E8%87%B4%E6%80%A7/1730382342283.png" alt="1730382342283"></p>
-<p>取回数据然后对唤醒LQ的指令</p>
-]]></content>
-      <categories>
-        <category>计算机体系结构</category>
-      </categories>
   </entry>
   <entry>
     <title>论文移植</title>
